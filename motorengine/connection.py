@@ -26,34 +26,42 @@ class ConnectionError(Exception):
 
 _connection_settings = {}
 _connections = {}
+_default_dbs = {}
 
 
-def register_connection(alias, **kwargs):
+def register_connection(db, alias, **kwargs):
     global _connection_settings
+    global _default_dbs
 
     _connection_settings[alias] = kwargs
+    _default_dbs[alias] = db
 
 
 def cleanup():
     global _connections
     global _connection_settings
+    global _default_dbs
 
     _connections = {}
     _connection_settings = {}
+    _default_dbs = {}
 
 
 def disconnect(alias=DEFAULT_CONNECTION_NAME):
     global _connections
     global _connections_settings
+    global _default_dbs
 
     if alias in _connections:
         get_connection(alias=alias).disconnect()
         del _connections[alias]
         del _connection_settings[alias]
+        del _default_dbs[alias]
 
 
 def get_connection(alias=DEFAULT_CONNECTION_NAME, db=None):
     global _connections
+    global _default_dbs
 
     if alias not in _connections:
         conn_settings = _connection_settings[alias].copy()
@@ -79,7 +87,9 @@ def get_connection(alias=DEFAULT_CONNECTION_NAME, db=None):
             raise ConnectionError("Cannot connect to database %s :\n%s" % (alias, exc_info))
 
     database = None
-    if db is not None:
+    if db is None:
+        database = getattr(_connections[alias], _default_dbs[alias])
+    else:
         database = getattr(_connections[alias], db)
     return Database(_connections[alias], database)
 
@@ -97,6 +107,6 @@ def connect(db, alias=DEFAULT_CONNECTION_NAME, **kwargs):
     global _connections
     if alias not in _connections:
         kwargs['name'] = db
-        register_connection(alias, **kwargs)
+        register_connection(db, alias, **kwargs)
 
     return get_connection(alias, db=db)

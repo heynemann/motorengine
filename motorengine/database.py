@@ -18,3 +18,6 @@ class Database(object):
             return object.__getattribute__(self, name)
 
         return getattr(self.database, name)
+
+    def __getitem__(self, val):
+        return getattr(self.database, val)
