@@ -5,8 +5,15 @@
 
 import sys
 
-import six
-from motor import MotorClient, MotorReplicaSetClient
+try:
+    import six
+except ImportError:
+    pass
+
+try:
+    from motor import MotorClient, MotorReplicaSetClient
+except ImportError:
+    pass
 
 from motorengine.database import Database
 
