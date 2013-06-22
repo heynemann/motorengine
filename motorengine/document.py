@@ -12,7 +12,9 @@ class BaseDocument(object):
         self._id = None
         for key, value in kw.items():
             if key not in self._db_field_map:
-                continue
+                raise ValueError("Error creating document %s: Invalid property '%s'." % (
+                    self.__class__.__name__, key
+                ))
             self._fields[key].value = value
 
     def to_dict(self):
@@ -26,7 +28,7 @@ class BaseDocument(object):
             if len(args) > 1 and args[1]:
                 raise args[1]
             self._id = args[0]
-            callback(self)
+            callback(instance=self)
         return handle
 
     def save(self, callback, alias=None):

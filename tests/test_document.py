@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+
 from preggy import expect
 
 from motorengine import connect, disconnect, Document, StringField
@@ -25,13 +27,22 @@ class TestDocument(AsyncTestCase):
     def test_has_proper_collection(self):
         assert User.__collection__ == 'User'
 
+    def test_setting_invalid_property_raises(self):
+        try:
+            User(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", wrong_property="value")
+        except ValueError:
+            err = sys.exc_info()
+            expect(err[1]).to_have_an_error_message_of("Error creating document User: Invalid property 'wrong_property'.")
+        else:
+            assert False, "Should not have gotten this far"
+
     def test_can_create_new_instance(self):
         user = User(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann")
         user.save(callback=self.stop)
 
-        result = self.wait()
+        result = self.wait()['kwargs']['instance']
 
-        expect(user._id).not_to_be_null()
-        expect(user.email).to_equal("heynemann@gmail.com")
-        expect(user.first_name).to_equal("Bernardo")
-        expect(user.last_name).to_equal("Heynemann")
+        expect(result._id).not_to_be_null()
+        expect(result.email).to_equal("heynemann@gmail.com")
+        expect(result.first_name).to_equal("Bernardo")
+        expect(result.last_name).to_equal("Heynemann")
