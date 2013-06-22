@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import six
+
 from motorengine.metaclasses import DocumentMetaClass
 from motorengine.connection import get_connection
 
@@ -45,5 +47,5 @@ class BaseDocument(object):
         return object.__getattribute__(self, name)
 
 
-class Document(BaseDocument, metaclass=DocumentMetaClass):
-    __metaclass__ = DocumentMetaClass
+class Document(six.with_metaclass(DocumentMetaClass, BaseDocument)):
+    pass
