@@ -7,7 +7,7 @@ from motorengine import __version__
 tests_require = [
     'nose',
     'coverage',
-    'yanc',
+    'rednose',
     'preggy',
     'tox',
     'ipdb',
