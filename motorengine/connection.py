@@ -52,11 +52,12 @@ def disconnect(alias=DEFAULT_CONNECTION_NAME):
         del _connection_settings[alias]
 
 
-def get_connection(alias=DEFAULT_CONNECTION_NAME):
+def get_connection(alias=DEFAULT_CONNECTION_NAME, db=None):
     global _connections
 
     if alias not in _connections:
         conn_settings = _connection_settings[alias].copy()
+        db = conn_settings.pop('name', None)
 
         connection_class = MotorClient
         if 'replicaSet' in conn_settings:
@@ -77,10 +78,13 @@ def get_connection(alias=DEFAULT_CONNECTION_NAME):
             exc_info = sys.exc_info()[1]
             raise ConnectionError("Cannot connect to database %s :\n%s" % (alias, exc_info))
 
-    return Database(_connections[alias])
+    database = None
+    if db is not None:
+        database = getattr(_connections[alias], db)
+    return Database(_connections[alias], database)
 
 
-def connect(alias=DEFAULT_CONNECTION_NAME, **kwargs):
+def connect(db, alias=DEFAULT_CONNECTION_NAME, **kwargs):
     """Connect to the database specified by the 'db' argument.
 
     Connection settings may be provided here as well if the database is not
@@ -92,6 +96,7 @@ def connect(alias=DEFAULT_CONNECTION_NAME, **kwargs):
     """
     global _connections
     if alias not in _connections:
+        kwargs['name'] = db
         register_connection(alias, **kwargs)
 
-    return get_connection(alias)
+    return get_connection(alias, db=db)
