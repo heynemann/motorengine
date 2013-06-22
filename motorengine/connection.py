@@ -34,12 +34,22 @@ def register_connection(alias, **kwargs):
     _connection_settings[alias] = kwargs
 
 
+def cleanup():
+    global _connections
+    global _connection_settings
+
+    _connections = {}
+    _connection_settings = {}
+
+
 def disconnect(alias=DEFAULT_CONNECTION_NAME):
     global _connections
+    global _connections_settings
 
     if alias in _connections:
         get_connection(alias=alias).disconnect()
         del _connections[alias]
+        del _connection_settings[alias]
 
 
 def get_connection(alias=DEFAULT_CONNECTION_NAME):

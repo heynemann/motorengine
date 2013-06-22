@@ -3,4 +3,4 @@
 
 __version__ = '0.1.0'
 
-from motorengine.connect import connect, disconnect  # NOQA
+from motorengine.connection import connect, disconnect  # NOQA

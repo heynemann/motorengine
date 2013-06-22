@@ -4,8 +4,14 @@
 from tornado.testing import AsyncTestCase as TornadoAsyncTestCase
 from tornado.testing import gen_test  # NOQA
 
+import motorengine.connection
+
 
 class AsyncTestCase(TornadoAsyncTestCase):
+    def tearDown(self):
+        super(AsyncTestCase, self).tearDown()
+        motorengine.connection.cleanup()
+
     def stop(self, *args, **kwargs):
         '''Stops the ioloop, causing one pending (or future) call to wait()
         to return.

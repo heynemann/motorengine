@@ -6,7 +6,7 @@ import sys
 from preggy import expect
 
 from motorengine import connect, disconnect
-from motorengine.connect import ConnectionError
+from motorengine.connection import ConnectionError
 from tests import AsyncTestCase
 
 
