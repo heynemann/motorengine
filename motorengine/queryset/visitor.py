@@ -1,9 +1,9 @@
 import copy
 
-from mongoengine.errors import InvalidQueryError
-from mongoengine.python_support import product, reduce
+from motorengine.errors import InvalidQueryError
+from motorengine.python_support import product, reduce  # NOQA
 
-from mongoengine.queryset import transform
+from motorengine.queryset import transform
 
 __all__ = ('Q',)
 

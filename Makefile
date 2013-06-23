@@ -1,7 +1,5 @@
 test:
-	@coverage run --branch `which nosetests` -vv --rednose -s tests/
-	@echo
-	@coverage report -m --fail-under=80
+	@PYTHONPATH=.:$$PYTHONPATH python setup.py test
 
 tox: mongo_test
 	@PATH=$$PATH:~/.pythonbrew/pythons/Python-2.6.*/bin/:~/.pythonbrew/pythons/Python-2.7.*/bin/:~/.pythonbrew/pythons/Python-3.0.*/bin/:~/.pythonbrew/pythons/Python-3.1.*/bin/:~/.pythonbrew/pythons/Python-3.2.3/bin/:~/.pythonbrew/pythons/Python-3.3.0/bin/ tox

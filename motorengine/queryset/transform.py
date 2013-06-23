@@ -1,31 +1,44 @@
 from collections import defaultdict
+import sys
 
 import pymongo
 from bson import SON
+import six
 
-from mongoengine.common import _import_class
-from mongoengine.errors import InvalidQueryError, LookUpError
+from motorengine.common import _import_class
+from motorengine.errors import InvalidQueryError
 
 __all__ = ('query', 'update')
 
 
 COMPARISON_OPERATORS = ('ne', 'gt', 'gte', 'lt', 'lte', 'in', 'nin', 'mod',
                         'all', 'size', 'exists', 'not')
-GEO_OPERATORS        = ('within_distance', 'within_spherical_distance',
-                        'within_box', 'within_polygon', 'near', 'near_sphere',
-                        'max_distance', 'geo_within', 'geo_within_box',
-                        'geo_within_polygon', 'geo_within_center',
-                        'geo_within_sphere', 'geo_intersects')
-STRING_OPERATORS     = ('contains', 'icontains', 'startswith',
-                        'istartswith', 'endswith', 'iendswith',
-                        'exact', 'iexact')
-CUSTOM_OPERATORS     = ('match',)
-MATCH_OPERATORS      = (COMPARISON_OPERATORS + GEO_OPERATORS +
-                        STRING_OPERATORS + CUSTOM_OPERATORS)
+GEO_OPERATORS = (
+    'within_distance', 'within_spherical_distance',
+    'within_box', 'within_polygon', 'near', 'near_sphere',
+    'max_distance', 'geo_within', 'geo_within_box',
+    'geo_within_polygon', 'geo_within_center',
+    'geo_within_sphere', 'geo_intersects'
+)
 
-UPDATE_OPERATORS     = ('set', 'unset', 'inc', 'dec', 'pop', 'push',
-                        'push_all', 'pull', 'pull_all', 'add_to_set',
-                        'set_on_insert')
+STRING_OPERATORS = (
+    'contains', 'icontains', 'startswith',
+    'istartswith', 'endswith', 'iendswith',
+    'exact', 'iexact'
+)
+
+CUSTOM_OPERATORS = ('match',)
+
+MATCH_OPERATORS = (
+    COMPARISON_OPERATORS + GEO_OPERATORS +
+    STRING_OPERATORS + CUSTOM_OPERATORS
+)
+
+UPDATE_OPERATORS = (
+    'set', 'unset', 'inc', 'dec', 'pop', 'push',
+    'push_all', 'pull', 'pull_all', 'add_to_set',
+    'set_on_insert'
+)
 
 
 def query(_doc_cls=None, _field_operation=False, **query):
@@ -55,14 +68,15 @@ def query(_doc_cls=None, _field_operation=False, **query):
             # Switch field names to proper names [set in Field(name='foo')]
             try:
                 fields = _doc_cls._lookup_field(parts)
-            except Exception, e:
+            except Exception:
+                e = sys.exc_info()[1]
                 raise InvalidQueryError(e)
             parts = []
 
             cleaned_fields = []
             for field in fields:
                 append_field = True
-                if isinstance(field, basestring):
+                if isinstance(field, six.string_types):
                     parts.append(field)
                     append_field = False
                 else:
@@ -76,9 +90,9 @@ def query(_doc_cls=None, _field_operation=False, **query):
             singular_ops = [None, 'ne', 'gt', 'gte', 'lt', 'lte', 'not']
             singular_ops += STRING_OPERATORS
             if op in singular_ops:
-                if isinstance(field, basestring):
+                if isinstance(field, six.string_types):
                     if (op in STRING_OPERATORS and
-                       isinstance(value, basestring)):
+                       isinstance(value, six.string_types)):
                         StringField = _import_class('StringField')
                         value = StringField.prepare_query_value(op, value)
                     else:
@@ -177,14 +191,15 @@ def update(_doc_cls=None, **update):
             # Switch field names to proper names [set in Field(name='foo')]
             try:
                 fields = _doc_cls._lookup_field(parts)
-            except Exception, e:
+            except Exception:
+                e = sys.exc_info()[1]
                 raise InvalidQueryError(e)
             parts = []
 
             cleaned_fields = []
             for field in fields:
                 append_field = True
-                if isinstance(field, basestring):
+                if isinstance(field, six.string_types):
                     # Convert the S operator to $
                     if field == 'S':
                         field = '$'

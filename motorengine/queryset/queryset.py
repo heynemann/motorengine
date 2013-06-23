@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import sys
 import copy
 import itertools
 import operator
@@ -11,15 +12,16 @@ from bson.code import Code
 from bson import json_util
 import pymongo
 from pymongo.common import validate_read_preference
+import six
 
-from mongoengine import signals
-from mongoengine.common import _import_class
-from mongoengine.errors import (OperationError, NotUniqueError,
+from motorengine import signals
+from motorengine.common import _import_class
+from motorengine.errors import (OperationError, NotUniqueError,
                                 InvalidQueryError)
 
-from mongoengine.queryset import transform
-from mongoengine.queryset.field_list import QueryFieldList
-from mongoengine.queryset.visitor import Q, QNode
+from motorengine.queryset import transform
+from motorengine.queryset.field_list import QueryFieldList
+from motorengine.queryset.visitor import Q, QNode
 
 
 __all__ = ('QuerySet', 'DO_NOTHING', 'NULLIFY', 'CASCADE', 'DENY', 'PULL')
@@ -40,7 +42,7 @@ RE_TYPE = type(re.compile(''))
 
 class QuerySet(object):
     """A set of results returned from a query. Wraps a MongoDB cursor,
-    providing :class:`~mongoengine.Document` objects as the results.
+    providing :class:`~motorengine.Document` objects as the results.
     """
     __dereference = False
     _auto_dereference = True
@@ -84,11 +86,11 @@ class QuerySet(object):
     def __call__(self, q_obj=None, class_check=True, slave_okay=False,
                  read_preference=None, **query):
         """Filter the selected documents by calling the
-        :class:`~mongoengine.queryset.QuerySet` with a query.
+        :class:`~motorengine.queryset.QuerySet` with a query.
 
-        :param q_obj: a :class:`~mongoengine.queryset.Q` object to be used in
-            the query; the :class:`~mongoengine.queryset.QuerySet` is filtered
-            multiple times with different :class:`~mongoengine.queryset.Q`
+        :param q_obj: a :class:`~motorengine.queryset.Q` object to be used in
+            the query; the :class:`~motorengine.queryset.QuerySet` is filtered
+            multiple times with different :class:`~motorengine.queryset.Q`
             objects, only the last one will be used
         :param class_check: If set to False bypass class name check when
             querying collection
@@ -170,7 +172,7 @@ class QuerySet(object):
         """
         if self._has_more:
             try:
-                for i in xrange(ITER_CHUNK_SIZE):
+                for i in range(ITER_CHUNK_SIZE):
                     self._result_cache.append(self.next())
             except StopIteration:
                 self._has_more = False
@@ -187,7 +189,8 @@ class QuerySet(object):
                 queryset._skip, queryset._limit = key.start, key.stop
                 if key.start and key.stop:
                     queryset._limit = key.stop - key.start
-            except IndexError, err:
+            except IndexError:
+                err = sys.exc_info()[1]
                 # PyMongo raises an error if key.start == key.stop, catch it,
                 # bin it, kill it.
                 start = key.start or 0
@@ -232,15 +235,15 @@ class QuerySet(object):
         return self.__call__()
 
     def filter(self, *q_objs, **query):
-        """An alias of :meth:`~mongoengine.queryset.QuerySet.__call__`
+        """An alias of :meth:`~motorengine.queryset.QuerySet.__call__`
         """
         return self.__call__(*q_objs, **query)
 
     def get(self, *q_objs, **query):
         """Retrieve the the matching object raising
-        :class:`~mongoengine.queryset.MultipleObjectsReturned` or
+        :class:`~motorengine.queryset.MultipleObjectsReturned` or
         `DocumentName.MultipleObjectsReturned` exception if multiple results
-        and :class:`~mongoengine.queryset.DoesNotExist` or
+        and :class:`~motorengine.queryset.DoesNotExist` or
         `DocumentName.DoesNotExist` if no results are found.
 
         .. versionadded:: 0.3
@@ -277,7 +280,7 @@ class QuerySet(object):
         tuple of ``(object, created)``, where ``object`` is the retrieved or
         created object and ``created`` is a boolean specifying whether a new
         object was created. Raises
-        :class:`~mongoengine.queryset.MultipleObjectsReturned` or
+        :class:`~motorengine.queryset.MultipleObjectsReturned` or
         `DocumentName.MultipleObjectsReturned` if multiple results are found.
         A new document will be created if the document doesn't exists; a
         dictionary of default values for the new document may be provided as a
@@ -291,7 +294,7 @@ class QuerySet(object):
 
         :param write_concern: optional extra keyword arguments used if we
             have to create a new document.
-            Passes any write_concern onto :meth:`~mongoengine.Document.save`
+            Passes any write_concern onto :meth:`~motorengine.Document.save`
 
         :param auto_save: if the object is to be saved automatically if
             not found.
@@ -373,14 +376,15 @@ class QuerySet(object):
         signals.pre_bulk_insert.send(self._document, documents=docs)
         try:
             ids = self._collection.insert(raw, **write_concern)
-        except pymongo.errors.OperationFailure, err:
+        except pymongo.errors.OperationFailure:
+            err = sys.exc_info()[1]
             message = 'Could not save document (%s)'
-            if re.match('^E1100[01] duplicate key', unicode(err)):
+            if re.match('^E1100[01] duplicate key', six.u(err)):
                 # E11000 - duplicate key error index
                 # E11001 - duplicate key on update
                 message = u'Tried to save duplicate unique keys (%s)'
-                raise NotUniqueError(message % unicode(err))
-            raise OperationError(message % unicode(err))
+                raise NotUniqueError(message % six.u(err))
+            raise OperationError(message % six.u(err))
 
         if not load_bulk:
             signals.post_bulk_insert.send(
@@ -516,11 +520,12 @@ class QuerySet(object):
                 return result
             elif result:
                 return result['n']
-        except pymongo.errors.OperationFailure, err:
-            if unicode(err) == u'multi not coded yet':
+        except pymongo.errors.OperationFailure:
+            err = sys.exc_info()[1]
+            if six.u(err) == u'multi not coded yet':
                 message = u'update() method requires MongoDB 1.1.3+'
                 raise OperationError(message)
-            raise OperationError(u'Update failed (%s)' % unicode(err))
+            raise OperationError(u'Update failed (%s)' % six.u(err))
 
     def update_one(self, upsert=False, write_concern=None, **update):
         """Perform an atomic update on first field matched by the query.
@@ -597,7 +602,7 @@ class QuerySet(object):
 
     def clone(self):
         """Creates a copy of the current
-          :class:`~mongoengine.queryset.QuerySet`
+          :class:`~motorengine.queryset.QuerySet`
 
         .. versionadded:: 0.5
         """
@@ -703,7 +708,7 @@ class QuerySet(object):
 
                 post = BlogPost.objects.only("title").only("author.name")
 
-        :func:`~mongoengine.queryset.QuerySet.all_fields` will reset any
+        :func:`~motorengine.queryset.QuerySet.all_fields` will reset any
         field filters.
 
         :param fields: fields to include
@@ -724,7 +729,7 @@ class QuerySet(object):
 
                 post = BlogPost.objects.exclude("title").exclude("author.name")
 
-        :func:`~mongoengine.queryset.QuerySet.all_fields` will reset any
+        :func:`~motorengine.queryset.QuerySet.all_fields` will reset any
         field filters.
 
         :param fields: fields to exclude
@@ -786,7 +791,7 @@ class QuerySet(object):
         return queryset
 
     def order_by(self, *keys):
-        """Order the :class:`~mongoengine.queryset.QuerySet` by the keys. The
+        """Order the :class:`~motorengine.queryset.QuerySet` by the keys. The
         order may be specified by prepending each of the keys by a + or a -.
         Ascending order is assumed.
 
@@ -799,7 +804,7 @@ class QuerySet(object):
 
     def explain(self, format=False):
         """Return an explain plan record for the
-        :class:`~mongoengine.queryset.QuerySet`\ 's cursor.
+        :class:`~motorengine.queryset.QuerySet`\ 's cursor.
 
         :param format: format the plan before returning it
         """
@@ -855,7 +860,7 @@ class QuerySet(object):
         value or a tuple of values in order.
 
         Can be used along with
-        :func:`~mongoengine.queryset.QuerySet.no_dereference` to turn off
+        :func:`~motorengine.queryset.QuerySet.no_dereference` to turn off
         dereferencing.
 
         .. note:: This effects all results and can be unset by calling
@@ -909,8 +914,8 @@ class QuerySet(object):
         it must be the last call made, as it does not return a maleable
         ``QuerySet``.
 
-        See the :meth:`~mongoengine.tests.QuerySetTest.test_map_reduce`
-        and :meth:`~mongoengine.tests.QuerySetTest.test_map_advanced`
+        See the :meth:`~motorengine.tests.QuerySetTest.test_map_reduce`
+        and :meth:`~motorengine.tests.QuerySetTest.test_map_advanced`
         tests in ``tests.queryset.QuerySetTest`` for usage examples.
 
         :param map_f: map function, as :class:`~bson.code.Code` or string
@@ -927,7 +932,7 @@ class QuerySet(object):
                       to map/reduce method
 
         Returns an iterator yielding
-        :class:`~mongoengine.document.MapReduceDocument`.
+        :class:`~motorengine.document.MapReduceDocument`.
 
         .. note::
 
@@ -951,13 +956,13 @@ class QuerySet(object):
         map_f_scope = {}
         if isinstance(map_f, Code):
             map_f_scope = map_f.scope
-            map_f = unicode(map_f)
+            map_f = six.u(map_f)
         map_f = Code(queryset._sub_js_fields(map_f), map_f_scope)
 
         reduce_f_scope = {}
         if isinstance(reduce_f, Code):
             reduce_f_scope = reduce_f.scope
-            reduce_f = unicode(reduce_f)
+            reduce_f = six.u(reduce_f)
         reduce_f_code = queryset._sub_js_fields(reduce_f)
         reduce_f = Code(reduce_f_code, reduce_f_scope)
 
@@ -967,7 +972,7 @@ class QuerySet(object):
             finalize_f_scope = {}
             if isinstance(finalize_f, Code):
                 finalize_f_scope = finalize_f.scope
-                finalize_f = unicode(finalize_f)
+                finalize_f = six.u(finalize_f)
             finalize_f_code = queryset._sub_js_fields(finalize_f)
             finalize_f = Code(finalize_f_code, finalize_f_scope)
             mr_args['finalize'] = finalize_f
@@ -984,8 +989,7 @@ class QuerySet(object):
             map_reduce_function = 'map_reduce'
             mr_args['out'] = output
 
-        results = getattr(queryset._collection, map_reduce_function)(
-                          map_f, reduce_f, **mr_args)
+        results = getattr(queryset._collection, map_reduce_function)(map_f, reduce_f, **mr_args)
 
         if map_reduce_function == 'map_reduce':
             results = results.find()
@@ -1006,11 +1010,11 @@ class QuerySet(object):
         current query; and ``options``, which is an object containing any
         options specified as keyword arguments.
 
-        As fields in MongoEngine may use different names in the database (set
+        As fields in motorengine may use different names in the database (set
         using the :attr:`db_field` keyword argument to a :class:`Field`
-        constructor), a mechanism exists for replacing MongoEngine field names
+        constructor), a mechanism exists for replacing motorengine field names
         with the database field names in Javascript code. When accessing a
-        field, use square-bracket notation, and prefix the MongoEngine field
+        field, use square-bracket notation, and prefix the motorengine field
         name with a tilde (~).
 
         :param code: a string of Javascript code to execute
@@ -1044,7 +1048,7 @@ class QuerySet(object):
     def where(self, where_clause):
         """Filter ``QuerySet`` results with a ``$where`` clause (a Javascript
         expression). Performs automatic field name substitution like
-        :meth:`mongoengine.queryset.Queryset.exec_js`.
+        :meth:`motorengine.queryset.Queryset.exec_js`.
 
         .. note:: When using this mode of query, the database will call your
                   function, or evaluate your predicate clause, for each object
@@ -1135,11 +1139,11 @@ class QuerySet(object):
         .. note::
 
             Can only do direct simple mappings and cannot map across
-            :class:`~mongoengine.fields.ReferenceField` or
-            :class:`~mongoengine.fields.GenericReferenceField` for more complex
+            :class:`~motorengine.fields.ReferenceField` or
+            :class:`~motorengine.fields.GenericReferenceField` for more complex
             counting a manual map reduce call would is required.
 
-        If the field is a :class:`~mongoengine.fields.ListField`, the items within
+        If the field is a :class:`~motorengine.fields.ListField`, the items within
         each list will be counted individually.
 
         :param field: the field to use
@@ -1157,7 +1161,7 @@ class QuerySet(object):
     # Iterator helpers
 
     def next(self):
-        """Wrap the result in a :class:`~mongoengine.Document` object.
+        """Wrap the result in a :class:`~motorengine.Document` object.
         """
         if self._limit == 0 or self._none:
             raise StopIteration
@@ -1456,7 +1460,7 @@ class QuerySet(object):
                     # If we need to coerce types, we need to determine the
                     # type of this field and use the corresponding
                     # .to_python(...)
-                    from mongoengine.fields import EmbeddedDocumentField
+                    from motorengine.fields import EmbeddedDocumentField
                     obj = self._document
                     for chunk in path.split('.'):
                         obj = getattr(obj, chunk, None)

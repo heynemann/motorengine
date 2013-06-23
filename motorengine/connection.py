@@ -1,21 +1,13 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# code adapted from https://github.com/MongoEngine/mongoengine/blob/master/mongoengine/connection.py
-
 import sys
 
-try:
-    import six
-except ImportError:
-    pass
+import six
+import pymongo
+from pymongo import MongoClient, MongoReplicaSetClient, uri_parser
 
-try:
-    from motor import MotorClient, MotorReplicaSetClient
-except ImportError:
-    pass
 
-from motorengine.database import Database
+__all__ = ['ConnectionError', 'connect', 'register_connection',
+           'DEFAULT_CONNECTION_NAME']
+
 
 DEFAULT_CONNECTION_NAME = 'default'
 
@@ -26,73 +18,135 @@ class ConnectionError(Exception):
 
 _connection_settings = {}
 _connections = {}
-_default_dbs = {}
+_dbs = {}
 
 
-def register_connection(db, alias, **kwargs):
+def register_connection(alias, name, host='localhost', port=27017,
+                        is_slave=False, read_preference=False, slaves=None,
+                        username=None, password=None, **kwargs):
+    """Add a connection.
+
+    :param alias: the name that will be used to refer to this connection
+        throughout MongoEngine
+    :param name: the name of the specific database to use
+    :param host: the host name of the :program:`mongod` instance to connect to
+    :param port: the port that the :program:`mongod` instance is running on
+    :param is_slave: whether the connection can act as a slave
+      ** Depreciated pymongo 2.0.1+
+    :param read_preference: The read preference for the collection
+       ** Added pymongo 2.1
+    :param slaves: a list of aliases of slave connections; each of these must
+        be a registered connection that has :attr:`is_slave` set to ``True``
+    :param username: username to authenticate with
+    :param password: password to authenticate with
+    :param kwargs: allow ad-hoc parameters to be passed into the pymongo driver
+
+    """
     global _connection_settings
-    global _default_dbs
 
-    _connection_settings[alias] = kwargs
-    _default_dbs[alias] = db
+    conn_settings = {
+        'name': name,
+        'host': host,
+        'port': port,
+        'is_slave': is_slave,
+        'slaves': slaves or [],
+        'username': username,
+        'password': password,
+        'read_preference': read_preference
+    }
 
+    # Handle uri style connections
+    if "://" in host:
+        uri_dict = uri_parser.parse_uri(host)
+        if uri_dict.get('database') is None:
+            raise ConnectionError("If using URI style connection include database name in string")
+        conn_settings.update({
+            'host': host,
+            'name': uri_dict.get('database'),
+            'username': uri_dict.get('username'),
+            'password': uri_dict.get('password'),
+            'read_preference': read_preference,
+        })
+        if "replicaSet" in host:
+            conn_settings['replicaSet'] = True
 
-def cleanup():
-    global _connections
-    global _connection_settings
-    global _default_dbs
-
-    _connections = {}
-    _connection_settings = {}
-    _default_dbs = {}
+    conn_settings.update(kwargs)
+    _connection_settings[alias] = conn_settings
 
 
 def disconnect(alias=DEFAULT_CONNECTION_NAME):
     global _connections
-    global _connections_settings
-    global _default_dbs
+    global _dbs
 
     if alias in _connections:
         get_connection(alias=alias).disconnect()
         del _connections[alias]
-        del _connection_settings[alias]
-        del _default_dbs[alias]
+    if alias in _dbs:
+        del _dbs[alias]
 
 
-def get_connection(alias=DEFAULT_CONNECTION_NAME, db=None):
+def get_connection(alias=DEFAULT_CONNECTION_NAME, reconnect=False):
     global _connections
-    global _default_dbs
+    # Connect to the database if not already connected
+    if reconnect:
+        disconnect(alias)
 
     if alias not in _connections:
+        if alias not in _connection_settings:
+            msg = 'Connection with alias "%s" has not been defined' % alias
+            if alias == DEFAULT_CONNECTION_NAME:
+                msg = 'You have not defined a default connection'
+            raise ConnectionError(msg)
         conn_settings = _connection_settings[alias].copy()
-        db = conn_settings.pop('name', None)
 
-        connection_class = MotorClient
+        if hasattr(pymongo, 'version_tuple'):  # Support for 2.1+
+            conn_settings.pop('name', None)
+            conn_settings.pop('slaves', None)
+            conn_settings.pop('is_slave', None)
+            conn_settings.pop('username', None)
+            conn_settings.pop('password', None)
+        else:
+            # Get all the slave connections
+            if 'slaves' in conn_settings:
+                slaves = []
+                for slave_alias in conn_settings['slaves']:
+                    slaves.append(get_connection(slave_alias))
+                conn_settings['slaves'] = slaves
+                conn_settings.pop('read_preference', None)
+
+        connection_class = MongoClient
         if 'replicaSet' in conn_settings:
-            connection_class = MotorReplicaSetClient
             conn_settings['hosts_or_uri'] = conn_settings.pop('host', None)
-
             # Discard port since it can't be used on MongoReplicaSetClient
             conn_settings.pop('port', None)
-
             # Discard replicaSet if not base string
             if not isinstance(conn_settings['replicaSet'], six.string_types):
                 conn_settings.pop('replicaSet', None)
+            connection_class = MongoReplicaSetClient
 
         try:
             _connections[alias] = connection_class(**conn_settings)
-            _connections[alias].open_sync()
         except Exception:
-            exc_info = sys.exc_info()
-            err = ConnectionError("Cannot connect to database %s :\n%s" % (alias, exc_info[1]))
-            six.reraise(ConnectionError, err, exc_info[2])
+            e = sys.exc_info()[1]
+            raise ConnectionError("Cannot connect to database %s :\n%s" % (alias, e))
+    return _connections[alias]
 
-    database = None
-    if db is None:
-        database = getattr(_connections[alias], _default_dbs[alias])
-    else:
-        database = getattr(_connections[alias], db)
-    return Database(_connections[alias], database)
+
+def get_db(alias=DEFAULT_CONNECTION_NAME, reconnect=False):
+    global _dbs
+    if reconnect:
+        disconnect(alias)
+
+    if alias not in _dbs:
+        conn = get_connection(alias)
+        conn_settings = _connection_settings[alias]
+        db = conn[conn_settings['name']]
+        # Authenticate if necessary
+        if conn_settings['username'] and conn_settings['password']:
+            db.authenticate(conn_settings['username'],
+                            conn_settings['password'])
+        _dbs[alias] = db
+    return _dbs[alias]
 
 
 def connect(db, alias=DEFAULT_CONNECTION_NAME, **kwargs):
@@ -104,10 +158,16 @@ def connect(db, alias=DEFAULT_CONNECTION_NAME, **kwargs):
 
     Multiple databases are supported by using aliases.  Provide a separate
     `alias` to connect to a different instance of :program:`mongod`.
+
+    .. versionchanged:: 0.6 - added multiple database support.
     """
     global _connections
     if alias not in _connections:
-        kwargs['name'] = db
-        register_connection(db, alias, **kwargs)
+        register_connection(alias, db, **kwargs)
 
-    return get_connection(alias, db=db)
+    return get_connection(alias)
+
+
+# Support old naming convention
+_get_connection = get_connection
+_get_db = get_db
