@@ -1,5 +1,5 @@
 test:
-	@PYTHONPATH=.:$$PYTHONPATH python setup.py test
+	@PYTHONPATH=.:$$PYTHONPATH nosetests
 
 tox: mongo_test
 	@PATH=$$PATH:~/.pythonbrew/pythons/Python-2.6.*/bin/:~/.pythonbrew/pythons/Python-2.7.*/bin/:~/.pythonbrew/pythons/Python-3.0.*/bin/:~/.pythonbrew/pythons/Python-3.1.*/bin/:~/.pythonbrew/pythons/Python-3.2.3/bin/:~/.pythonbrew/pythons/Python-3.3.0/bin/ tox
