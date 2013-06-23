@@ -75,6 +75,9 @@ setup(
         'motor',
         'tornado'
     ],
+    extras_require={
+        'tests': extra_opts['tests_require']
+    },
     test_suite='nose.collector',
     **extra_opts
 )

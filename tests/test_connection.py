@@ -3,10 +3,10 @@ sys.path[0:0] = [""]
 import unittest
 import datetime
 
-import pymongo
+import motor
 from bson.tz_util import utc
 
-from motorengine import *
+from motorengine import connect, register_connection, Document, DateTimeField
 import motorengine.connection
 from motorengine.connection import get_db, get_connection, ConnectionError
 
@@ -24,15 +24,15 @@ class ConnectionTest(unittest.TestCase):
         connect('motorenginetest')
 
         conn = get_connection()
-        self.assertTrue(isinstance(conn, pymongo.mongo_client.MongoClient))
+        self.assertTrue(isinstance(conn, motor.MotorClient))
 
         db = get_db()
-        self.assertTrue(isinstance(db, pymongo.database.Database))
+        self.assertTrue(isinstance(db, motor.MotorDatabase))
         self.assertEqual(db.name, 'motorenginetest')
 
         connect('motorenginetest2', alias='testdb')
         conn = get_connection('testdb')
-        self.assertTrue(isinstance(conn, pymongo.mongo_client.MongoClient))
+        self.assertTrue(isinstance(conn, motor.MotorClient))
 
     def test_connect_uri(self):
         """Ensure that the connect() method works properly with uri's
@@ -50,10 +50,10 @@ class ConnectionTest(unittest.TestCase):
         connect("testdb_uri", host='mongodb://username:password@localhost/motorenginetest')
 
         conn = get_connection()
-        self.assertTrue(isinstance(conn, pymongo.mongo_client.MongoClient))
+        self.assertTrue(isinstance(conn, motor.MotorClient))
 
         db = get_db()
-        self.assertTrue(isinstance(db, pymongo.database.Database))
+        self.assertTrue(isinstance(db, motor.MotorDatabase))
         self.assertEqual(db.name, 'motorenginetest')
 
     def test_register_connection(self):
@@ -63,10 +63,10 @@ class ConnectionTest(unittest.TestCase):
 
         self.assertRaises(ConnectionError, get_connection)
         conn = get_connection('testdb')
-        self.assertTrue(isinstance(conn, pymongo.mongo_client.MongoClient))
+        self.assertTrue(isinstance(conn, motor.MotorClient))
 
         db = get_db('testdb')
-        self.assertTrue(isinstance(db, pymongo.database.Database))
+        self.assertTrue(isinstance(db, motor.MotorDatabase))
         self.assertEqual(db.name, 'motorenginetest2')
 
     def test_connection_kwargs(self):

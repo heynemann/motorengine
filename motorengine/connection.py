@@ -2,7 +2,8 @@ import sys
 
 import six
 import pymongo
-from pymongo import MongoClient, MongoReplicaSetClient, uri_parser
+from pymongo import uri_parser
+from motor import MotorClient, MotorReplicaSetClient
 
 
 __all__ = ['ConnectionError', 'connect', 'register_connection',
@@ -114,7 +115,7 @@ def get_connection(alias=DEFAULT_CONNECTION_NAME, reconnect=False):
                 conn_settings['slaves'] = slaves
                 conn_settings.pop('read_preference', None)
 
-        connection_class = MongoClient
+        connection_class = MotorClient
         if 'replicaSet' in conn_settings:
             conn_settings['hosts_or_uri'] = conn_settings.pop('host', None)
             # Discard port since it can't be used on MongoReplicaSetClient
@@ -122,10 +123,10 @@ def get_connection(alias=DEFAULT_CONNECTION_NAME, reconnect=False):
             # Discard replicaSet if not base string
             if not isinstance(conn_settings['replicaSet'], six.string_types):
                 conn_settings.pop('replicaSet', None)
-            connection_class = MongoReplicaSetClient
+            connection_class = MotorReplicaSetClient
 
         try:
-            _connections[alias] = connection_class(**conn_settings)
+            _connections[alias] = connection_class(**conn_settings).open_sync()
         except Exception:
             e = sys.exc_info()[1]
             raise ConnectionError("Cannot connect to database %s :\n%s" % (alias, e))
