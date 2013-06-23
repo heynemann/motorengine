@@ -204,7 +204,7 @@ class BaseDocument(object):
             if PY3:
                 return self.__unicode__()
             else:
-                return six.u(self).encode('utf-8')
+                return unicode(self).encode('utf-8')
         return txt_type('%s object' % self.__class__.__name__)
 
     def __eq__(self, other):
@@ -288,7 +288,7 @@ class BaseDocument(object):
             try:
                 self.clean()
             except ValidationError:
-                error = sys.exc_info[1]
+                error = sys.exc_info()[1]
                 errors[NON_FIELD_ERRORS] = error
 
         # Get a list of tuples of field names and their current values

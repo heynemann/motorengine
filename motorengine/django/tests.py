@@ -1,8 +1,8 @@
 #coding: utf-8
 from nose.plugins.skip import SkipTest
 
-from mongoengine.python_support import PY3
-from mongoengine import connect
+from motorengine.python_support import PY3
+from motorengine import connect
 
 try:
     from django.test import TestCase

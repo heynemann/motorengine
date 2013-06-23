@@ -39,12 +39,12 @@ class InvalidCollectionError(Exception):
 
 
 class EmbeddedDocument(BaseDocument):
-    """A :class:`~mongoengine.Document` that isn't stored in its own
-    collection.  :class:`~mongoengine.EmbeddedDocument`\ s should be used as
-    fields on :class:`~mongoengine.Document`\ s through the
-    :class:`~mongoengine.EmbeddedDocumentField` field type.
+    """A :class:`~motorengine.Document` that isn't stored in its own
+    collection.  :class:`~motorengine.EmbeddedDocument`\ s should be used as
+    fields on :class:`~motorengine.Document`\ s through the
+    :class:`~motorengine.EmbeddedDocumentField` field type.
 
-    A :class:`~mongoengine.EmbeddedDocument` subclass may be itself subclassed,
+    A :class:`~motorengine.EmbeddedDocument` subclass may be itself subclassed,
     to create a specialised version of the embedded document that will be
     stored in the same collection. To facilitate this behaviour a `_cls`
     field is added to documents (hidden though the MongoEngine interface).
@@ -78,15 +78,15 @@ class Document(BaseDocument):
     collections of documents stored in MongoDB. Inherit from this class, and
     add fields as class attributes to define a document's structure.
     Individual documents may then be created by making instances of the
-    :class:`~mongoengine.Document` subclass.
+    :class:`~motorengine.Document` subclass.
 
     By default, the MongoDB collection used to store documents created using a
-    :class:`~mongoengine.Document` subclass will be the name of the subclass
+    :class:`~motorengine.Document` subclass will be the name of the subclass
     converted to lowercase. A different collection may be specified by
     providing :attr:`collection` to the :attr:`meta` dictionary in the class
     definition.
 
-    A :class:`~mongoengine.Document` subclass may be itself subclassed, to
+    A :class:`~motorengine.Document` subclass may be itself subclassed, to
     create a specialised version of the document that will be stored in the
     same collection. To facilitate this behaviour a `_cls`
     field is added to documents (hidden though the MongoEngine interface).
@@ -94,7 +94,7 @@ class Document(BaseDocument):
     `_cls` set :attr:`allow_inheritance` to ``False`` in the :attr:`meta`
     dictionary.
 
-    A :class:`~mongoengine.Document` may use a **Capped Collection** by
+    A :class:`~motorengine.Document` may use a **Capped Collection** by
     specifying :attr:`max_documents` and :attr:`max_size` in the :attr:`meta`
     dictionary. :attr:`max_documents` is the maximum number of documents that
     is allowed to be stored in the collection, and :attr:`max_size` is the
@@ -180,7 +180,7 @@ class Document(BaseDocument):
     def save(self, force_insert=False, validate=True, clean=True,
              write_concern=None, cascade=None, cascade_kwargs=None,
              _refs=None, **kwargs):
-        """Save the :class:`~mongoengine.Document` to the database. If the
+        """Save the :class:`~motorengine.Document` to the database. If the
         document already exists, it will be updated, otherwise it will be
         created.
 
@@ -284,12 +284,12 @@ class Document(BaseDocument):
         except pymongo.errors.OperationFailure:
             err = sys.exc_info()[1]
             message = 'Could not save document (%s)'
-            if re.match('^E1100[01] duplicate key', six.u(err)):
+            if re.match('^E1100[01] duplicate key', unicode(err)):
                 # E11000 - duplicate key error index
                 # E11001 - duplicate key on update
                 message = u'Tried to save duplicate unique keys (%s)'
-                raise NotUniqueError(message % six.u(err))
-            raise OperationError(message % six.u(err))
+                raise NotUniqueError(message % unicode(err))
+            raise OperationError(message % unicode(err))
         id_field = self._meta['id_field']
         if id_field not in self._meta.get('shard_key', []):
             self[id_field] = self._fields[id_field].to_python(object_id)
@@ -346,8 +346,8 @@ class Document(BaseDocument):
         return select_dict
 
     def update(self, **kwargs):
-        """Performs an update on the :class:`~mongoengine.Document`
-        A convenience wrapper to :meth:`~mongoengine.QuerySet.update`.
+        """Performs an update on the :class:`~motorengine.Document`
+        A convenience wrapper to :meth:`~motorengine.QuerySet.update`.
 
         Raises :class:`OperationError` if called on an object that has not yet
         been saved.
@@ -365,7 +365,7 @@ class Document(BaseDocument):
         return self._qs.filter(**self._object_key).update_one(**kwargs)
 
     def delete(self, **write_concern):
-        """Delete the :class:`~mongoengine.Document` from the database. This
+        """Delete the :class:`~motorengine.Document` from the database. This
         will only take effect if the document has been previously saved.
 
         :param write_concern: Extra keyword arguments are passed down which
@@ -396,7 +396,7 @@ class Document(BaseDocument):
             user.save()
 
         If you need to read from another database see
-        :class:`~mongoengine.context_managers.switch_db`
+        :class:`~motorengine.context_managers.switch_db`
 
         :param db_alias: The database alias to use for saving the document
         """
@@ -422,7 +422,7 @@ class Document(BaseDocument):
             user.save()
 
         If you need to read from another database see
-        :class:`~mongoengine.context_managers.switch_db`
+        :class:`~motorengine.context_managers.switch_db`
 
         :param collection_name: The database alias to use for saving the
             document
@@ -474,7 +474,7 @@ class Document(BaseDocument):
         return obj
 
     def _reload(self, key, value):
-        """Used by :meth:`~mongoengine.Document.reload` to ensure the
+        """Used by :meth:`~motorengine.Document.reload` to ensure the
         correct instance is linked to self.
         """
         if isinstance(value, BaseDict):
@@ -518,7 +518,7 @@ class Document(BaseDocument):
     @classmethod
     def drop_collection(cls):
         """Drops the entire collection associated with this
-        :class:`~mongoengine.Document` type from the database.
+        :class:`~motorengine.Document` type from the database.
         """
         cls._collection = None
         db = cls._get_db()
@@ -668,11 +668,11 @@ class Document(BaseDocument):
 
 class DynamicDocument(Document):
     """A Dynamic Document class allowing flexible, expandable and uncontrolled
-    schemas.  As a :class:`~mongoengine.Document` subclass, acts in the same
+    schemas.  As a :class:`~motorengine.Document` subclass, acts in the same
     way as an ordinary document but has expando style properties.  Any data
-    passed or set against the :class:`~mongoengine.DynamicDocument` that is
+    passed or set against the :class:`~motorengine.DynamicDocument` that is
     not a field is automatically converted into a
-    :class:`~mongoengine.fields.DynamicField` and data can be attributed to that
+    :class:`~motorengine.fields.DynamicField` and data can be attributed to that
     field.
 
     .. note::
@@ -699,7 +699,7 @@ class DynamicDocument(Document):
 
 class DynamicEmbeddedDocument(EmbeddedDocument):
     """A Dynamic Embedded Document class allowing flexible, expandable and
-    uncontrolled schemas. See :class:`~mongoengine.DynamicDocument` for more
+    uncontrolled schemas. See :class:`~motorengine.DynamicDocument` for more
     information about dynamic documents.
     """
 

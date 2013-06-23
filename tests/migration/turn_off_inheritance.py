@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import unittest
 
-from mongoengine import Document, connect
-from mongoengine.connection import get_db
-from mongoengine.fields import StringField
+from motorengine import Document, connect
+from motorengine.connection import get_db
+from motorengine.fields import StringField
 
 __all__ = ('TurnOffInheritanceTest', )
 
@@ -11,7 +11,7 @@ __all__ = ('TurnOffInheritanceTest', )
 class TurnOffInheritanceTest(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
         self.db = get_db()
 
     def tearDown(self):

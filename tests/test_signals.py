@@ -3,8 +3,8 @@ import sys
 sys.path[0:0] = [""]
 import unittest
 
-from mongoengine import *
-from mongoengine import signals
+from motorengine import *
+from motorengine import signals
 
 signal_output = []
 
@@ -22,7 +22,7 @@ class SignalTests(unittest.TestCase):
         return signal_output
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
 
         class Author(Document):
             name = StringField()

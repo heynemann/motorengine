@@ -15,11 +15,11 @@ from decimal import Decimal
 
 from bson import Binary, DBRef, ObjectId
 
-from mongoengine import *
-from mongoengine.connection import get_db
-from mongoengine.base import _document_registry
-from mongoengine.errors import NotRegistered
-from mongoengine.python_support import PY3, b, bin_type
+from motorengine import *
+from motorengine.connection import get_db
+from motorengine.base import _document_registry
+from motorengine.errors import NotRegistered
+from motorengine.python_support import PY3, b, bin_type
 
 __all__ = ("FieldTest", )
 
@@ -27,7 +27,7 @@ __all__ = ("FieldTest", )
 class FieldTest(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
         self.db = get_db()
 
     def tearDown(self):
@@ -538,14 +538,14 @@ class FieldTest(unittest.TestCase):
         self.assertRaises(ValidationError, log.validate)
 
     def test_datetime_tz_aware_mark_as_changed(self):
-        from mongoengine import connection
+        from motorengine import connection
 
         # Reset the connections
         connection._connection_settings = {}
         connection._connections = {}
         connection._dbs = {}
 
-        connect(db='mongoenginetest', tz_aware=True)
+        connect(db='motorenginetest', tz_aware=True)
 
         class LogEntry(Document):
             time = DateTimeField()
@@ -2089,23 +2089,23 @@ class FieldTest(unittest.TestCase):
             id = SequenceField(primary_key=True)
             name = StringField()
 
-        self.db['mongoengine.counters'].drop()
+        self.db['motorengine.counters'].drop()
         Person.drop_collection()
 
         for x in xrange(10):
             Person(name="Person %s" % x).save()
 
-        c = self.db['mongoengine.counters'].find_one({'_id': 'person.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'person.id'})
         self.assertEqual(c['next'], 10)
 
         ids = [i.id for i in Person.objects]
         self.assertEqual(ids, range(1, 11))
 
-        c = self.db['mongoengine.counters'].find_one({'_id': 'person.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'person.id'})
         self.assertEqual(c['next'], 10)
 
         Person.id.set_next_value(1000)
-        c = self.db['mongoengine.counters'].find_one({'_id': 'person.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'person.id'})
         self.assertEqual(c['next'], 1000)
 
 
@@ -2114,14 +2114,14 @@ class FieldTest(unittest.TestCase):
             id = SequenceField(primary_key=True)
             name = StringField()
 
-        self.db['mongoengine.counters'].drop()
+        self.db['motorengine.counters'].drop()
         Person.drop_collection()
 
         for x in xrange(10):
             Person(name="Person %s" % x).save()
 
         self.assertEqual(Person.id.get_next_value(), 11)
-        self.db['mongoengine.counters'].drop()
+        self.db['motorengine.counters'].drop()
 
         self.assertEqual(Person.id.get_next_value(), 1)
 
@@ -2129,14 +2129,14 @@ class FieldTest(unittest.TestCase):
             id = SequenceField(primary_key=True, value_decorator=str)
             name = StringField()
 
-        self.db['mongoengine.counters'].drop()
+        self.db['motorengine.counters'].drop()
         Person.drop_collection()
 
         for x in xrange(10):
             Person(name="Person %s" % x).save()
 
         self.assertEqual(Person.id.get_next_value(), '11')
-        self.db['mongoengine.counters'].drop()
+        self.db['motorengine.counters'].drop()
 
         self.assertEqual(Person.id.get_next_value(), '1')
 
@@ -2145,23 +2145,23 @@ class FieldTest(unittest.TestCase):
             id = SequenceField(primary_key=True, sequence_name='jelly')
             name = StringField()
 
-        self.db['mongoengine.counters'].drop()
+        self.db['motorengine.counters'].drop()
         Person.drop_collection()
 
         for x in xrange(10):
             Person(name="Person %s" % x).save()
 
-        c = self.db['mongoengine.counters'].find_one({'_id': 'jelly.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'jelly.id'})
         self.assertEqual(c['next'], 10)
 
         ids = [i.id for i in Person.objects]
         self.assertEqual(ids, range(1, 11))
 
-        c = self.db['mongoengine.counters'].find_one({'_id': 'jelly.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'jelly.id'})
         self.assertEqual(c['next'], 10)
 
         Person.id.set_next_value(1000)
-        c = self.db['mongoengine.counters'].find_one({'_id': 'jelly.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'jelly.id'})
         self.assertEqual(c['next'], 1000)
 
     def test_multiple_sequence_fields(self):
@@ -2170,13 +2170,13 @@ class FieldTest(unittest.TestCase):
             counter = SequenceField()
             name = StringField()
 
-        self.db['mongoengine.counters'].drop()
+        self.db['motorengine.counters'].drop()
         Person.drop_collection()
 
         for x in xrange(10):
             Person(name="Person %s" % x).save()
 
-        c = self.db['mongoengine.counters'].find_one({'_id': 'person.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'person.id'})
         self.assertEqual(c['next'], 10)
 
         ids = [i.id for i in Person.objects]
@@ -2185,15 +2185,15 @@ class FieldTest(unittest.TestCase):
         counters = [i.counter for i in Person.objects]
         self.assertEqual(counters, range(1, 11))
 
-        c = self.db['mongoengine.counters'].find_one({'_id': 'person.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'person.id'})
         self.assertEqual(c['next'], 10)
 
         Person.id.set_next_value(1000)
-        c = self.db['mongoengine.counters'].find_one({'_id': 'person.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'person.id'})
         self.assertEqual(c['next'], 1000)
 
         Person.counter.set_next_value(999)
-        c = self.db['mongoengine.counters'].find_one({'_id': 'person.counter'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'person.counter'})
         self.assertEqual(c['next'], 999)
 
     def test_sequence_fields_reload(self):
@@ -2201,7 +2201,7 @@ class FieldTest(unittest.TestCase):
             counter = SequenceField()
             name = StringField()
 
-        self.db['mongoengine.counters'].drop()
+        self.db['motorengine.counters'].drop()
         Animal.drop_collection()
 
         a = Animal(name="Boi").save()
@@ -2229,7 +2229,7 @@ class FieldTest(unittest.TestCase):
         class Person(Document):
             id = SequenceField(primary_key=True)
 
-        self.db['mongoengine.counters'].drop()
+        self.db['motorengine.counters'].drop()
         Animal.drop_collection()
         Person.drop_collection()
 
@@ -2237,10 +2237,10 @@ class FieldTest(unittest.TestCase):
             Animal(name="Animal %s" % x).save()
             Person(name="Person %s" % x).save()
 
-        c = self.db['mongoengine.counters'].find_one({'_id': 'person.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'person.id'})
         self.assertEqual(c['next'], 10)
 
-        c = self.db['mongoengine.counters'].find_one({'_id': 'animal.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'animal.id'})
         self.assertEqual(c['next'], 10)
 
         ids = [i.id for i in Person.objects]
@@ -2249,10 +2249,10 @@ class FieldTest(unittest.TestCase):
         id = [i.id for i in Animal.objects]
         self.assertEqual(id, range(1, 11))
 
-        c = self.db['mongoengine.counters'].find_one({'_id': 'person.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'person.id'})
         self.assertEqual(c['next'], 10)
 
-        c = self.db['mongoengine.counters'].find_one({'_id': 'animal.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'animal.id'})
         self.assertEqual(c['next'], 10)
 
     def test_sequence_field_value_decorator(self):
@@ -2260,20 +2260,20 @@ class FieldTest(unittest.TestCase):
             id = SequenceField(primary_key=True, value_decorator=str)
             name = StringField()
 
-        self.db['mongoengine.counters'].drop()
+        self.db['motorengine.counters'].drop()
         Person.drop_collection()
 
         for x in xrange(10):
             p = Person(name="Person %s" % x)
             p.save()
 
-        c = self.db['mongoengine.counters'].find_one({'_id': 'person.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'person.id'})
         self.assertEqual(c['next'], 10)
 
         ids = [i.id for i in Person.objects]
         self.assertEqual(ids, map(str, range(1, 11)))
 
-        c = self.db['mongoengine.counters'].find_one({'_id': 'person.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'person.id'})
         self.assertEqual(c['next'], 10)
 
     def test_embedded_sequence_field(self):
@@ -2285,13 +2285,13 @@ class FieldTest(unittest.TestCase):
             title = StringField(required=True)
             comments = ListField(EmbeddedDocumentField(Comment))
 
-        self.db['mongoengine.counters'].drop()
+        self.db['motorengine.counters'].drop()
         Post.drop_collection()
 
         Post(title="MongoEngine",
              comments=[Comment(content="NoSQL Rocks"),
                        Comment(content="MongoEngine Rocks")]).save()
-        c = self.db['mongoengine.counters'].find_one({'_id': 'comment.id'})
+        c = self.db['motorengine.counters'].find_one({'_id': 'comment.id'})
         self.assertEqual(c['next'], 2)
         post = Post.objects.first()
         self.assertEqual(1, post.comments[0].id)

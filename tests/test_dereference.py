@@ -5,15 +5,15 @@ import unittest
 
 from bson import DBRef, ObjectId
 
-from mongoengine import *
-from mongoengine.connection import get_db
-from mongoengine.context_managers import query_counter
+from motorengine import *
+from motorengine.connection import get_db
+from motorengine.context_managers import query_counter
 
 
 class FieldTest(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
         self.db = get_db()
 
     def test_list_item_dereference(self):
@@ -1126,7 +1126,7 @@ class FieldTest(unittest.TestCase):
         Ensure that tuples remain tuples when they are
         inside a ComplexBaseField
         """
-        from mongoengine.base import BaseField
+        from motorengine.base import BaseField
 
         class EnumField(BaseField):
 

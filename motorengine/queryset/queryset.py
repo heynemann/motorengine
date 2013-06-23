@@ -379,12 +379,12 @@ class QuerySet(object):
         except pymongo.errors.OperationFailure:
             err = sys.exc_info()[1]
             message = 'Could not save document (%s)'
-            if re.match('^E1100[01] duplicate key', six.u(err)):
+            if re.match('^E1100[01] duplicate key', unicode(err)):
                 # E11000 - duplicate key error index
                 # E11001 - duplicate key on update
                 message = u'Tried to save duplicate unique keys (%s)'
-                raise NotUniqueError(message % six.u(err))
-            raise OperationError(message % six.u(err))
+                raise NotUniqueError(message % unicode(err))
+            raise OperationError(message % unicode(err))
 
         if not load_bulk:
             signals.post_bulk_insert.send(
@@ -522,10 +522,10 @@ class QuerySet(object):
                 return result['n']
         except pymongo.errors.OperationFailure:
             err = sys.exc_info()[1]
-            if six.u(err) == u'multi not coded yet':
+            if unicode(err) == u'multi not coded yet':
                 message = u'update() method requires MongoDB 1.1.3+'
                 raise OperationError(message)
-            raise OperationError(u'Update failed (%s)' % six.u(err))
+            raise OperationError(u'Update failed (%s)' % unicode(err))
 
     def update_one(self, upsert=False, write_concern=None, **update):
         """Perform an atomic update on first field matched by the query.
@@ -956,13 +956,13 @@ class QuerySet(object):
         map_f_scope = {}
         if isinstance(map_f, Code):
             map_f_scope = map_f.scope
-            map_f = six.u(map_f)
+            map_f = unicode(map_f)
         map_f = Code(queryset._sub_js_fields(map_f), map_f_scope)
 
         reduce_f_scope = {}
         if isinstance(reduce_f, Code):
             reduce_f_scope = reduce_f.scope
-            reduce_f = six.u(reduce_f)
+            reduce_f = unicode(reduce_f)
         reduce_f_code = queryset._sub_js_fields(reduce_f)
         reduce_f = Code(reduce_f_code, reduce_f_scope)
 
@@ -972,7 +972,7 @@ class QuerySet(object):
             finalize_f_scope = {}
             if isinstance(finalize_f, Code):
                 finalize_f_scope = finalize_f.scope
-                finalize_f = six.u(finalize_f)
+                finalize_f = unicode(finalize_f)
             finalize_f_code = queryset._sub_js_fields(finalize_f)
             finalize_f = Code(finalize_f_code, finalize_f_scope)
             mr_args['finalize'] = finalize_f

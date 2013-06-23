@@ -103,7 +103,7 @@ class ValidationError(AssertionError):
             elif isinstance(source, ValidationError) and source.errors:
                 return build_dict(source.errors)
             else:
-                return six.u(source)
+                return unicode(source)
             return errors_dict
         if not self.errors:
             return {}

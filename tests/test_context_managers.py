@@ -2,9 +2,9 @@ import sys
 sys.path[0:0] = [""]
 import unittest
 
-from mongoengine import *
-from mongoengine.connection import get_db
-from mongoengine.context_managers import (switch_db, switch_collection,
+from motorengine import *
+from motorengine.connection import get_db
+from motorengine.context_managers import (switch_db, switch_collection,
                                           no_sub_classes, no_dereference,
                                           query_counter)
 
@@ -12,8 +12,8 @@ from mongoengine.context_managers import (switch_db, switch_collection,
 class ContextManagersTest(unittest.TestCase):
 
     def test_switch_db_context_manager(self):
-        connect('mongoenginetest')
-        register_connection('testdb-1', 'mongoenginetest2')
+        connect('motorenginetest')
+        register_connection('testdb-1', 'motorenginetest2')
 
         class Group(Document):
             name = StringField()
@@ -37,8 +37,8 @@ class ContextManagersTest(unittest.TestCase):
         self.assertEqual(1, Group.objects.count())
 
     def test_switch_collection_context_manager(self):
-        connect('mongoenginetest')
-        register_connection('testdb-1', 'mongoenginetest2')
+        connect('motorenginetest')
+        register_connection('testdb-1', 'motorenginetest2')
 
         class Group(Document):
             name = StringField()
@@ -66,7 +66,7 @@ class ContextManagersTest(unittest.TestCase):
     def test_no_dereference_context_manager_object_id(self):
         """Ensure that DBRef items in ListFields aren't dereferenced.
         """
-        connect('mongoenginetest')
+        connect('motorenginetest')
 
         class User(Document):
             name = StringField()
@@ -104,7 +104,7 @@ class ContextManagersTest(unittest.TestCase):
     def test_no_dereference_context_manager_dbref(self):
         """Ensure that DBRef items in ListFields aren't dereferenced.
         """
-        connect('mongoenginetest')
+        connect('motorenginetest')
 
         class User(Document):
             name = StringField()
@@ -188,7 +188,7 @@ class ContextManagersTest(unittest.TestCase):
         self.assertEqual(C.objects.count(), 1)
 
     def test_query_counter(self):
-        connect('mongoenginetest')
+        connect('motorenginetest')
         db = get_db()
         db.test.find({})
 

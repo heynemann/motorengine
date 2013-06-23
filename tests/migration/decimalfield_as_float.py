@@ -3,9 +3,9 @@ import unittest
 import decimal
 from decimal import Decimal
 
-from mongoengine import Document, connect
-from mongoengine.connection import get_db
-from mongoengine.fields import StringField, DecimalField, ListField
+from motorengine import Document, connect
+from motorengine.connection import get_db
+from motorengine.fields import StringField, DecimalField, ListField
 
 __all__ = ('ConvertDecimalField', )
 
@@ -13,7 +13,7 @@ __all__ = ('ConvertDecimalField', )
 class ConvertDecimalField(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
         self.db = get_db()
 
     def test_how_to_convert_decimal_fields(self):
@@ -27,8 +27,11 @@ class ConvertDecimalField(unittest.TestCase):
             monies = ListField(DecimalField(force_string=True))
 
         Person.drop_collection()
-        Person(name="Wilson Jr", money=Decimal("2.50"),
-               monies=[Decimal("2.10"), Decimal("5.00")]).save()
+        Person(
+            name="Wilson Jr",
+            money=Decimal("2.50"),
+            monies=[Decimal("2.10"), Decimal("5.00")]
+        ).save()
 
         # 2. Start the migration by changing the schema
         # Change DecimalField - add precision and rounding settings

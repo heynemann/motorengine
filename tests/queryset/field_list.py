@@ -3,8 +3,8 @@ sys.path[0:0] = [""]
 
 import unittest
 
-from mongoengine import *
-from mongoengine.queryset import QueryFieldList
+from motorengine import *
+from motorengine.queryset import QueryFieldList
 
 __all__ = ("QueryFieldListTest", "OnlyExcludeAllTest")
 
@@ -71,7 +71,7 @@ class QueryFieldListTest(unittest.TestCase):
 class OnlyExcludeAllTest(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
 
         class Person(Document):
             name = StringField()

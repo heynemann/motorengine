@@ -3,7 +3,7 @@ sys.path[0:0] = [""]
 
 import unittest
 from datetime import datetime, timedelta
-from mongoengine import *
+from motorengine import *
 
 __all__ = ("GeoQueriesTest",)
 
@@ -11,7 +11,7 @@ __all__ = ("GeoQueriesTest",)
 class GeoQueriesTest(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
 
     def test_geospatial_operators(self):
         """Ensure that geospatial queries are working.

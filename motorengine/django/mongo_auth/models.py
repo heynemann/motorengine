@@ -7,7 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 
 
 MONGOENGINE_USER_DOCUMENT = getattr(
-    settings, 'MONGOENGINE_USER_DOCUMENT', 'mongoengine.django.auth.User')
+    settings, 'MONGOENGINE_USER_DOCUMENT', 'motorengine.django.auth.User')
 
 
 class MongoUserManager(UserManager):
@@ -19,7 +19,7 @@ class MongoUserManager(UserManager):
         INSTALLED_APPS = (
             ...
             'django.contrib.auth',
-            'mongoengine.django.mongo_auth',
+            'motorengine.django.mongo_auth',
             ...
         )
         AUTH_USER_MODEL = 'mongo_auth.MongoUser'
@@ -27,7 +27,7 @@ class MongoUserManager(UserManager):
     Django will use the model object to access the custom Manager, which will
     replace the original queryset with MongoEngine querysets.
 
-    By default, mongoengine.django.auth.User will be used to store users. You
+    By default, motorengine.django.auth.User will be used to store users. You
     can specify another document class in MONGOENGINE_USER_DOCUMENT in your
     settings.py.
 

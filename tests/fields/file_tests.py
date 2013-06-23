@@ -10,9 +10,9 @@ import tempfile
 import gridfs
 
 from nose.plugins.skip import SkipTest
-from mongoengine import *
-from mongoengine.connection import get_db
-from mongoengine.python_support import PY3, b, StringIO
+from motorengine import *
+from motorengine.connection import get_db
+from motorengine.python_support import PY3, b, StringIO
 
 try:
     from PIL import Image
@@ -20,14 +20,14 @@ try:
 except ImportError:
     HAS_PIL = False
 
-TEST_IMAGE_PATH = os.path.join(os.path.dirname(__file__), 'mongoengine.png')
+TEST_IMAGE_PATH = os.path.join(os.path.dirname(__file__), 'motorengine.png')
 TEST_IMAGE2_PATH = os.path.join(os.path.dirname(__file__), 'mongodb_leaf.png')
 
 
 class FileTest(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
         self.db = get_db()
 
     def tearDown(self):

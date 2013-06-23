@@ -17,7 +17,7 @@ __all__ = ('AllWarnings', )
 class AllWarnings(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
         self.warning_list = []
         self.showwarning_default = warnings.showwarning
         warnings.showwarning = self.append_to_warning_list

@@ -1,4 +1,4 @@
-from mongoengine import *
+from motorengine import *
 
 from django.utils.encoding import smart_str
 from django.contrib.auth.models import _user_has_perm, _user_get_all_permissions, _user_has_module_perms
@@ -257,7 +257,7 @@ class User(Document):
 
     def set_password(self, raw_password):
         """Sets the user's password - always use this rather than directly
-        assigning to :attr:`~mongoengine.django.auth.User.password` as the
+        assigning to :attr:`~motorengine.django.auth.User.password` as the
         password is hashed before storage.
         """
         self.password = make_password(raw_password)
@@ -267,7 +267,7 @@ class User(Document):
     def check_password(self, raw_password):
         """Checks the user's password against a provided password - always use
         this rather than directly comparing to
-        :attr:`~mongoengine.django.auth.User.password` as the password is
+        :attr:`~motorengine.django.auth.User.password` as the password is
         hashed before storage.
         """
         return check_password(raw_password, self.password)
@@ -372,7 +372,7 @@ class User(Document):
 
 
 class MongoEngineBackend(object):
-    """Authenticate using MongoEngine and mongoengine.django.auth.User.
+    """Authenticate using MongoEngine and motorengine.django.auth.User.
     """
 
     supports_object_permissions = False

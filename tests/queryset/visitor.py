@@ -6,9 +6,9 @@ import unittest
 from bson import ObjectId
 from datetime import datetime
 
-from mongoengine import *
-from mongoengine.queryset import Q
-from mongoengine.errors import InvalidQueryError
+from motorengine import *
+from motorengine.queryset import Q
+from motorengine.errors import InvalidQueryError
 
 __all__ = ("QTest",)
 
@@ -16,7 +16,7 @@ __all__ = ("QTest",)
 class QTest(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
 
         class Person(Document):
             name = StringField()
@@ -47,7 +47,7 @@ class QTest(unittest.TestCase):
 
     def test_q_with_dbref(self):
         """Ensure Q objects handle DBRefs correctly"""
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
 
         class User(Document):
             pass

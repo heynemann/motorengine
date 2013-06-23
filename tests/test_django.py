@@ -2,11 +2,11 @@ import sys
 sys.path[0:0] = [""]
 import unittest
 from nose.plugins.skip import SkipTest
-from mongoengine.python_support import PY3
-from mongoengine import *
+from motorengine.python_support import PY3
+from motorengine import *
 
 try:
-    from mongoengine.django.shortcuts import get_document_or_404
+    from motorengine.django.shortcuts import get_document_or_404
 
     from django.http import Http404
     from django.template import Context, Template
@@ -15,19 +15,19 @@ try:
 
     settings.configure(
         USE_TZ=True,
-        INSTALLED_APPS=('django.contrib.auth', 'mongoengine.django.mongo_auth'),
+        INSTALLED_APPS=('django.contrib.auth', 'motorengine.django.mongo_auth'),
         AUTH_USER_MODEL=('mongo_auth.MongoUser'),
     )
 
     try:
         from django.contrib.auth import authenticate, get_user_model
-        from mongoengine.django.auth import User
-        from mongoengine.django.mongo_auth.models import MongoUser, MongoUserManager
+        from motorengine.django.auth import User
+        from motorengine.django.mongo_auth.models import MongoUser, MongoUserManager
         DJ15 = True
     except Exception:
         DJ15 = False
     from django.contrib.sessions.tests import SessionTestsMixin
-    from mongoengine.django.sessions import SessionStore, MongoSession
+    from motorengine.django.sessions import SessionStore, MongoSession
 except Exception, err:
     if PY3:
         SessionTestsMixin = type  # dummy value so no error
@@ -72,7 +72,7 @@ class QuerySetTest(unittest.TestCase):
     def setUp(self):
         if PY3:
             raise SkipTest('django does not have Python 3 support')
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
 
         class Person(Document):
             name = StringField()
@@ -225,7 +225,7 @@ class MongoDBSessionTest(SessionTestsMixin, unittest.TestCase):
     def setUp(self):
         if PY3:
             raise SkipTest('django does not have Python 3 support')
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
         MongoSession.drop_collection()
         super(MongoDBSessionTest, self).setUp()
 
@@ -266,7 +266,7 @@ class MongoAuthTest(unittest.TestCase):
             raise SkipTest('django does not have Python 3 support')
         if not DJ15:
             raise SkipTest('mongo_auth requires Django 1.5')
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
         User.drop_collection()
         super(MongoAuthTest, self).setUp()
 

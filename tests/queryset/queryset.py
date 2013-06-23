@@ -13,14 +13,14 @@ from pymongo.read_preferences import ReadPreference
 
 from bson import ObjectId
 
-from mongoengine import *
-from mongoengine.connection import get_connection
-from mongoengine.python_support import PY3
-from mongoengine.context_managers import query_counter
-from mongoengine.queryset import (QuerySet, QuerySetManager,
+from motorengine import *
+from motorengine.connection import get_connection
+from motorengine.python_support import PY3
+from motorengine.context_managers import query_counter
+from motorengine.queryset import (QuerySet, QuerySetManager,
                                   MultipleObjectsReturned, DoesNotExist,
                                   queryset_manager)
-from mongoengine.errors import InvalidQueryError
+from motorengine.errors import InvalidQueryError
 
 __all__ = ("QuerySetTest",)
 
@@ -28,7 +28,7 @@ __all__ = ("QuerySetTest",)
 class QuerySetTest(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
 
         class Person(Document):
             name = StringField()
@@ -491,7 +491,7 @@ class QuerySetTest(unittest.TestCase):
         comm1 = Comment(content="very funny indeed", name="John S", vote=1)
         comm2 = Comment(content="kind of funny", name="Mark P", vote=0)
 
-        Post(title='Fun with MongoEngine', tags=['mongodb', 'mongoengine'],
+        Post(title='Fun with MongoEngine', tags=['mongodb', 'motorengine'],
              comments=[comm1, comm2]).save()
 
         Post.objects().update_one(pull__comments__vote__lt=1)
@@ -1822,7 +1822,7 @@ class QuerySetTest(unittest.TestCase):
             title = StringField(primary_key=True)
             tags = ListField(StringField())
 
-        post1 = BlogPost(title="Post #1", tags=["mongodb", "mongoengine"])
+        post1 = BlogPost(title="Post #1", tags=["mongodb", "motorengine"])
         post2 = BlogPost(title="Post #2", tags=["django", "mongodb"])
         post3 = BlogPost(title="Post #3", tags=["hitchcock films"])
 
@@ -2253,7 +2253,7 @@ class QuerySetTest(unittest.TestCase):
         self.assertEqual(Foo.objects.distinct("bar"), [bar])
 
     def test_distinct_handles_references_to_alias(self):
-        register_connection('testdb', 'mongoenginetest2')
+        register_connection('testdb', 'motorenginetest2')
 
         class Foo(Document):
             bar = ReferenceField("Bar")
@@ -3192,7 +3192,7 @@ class QuerySetTest(unittest.TestCase):
             map_field = MapField(IntField(), default=lambda: {"simple": 1})
             decimal_field = DecimalField(default=1.0)
             complex_datetime_field = ComplexDateTimeField(default=datetime.now)
-            url_field = URLField(default="http://mongoengine.org")
+            url_field = URLField(default="http://motorengine.org")
             dynamic_field = DynamicField(default=1)
             generic_reference_field = GenericReferenceField(default=lambda: Simple().save())
             sorted_list_field = SortedListField(IntField(),

@@ -2,7 +2,7 @@ import os
 import itertools
 import urlparse
 
-from mongoengine import *
+from motorengine import *
 from django.conf import settings
 from django.core.files.storage import Storage
 from django.core.exceptions import ImproperlyConfigured

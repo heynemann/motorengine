@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import unittest
 
-from mongoengine import Document, connect
-from mongoengine.connection import get_db
-from mongoengine.fields import StringField, ReferenceField, ListField
+from motorengine import Document, connect
+from motorengine.connection import get_db
+from motorengine.fields import StringField, ReferenceField, ListField
 
 __all__ = ('ConvertToObjectIdsModel', )
 
@@ -11,7 +11,7 @@ __all__ = ('ConvertToObjectIdsModel', )
 class ConvertToObjectIdsModel(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
         self.db = get_db()
 
     def test_how_to_convert_to_object_id_reference_fields(self):

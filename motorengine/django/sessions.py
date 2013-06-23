@@ -3,10 +3,10 @@ from django.contrib.sessions.backends.base import SessionBase, CreateError
 from django.core.exceptions import SuspiciousOperation
 from django.utils.encoding import force_unicode
 
-from mongoengine.document import Document
-from mongoengine import fields
-from mongoengine.queryset import OperationError
-from mongoengine.connection import DEFAULT_CONNECTION_NAME
+from motorengine.document import Document
+from motorengine import fields
+from motorengine.queryset import OperationError
+from motorengine.connection import DEFAULT_CONNECTION_NAME
 
 from .utils import datetime_now
 

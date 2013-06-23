@@ -17,9 +17,9 @@ class DeReference(object):
         :param items: The iterable (dict, list, queryset) to be dereferenced.
         :param max_depth: The maximum depth to recurse to
         :param instance: The owning instance used for tracking changes by
-            :class:`~mongoengine.base.ComplexBaseField`
+            :class:`~motorengine.base.ComplexBaseField`
         :param name: The name of the field, used for tracking changes by
-            :class:`~mongoengine.base.ComplexBaseField`
+            :class:`~motorengine.base.ComplexBaseField`
         :param get: A boolean determining if being called by __get__
         """
         if items is None or isinstance(items, basestring):
@@ -150,9 +150,9 @@ class DeReference(object):
         :param items: The iterable (dict, list, queryset)
         :param depth: The current depth of recursion
         :param instance: The owning instance used for tracking changes by
-            :class:`~mongoengine.base.ComplexBaseField`
+            :class:`~motorengine.base.ComplexBaseField`
         :param name: The name of the field, used for tracking changes by
-            :class:`~mongoengine.base.ComplexBaseField`
+            :class:`~motorengine.base.ComplexBaseField`
         """
         if not items:
             if isinstance(items, (BaseDict, BaseList)):

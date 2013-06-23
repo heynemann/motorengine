@@ -158,11 +158,11 @@ class BaseField(object):
                 option_keys = [k for k, v in self.choices]
                 if value_to_check not in option_keys:
                     msg = ('Value must be %s of %s' %
-                           (err_msg, six.u(option_keys)))
+                           (err_msg, unicode(option_keys)))
                     self.error(msg)
             elif value_to_check not in self.choices:
                 msg = ('Value must be %s of %s' %
-                       (err_msg, six.u(self.choices)))
+                       (err_msg, unicode(self.choices)))
                 self.error(msg)
 
         # check validation argument
@@ -406,11 +406,11 @@ class ObjectIdField(BaseField):
     def to_mongo(self, value):
         if not isinstance(value, ObjectId):
             try:
-                return ObjectId(six.u(value))
+                return ObjectId(unicode(value))
             except Exception:
                 e = sys.exc_info()[1]
                 # e.message attribute has been deprecated since Python 2.6
-                self.error(six.u(e))
+                self.error(unicode(e))
         return value
 
     def prepare_query_value(self, op, value):
@@ -418,7 +418,7 @@ class ObjectIdField(BaseField):
 
     def validate(self, value):
         try:
-            ObjectId(six.u(value))
+            ObjectId(unicode(value))
         except:
             self.error('Invalid Object ID')
 

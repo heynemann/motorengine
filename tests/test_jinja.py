@@ -3,7 +3,7 @@ sys.path[0:0] = [""]
 
 import unittest
 
-from mongoengine import *
+from motorengine import *
 
 import jinja2
 
@@ -11,7 +11,7 @@ import jinja2
 class TemplateFilterTest(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
 
     def test_jinja2(self):
         env = jinja2.Environment()

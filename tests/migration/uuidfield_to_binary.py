@@ -2,9 +2,9 @@
 import unittest
 import uuid
 
-from mongoengine import Document, connect
-from mongoengine.connection import get_db
-from mongoengine.fields import StringField, UUIDField, ListField
+from motorengine import Document, connect
+from motorengine.connection import get_db
+from motorengine.fields import StringField, UUIDField, ListField
 
 __all__ = ('ConvertToBinaryUUID', )
 
@@ -12,7 +12,7 @@ __all__ = ('ConvertToBinaryUUID', )
 class ConvertToBinaryUUID(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
         self.db = get_db()
 
     def test_how_to_convert_to_binary_uuid_fields(self):

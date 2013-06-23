@@ -1,6 +1,6 @@
-from mongoengine.queryset import QuerySet
-from mongoengine.base import BaseDocument
-from mongoengine.errors import ValidationError
+from motorengine.queryset import QuerySet
+from motorengine.base import BaseDocument
+from motorengine.errors import ValidationError
 
 def _get_queryset(cls):
     """Inspired by django.shortcuts.*"""

@@ -4,8 +4,8 @@ sys.path[0:0] = [""]
 
 import unittest
 
-from mongoengine import *
-from mongoengine.connection import get_db
+from motorengine import *
+from motorengine.connection import get_db
 
 __all__ = ("GeoFieldTest", )
 
@@ -13,7 +13,7 @@ __all__ = ("GeoFieldTest", )
 class GeoFieldTest(unittest.TestCase):
 
     def setUp(self):
-        connect(db='mongoenginetest')
+        connect(db='motorenginetest')
         self.db = get_db()
 
     def _test_for_expected_error(self, Cls, loc, expected):
