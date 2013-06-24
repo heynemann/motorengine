@@ -516,13 +516,13 @@ class Document(BaseDocument):
                 cls._meta['delete_rules'] = delete_rules
 
     @classmethod
-    def drop_collection(cls):
+    def drop_collection(cls, callback):
         """Drops the entire collection associated with this
         :class:`~motorengine.Document` type from the database.
         """
         cls._collection = None
         db = cls._get_db()
-        db.drop_collection(cls._get_collection_name())
+        db.drop_collection(cls._get_collection_name(), callback=callback)
 
     @classmethod
     def ensure_index(cls, key_or_list, drop_dups=False, background=False, **kwargs):

@@ -13,6 +13,7 @@ from bson import json_util
 import pymongo
 from pymongo.common import validate_read_preference
 import six
+import tornado.gen
 
 from motorengine import signals
 from motorengine.common import _import_class
@@ -83,7 +84,7 @@ class QuerySet(object):
         self._skip = None
         self._hint = -1  # Using -1 as None is a valid value for hint
 
-    def __call__(self, q_obj=None, class_check=True, slave_okay=False,
+    def __call__(self, callback, q_obj=None, class_check=True, slave_okay=False,
                  read_preference=None, **query):
         """Filter the selected documents by calling the
         :class:`~motorengine.queryset.QuerySet` with a query.
@@ -119,6 +120,7 @@ class QuerySet(object):
         queryset._mongo_query = None
         queryset._cursor_obj = None
         queryset._class_check = class_check
+        queryset._callback = callback
 
         return queryset
 
@@ -1166,15 +1168,23 @@ class QuerySet(object):
         if self._limit == 0 or self._none:
             raise StopIteration
 
-        raw_doc = self._cursor.next()
+        self._cursor.next_object(callback=self.handle_next)
+
+    def handle_next(self, result):
+        import ipdb;ipdb.set_trace()
+        raw_doc = self._cursor.next_object()
+
         if self._as_pymongo:
-            return self._get_as_pymongo(raw_doc)
+            self._callback(self._get_as_pymongo(raw_doc))
+            return
+
         doc = self._document._from_son(raw_doc,
                                        _auto_dereference=self._auto_dereference)
         if self._scalar:
-            return self._get_scalar(doc)
+            self._callback(self._get_scalar(doc))
+            return
 
-        return doc
+        self._callback(doc)
 
     def rewind(self):
         """Rewind the cursor to its unevaluated state.
