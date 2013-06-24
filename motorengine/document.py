@@ -57,11 +57,11 @@ class BaseDocument(object):
         if name not in AUTHORIZED_FIELDS and name not in self._fields:
             raise ValueError("Can't set a property for an unknown field: %s" % name)
 
-        if name in AUTHORIZED_FIELDS:
-            object.__setattr__(self, name, value)
+        if name in self._fields:
+            self._fields[name].set_value(value)
             return
 
-        self._fields[name].set_value(value)
+        object.__setattr__(self, name, value)
 
 
 class Document(six.with_metaclass(DocumentMetaClass, BaseDocument)):
