@@ -25,8 +25,10 @@ class BaseDocument(object):
 
     def handle_save(self, callback):
         def handle(*args, **kw):
+            # error?
             if len(args) > 1 and args[1]:
                 raise args[1]
+
             self._id = args[0]
             callback(instance=self)
         return handle
