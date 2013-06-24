@@ -41,6 +41,15 @@ class TestDocument(AsyncTestCase):
         else:
             assert False, "Should not have gotten this far"
 
+        user = User(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann")
+        try:
+            user.invalid_property = "a"
+        except ValueError:
+            err = sys.exc_info()
+            expect(err[1]).to_have_an_error_message_of("Error updating property: Invalid property 'invalid_property'.")
+        else:
+            assert False, "Should not have gotten this far"
+
     def test_can_create_new_instance(self):
         user = User(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann")
         user.save(callback=self.stop)

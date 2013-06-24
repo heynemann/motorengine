@@ -55,7 +55,7 @@ class BaseDocument(object):
 
     def __setattr__(self, name, value):
         if name not in AUTHORIZED_FIELDS and name not in self._fields:
-            raise ValueError("Can't set a property for an unknown field: %s" % name)
+            raise ValueError("Error updating property: Invalid property '%s'." % name)
 
         if name in self._fields:
             self._fields[name].set_value(value)
