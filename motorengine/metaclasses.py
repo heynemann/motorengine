@@ -5,35 +5,12 @@
 
 from motorengine.fields import BaseField
 from motorengine.errors import InvalidDocumentError
-from motorengine.queryset.manager import QuerySetManager
 
 
 class DocumentMetaClass(type):
     def __new__(cls, name, bases, attrs):
         flattened_bases = cls._get_bases(bases)
         super_new = super(DocumentMetaClass, cls).__new__
-
-        # If a base class just call super
-        metaclass = attrs.get('my_metaclass')
-        if metaclass and issubclass(metaclass, DocumentMetaClass):
-            return super_new(cls, name, bases, attrs)
-
-        attrs['_is_document'] = attrs.get('_is_document', False)
-
-        # EmbeddedDocuments could have meta data for inheritance
-        if 'meta' in attrs:
-            attrs['_meta'] = attrs.pop('meta')
-
-        # EmbeddedDocuments should inherit meta data
-        if '_meta' not in attrs:
-            meta = MetaDict()
-            for base in flattened_bases[::-1]:
-                # Add any mixin metadata from plain objects
-                if hasattr(base, 'meta'):
-                    meta.merge(base.meta)
-                elif hasattr(base, '_meta'):
-                    meta.merge(base._meta)
-            attrs['_meta'] = meta
 
         doc_fields = {}
         for base in flattened_bases[::-1]:
@@ -88,10 +65,6 @@ class DocumentMetaClass(type):
 
         if not '__collection__' in attrs:
             new_class.__collection__ = new_class.__name__
-            new_class._meta['collection'] = new_class.__name__
-
-        if 'objects' not in dir(new_class):
-            new_class.objects = QuerySetManager()
 
         return new_class
 
@@ -117,17 +90,3 @@ class DocumentMetaClass(type):
 class BasesTuple(tuple):
     """Special class to handle introspection of bases tuple in __new__"""
     pass
-
-
-class MetaDict(dict):
-    """Custom dictionary for meta classes.
-    Handles the merging of set indexes
-    """
-    _merge_options = ('indexes',)
-
-    def merge(self, new_options):
-        for k, v in new_options.items():
-            if k in self._merge_options:
-                self[k] = self.get(k, []) + v
-            else:
-                self[k] = v

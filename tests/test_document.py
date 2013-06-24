@@ -6,7 +6,6 @@ import sys
 from preggy import expect
 
 from motorengine import connect, disconnect, Document, StringField
-from motorengine.queryset.queryset import QuerySet
 from tests import AsyncTestCase
 
 
@@ -26,10 +25,7 @@ class TestDocument(AsyncTestCase):
         disconnect()
 
     def test_has_proper_collection(self):
-        expect(User.__collection__).to_equal('User')
-
-    def test_has_queryset_manager(self):
-        expect(User.objects).to_be_instance_of(QuerySet)
+        assert User.__collection__ == 'User'
 
     def test_setting_invalid_property_raises(self):
         try:
@@ -45,20 +41,6 @@ class TestDocument(AsyncTestCase):
         user.save(callback=self.stop)
 
         result = self.wait()['kwargs']['instance']
-
-        expect(result._id).not_to_be_null()
-        expect(result.email).to_equal("heynemann@gmail.com")
-        expect(result.first_name).to_equal("Bernardo")
-        expect(result.last_name).to_equal("Heynemann")
-
-    def test_can_get_document(self):
-        user = User(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann")
-        user.save(callback=self.stop)
-
-        self.wait()
-
-        User.objects(id=user._id).find_one(callback=self.stop)
-        result = self.wait()['instance']
 
         expect(result._id).not_to_be_null()
         expect(result.email).to_equal("heynemann@gmail.com")

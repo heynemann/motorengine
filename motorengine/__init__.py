@@ -1,11 +1,9 @@
-from mongoengine.errors import (DoesNotExist, MultipleObjectsReturned,
-                                InvalidQueryError, OperationError,
-                                NotUniqueError)
-from mongoengine.queryset.field_list import *
-from mongoengine.queryset.manager import *
-from mongoengine.queryset.queryset import *
-from mongoengine.queryset.transform import *
-from mongoengine.queryset.visitor import *
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-__all__ = (field_list.__all__ + manager.__all__ + queryset.__all__ +
-           transform.__all__ + visitor.__all__)
+__version__ = '0.1.0'
+
+from motorengine.connection import connect, disconnect  # NOQA
+from motorengine.document import Document  # NOQA
+
+from motorengine.fields.string import StringField  # NOQA

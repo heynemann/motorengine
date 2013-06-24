@@ -4,7 +4,7 @@
 import six
 
 from motorengine.metaclasses import DocumentMetaClass
-from motorengine.connection import get_connection, DEFAULT_CONNECTION_NAME
+from motorengine.connection import get_connection
 
 
 class BaseDocument(object):
@@ -38,28 +38,6 @@ class BaseDocument(object):
         coll = conn[self.__collection__]
         coll.insert(document, callback=self.handle_save(callback))
 
-    @classmethod
-    def _get_collection_name(cls):
-        """Returns the collection name for this class.
-        """
-        return cls._meta.get('collection', None)
-
-    @classmethod
-    def _get_collection(cls):
-        """Returns the collection for the document."""
-        if not hasattr(cls, '_collection') or cls._collection is None:
-            db = cls._get_db()
-            collection_name = cls._get_collection_name()
-
-            cls._collection = db[collection_name]
-
-        return cls._collection
-
-    @classmethod
-    def _get_db(cls):
-        """Some Model using other db_alias"""
-        return get_connection(alias=cls._meta.get("db_alias", DEFAULT_CONNECTION_NAME))
-
     def __getattribute__(self, name):
         # required for the next test
         if name in ['_fields']:
@@ -72,4 +50,4 @@ class BaseDocument(object):
 
 
 class Document(six.with_metaclass(DocumentMetaClass, BaseDocument)):
-    my_metaclass = DocumentMetaClass
+    pass
