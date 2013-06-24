@@ -17,19 +17,6 @@ class DocumentMetaClass(type):
             if hasattr(base, '_fields'):
                 doc_fields.update(base._fields)
 
-            # Standard object mixin - merge in any Fields
-            if not hasattr(base, '_meta'):
-                base_fields = {}
-                for attr_name, attr_value in base.__dict__.items():
-                    if not isinstance(attr_value, BaseField):
-                        continue
-                    attr_value.name = attr_name
-                    if not attr_value.db_field:
-                        attr_value.db_field = attr_name
-                    base_fields[attr_name] = attr_value
-
-                doc_fields.update(base_fields)
-
         # Discover any document fields
         field_names = {}
         for attr_name, attr_value in attrs.items():
