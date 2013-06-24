@@ -6,6 +6,7 @@ import sys
 from preggy import expect
 
 from motorengine import connect, disconnect, Document, StringField
+from motorengine.errors import InvalidDocumentError
 from tests import AsyncTestCase
 
 
@@ -62,3 +63,26 @@ class TestDocument(AsyncTestCase):
         expect(result.first_name).to_equal("Bernardo")
         expect(result.last_name).to_equal("Heynemann")
         expect(result.emp_number).to_equal("Employee")
+
+    def test_duplicate_fields(self):
+        try:
+            class DuplicateField(User):
+                email = StringField(required=True)
+        except InvalidDocumentError:
+            e = sys.exc_info()[1]
+            expect(e).to_have_an_error_message_of("Multiple db_fields defined for: email ")
+        else:
+            assert False, "Should not have gotten this far."
+
+    def test_can_update_employee(self):
+        user = Employee(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", emp_number="Employee")
+        user.emp_number = "12345"
+        user.save(callback=self.stop)
+
+        result = self.wait()['kwargs']['instance']
+
+        expect(result._id).not_to_be_null()
+        expect(result.email).to_equal("heynemann@gmail.com")
+        expect(result.first_name).to_equal("Bernardo")
+        expect(result.last_name).to_equal("Heynemann")
+        expect(result.emp_number).to_equal("12345")

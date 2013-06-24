@@ -7,6 +7,9 @@ from motorengine.metaclasses import DocumentMetaClass
 from motorengine.connection import get_connection
 
 
+AUTHORIZED_FIELDS = ['_id']
+
+
 class BaseDocument(object):
     def __init__(self, *args, **kw):
         self._id = None
@@ -15,7 +18,7 @@ class BaseDocument(object):
                 raise ValueError("Error creating document %s: Invalid property '%s'." % (
                     self.__class__.__name__, key
                 ))
-            self._fields[key].value = value
+            self._fields[key].set_value(value)
 
     def to_dict(self):
         data = {}
@@ -49,6 +52,16 @@ class BaseDocument(object):
             return self._fields[name].get_value()
 
         return object.__getattribute__(self, name)
+
+    def __setattr__(self, name, value):
+        if name not in AUTHORIZED_FIELDS and name not in self._fields:
+            raise ValueError("Can't set a property for an unknown field: %s" % name)
+
+        if name in AUTHORIZED_FIELDS:
+            object.__setattr__(self, name, value)
+            return
+
+        self._fields[name].set_value(value)
 
 
 class Document(six.with_metaclass(DocumentMetaClass, BaseDocument)):

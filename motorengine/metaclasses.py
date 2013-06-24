@@ -19,6 +19,11 @@ class DocumentMetaClass(type):
 
         # Discover any document fields
         field_names = {}
+
+        for field_name, doc_field in doc_fields.items():
+            field_names[doc_field.db_field] = field_names.get(
+                doc_field.db_field, 0) + 1
+
         for attr_name, attr_value in attrs.items():
             if not isinstance(attr_value, BaseField):
                 continue
