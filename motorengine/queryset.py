@@ -67,6 +67,9 @@ class QuerySet(object):
 
     def handle_find_all(self, callback):
         def handle(*arguments, **kwargs):
+            if arguments and len(arguments) > 1 and arguments[1]:
+                raise arguments[1]
+
             result = []
             for doc in arguments[0]:
                 result.append(self.__klass__.from_dict(doc))
@@ -75,14 +78,29 @@ class QuerySet(object):
 
         return handle
 
-    def find_all(self, callback, alias=None):
+    def _get_find_cursor(self, alias):
         find_arguments = {}
+
+        if self._order_fields:
+            find_arguments['sort'] = self._order_fields
+
+        return self.coll(alias).find(self._filters, **find_arguments)
+
+    def find_all(self, callback, alias=None):
         to_list_arguments = dict(callback=self.handle_find_all(callback))
 
         if self._limit is not None:
             to_list_arguments['length'] = self._limit
 
-        if self._order_fields:
-            find_arguments['sort'] = self._order_fields
+        self._get_find_cursor(alias=alias).to_list(**to_list_arguments)
 
-        self.coll(alias).find(self._filters, **find_arguments).to_list(**to_list_arguments)
+    def handle_count(self, callback):
+        def handle(*arguments, **kwargs):
+            if arguments and len(arguments) > 1 and arguments[1]:
+                raise arguments[1]
+            callback(result=arguments[0])
+
+        return handle
+
+    def count(self, callback, alias=None):
+        self._get_find_cursor(alias=alias).count(callback=self.handle_count(callback))

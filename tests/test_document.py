@@ -199,3 +199,22 @@ class TestDocument(AsyncTestCase):
         expect(first_user.first_name).to_equal('Someone')
         expect(first_user.last_name).to_equal('Else')
         expect(first_user.email).to_equal("someone@gmail.com")
+
+    def test_can_count_documents(self):
+        User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
+        self.wait()
+
+        User.objects.create(email="someone@gmail.com", first_name="Someone", last_name="Else", callback=self.stop)
+        self.wait()
+
+        User.objects.count(callback=self.stop)
+        user_count = self.wait()['kwargs']['result']
+        expect(user_count).to_equal(2)
+
+        User.objects.filter(email="someone@gmail.com").count(callback=self.stop)
+        user_count = self.wait()['kwargs']['result']
+        expect(user_count).to_equal(1)
+
+        User.objects.filter(email="invalid@gmail.com").count(callback=self.stop)
+        user_count = self.wait()['kwargs']['result']
+        expect(user_count).to_equal(0)
