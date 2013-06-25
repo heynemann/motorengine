@@ -98,12 +98,11 @@ class TestDocument(AsyncTestCase):
 
     def test_can_get_instance(self):
         user = Employee(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", emp_number="Employee")
-        user.emp_number = "12345"
         user.save(callback=self.stop)
         self.wait()
 
         Employee.objects.get(user._id, callback=self.stop)
-        retrieved_user = self.wait()
+        retrieved_user = self.wait()['kwargs']['instance']
 
         expect(retrieved_user._id).to_equal(user._id)
         expect(retrieved_user.email).to_equal("heynemann@gmail.com")

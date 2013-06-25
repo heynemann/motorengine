@@ -9,17 +9,12 @@ class BaseField(object):
         global creation_counter
         self.creation_counter = BaseField.total_creation_counter
         BaseField.total_creation_counter += 1
+
         self.db_field = db_field
         self.required = required
-        self.value = None
 
-    def to_dict(self):
-        return {
-            self.db_field: self.get_value()
-        }
+    def to_son(self, value):
+        return value
 
-    def get_value(self):
-        return self.value
-
-    def set_value(self, value):
-        self.value = value
+    def from_son(self, value):
+        return value

@@ -5,6 +5,7 @@
 
 from motorengine.fields import BaseField
 from motorengine.errors import InvalidDocumentError
+from motorengine.queryset import QuerySet
 
 
 class DocumentMetaClass(type):
@@ -57,6 +58,8 @@ class DocumentMetaClass(type):
 
         if not '__collection__' in attrs:
             new_class.__collection__ = new_class.__name__
+
+        new_class.objects = QuerySet(new_class)
 
         return new_class
 

@@ -4,26 +4,52 @@
 import six
 
 from motorengine.metaclasses import DocumentMetaClass
-from motorengine.connection import get_connection
 
 
-AUTHORIZED_FIELDS = ['_id']
+AUTHORIZED_FIELDS = ['_id', '_values']
+
+
+def get_class(module_name, klass):
+    module = __import__(module_name)
+    if '.' in module_name:
+        module = reduce(getattr, module_name.split('.')[1:], module)
+
+    return getattr(module, klass)
 
 
 class BaseDocument(object):
     def __init__(self, *args, **kw):
-        self._id = None
+        self._id = kw.pop('_id', None)
+        self._values = {}
+
         for key, value in kw.items():
             if key not in self._db_field_map:
                 raise ValueError("Error creating document %s: Invalid property '%s'." % (
                     self.__class__.__name__, key
                 ))
-            self._fields[key].set_value(value)
+            self._values[key] = value
+
+    @classmethod
+    def from_dict(cls, dic):
+        klass = get_class(dic.pop('__module__'), dic.pop('__class__'))
+
+        field_values = {}
+        for name, value in dic.items():
+            if name in cls._fields:
+                field_values[name] = cls._fields[name].from_son(value)
+            else:
+                field_values[name] = value
+
+        return klass(**field_values)
 
     def to_dict(self):
-        data = {}
-        for name, field in self._fields.items():
-            data[name] = field.to_dict()
+        data = {
+            "__module__": self.__module__,
+            "__class__": self.__class__.__name__
+        }
+
+        for name, value in self._values.items():
+            data[name] = self._fields[name].to_son(value)
         return data
 
     def handle_save(self, callback):
@@ -37,11 +63,7 @@ class BaseDocument(object):
         return handle
 
     def save(self, callback, alias=None):
-        document = self.to_dict()
-        conn = get_connection()
-
-        coll = conn[self.__collection__]
-        coll.insert(document, callback=self.handle_save(callback))
+        self.objects.save(self, callback=self.handle_save(callback), alias=alias)
 
     def __getattribute__(self, name):
         # required for the next test
@@ -49,7 +71,7 @@ class BaseDocument(object):
             return object.__getattribute__(self, name)
 
         if name in self._fields:
-            return self._fields[name].get_value()
+            return self._values.get(name, None)
 
         return object.__getattribute__(self, name)
 
@@ -58,7 +80,7 @@ class BaseDocument(object):
             raise ValueError("Error updating property: Invalid property '%s'." % name)
 
         if name in self._fields:
-            self._fields[name].set_value(value)
+            self._values[name] = value
             return
 
         object.__setattr__(self, name, value)
