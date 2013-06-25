@@ -109,3 +109,21 @@ class TestDocument(AsyncTestCase):
         expect(retrieved_user.first_name).to_equal("Bernardo")
         expect(retrieved_user.last_name).to_equal("Heynemann")
         expect(retrieved_user.emp_number).to_equal("Employee")
+
+    def test_after_updated_get_proper_data(self):
+        user = Employee(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", emp_number="Employee")
+        user.save(callback=self.stop)
+        self.wait()
+
+        user.emp_number = "12345"
+        user.save(callback=self.stop)
+        self.wait()
+
+        Employee.objects.get(user._id, callback=self.stop)
+        retrieved_user = self.wait()['kwargs']['instance']
+
+        expect(retrieved_user._id).to_equal(user._id)
+        expect(retrieved_user.email).to_equal("heynemann@gmail.com")
+        expect(retrieved_user.first_name).to_equal("Bernardo")
+        expect(retrieved_user.last_name).to_equal("Heynemann")
+        expect(retrieved_user.emp_number).to_equal("12345")

@@ -8,6 +8,11 @@ from motorengine.errors import InvalidDocumentError
 from motorengine.queryset import QuerySet
 
 
+class classproperty(property):
+    def __get__(self, cls, owner):
+        return classmethod(self.fget).__get__(None, owner)()
+
+
 class DocumentMetaClass(type):
     def __new__(cls, name, bases, attrs):
         flattened_bases = cls._get_bases(bases)
@@ -59,7 +64,7 @@ class DocumentMetaClass(type):
         if not '__collection__' in attrs:
             new_class.__collection__ = new_class.__name__
 
-        new_class.objects = QuerySet(new_class)
+        setattr(new_class, 'objects', classproperty(lambda *args, **kw: QuerySet(new_class)))
 
         return new_class
 
