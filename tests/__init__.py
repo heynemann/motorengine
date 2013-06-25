@@ -5,12 +5,23 @@ from tornado.testing import AsyncTestCase as TornadoAsyncTestCase
 from tornado.testing import gen_test  # NOQA
 
 import motorengine.connection
+from motorengine import connect, disconnect
 
 
 class AsyncTestCase(TornadoAsyncTestCase):
+    def setUp(self, auto_connect=True):
+        super(AsyncTestCase, self).setUp()
+        if auto_connect:
+            self.db = connect("test", host="localhost", port=4445, io_loop=self.io_loop)
+
     def tearDown(self):
-        super(AsyncTestCase, self).tearDown()
         motorengine.connection.cleanup()
+        super(AsyncTestCase, self).tearDown()
+
+    def drop_coll(self, coll):
+        collection = self.db[coll]
+        collection.drop(callback=self.stop)
+        self.wait()
 
     def stop(self, *args, **kwargs):
         '''Stops the ioloop, causing one pending (or future) call to wait()

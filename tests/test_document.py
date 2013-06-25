@@ -5,7 +5,7 @@ import sys
 
 from preggy import expect
 
-from motorengine import connect, disconnect, Document, StringField
+from motorengine import Document, StringField
 from motorengine.errors import InvalidDocumentError
 from tests import AsyncTestCase
 
@@ -15,6 +15,9 @@ class User(Document):
     first_name = StringField(max_length=50)
     last_name = StringField(max_length=50)
 
+    def __repr__(self):
+        return "%s %s <%s>" % (self.first_name, self.last_name, self.email)
+
 
 class Employee(User):
     emp_number = StringField()
@@ -23,11 +26,8 @@ class Employee(User):
 class TestDocument(AsyncTestCase):
     def setUp(self):
         super(TestDocument, self).setUp()
-        connect("test", host="localhost", port=4445, io_loop=self.io_loop)
-
-    def tearDown(self):
-        super(TestDocument, self).tearDown()
-        disconnect()
+        self.drop_coll("User")
+        self.drop_coll("Employee")
 
     def test_has_proper_collection(self):
         assert User.__collection__ == 'User'
@@ -127,3 +127,30 @@ class TestDocument(AsyncTestCase):
         expect(retrieved_user.first_name).to_equal("Bernardo")
         expect(retrieved_user.last_name).to_equal("Heynemann")
         expect(retrieved_user.emp_number).to_equal("12345")
+
+    def test_cant_filter_for_invalid_field(self):
+        try:
+            User.objects.filter(invalid_field=True)
+        except ValueError:
+            err = sys.exc_info()[1]
+            expect(err).to_have_an_error_message_of("Invalid filter 'invalid_field': Field not found in 'User'.")
+        else:
+            assert False, "Should not have gotten this far"
+
+    def test_can_find_proper_document(self):
+        User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
+        self.wait()
+
+        User.objects.create(email="someone@gmail.com", first_name="Someone", last_name="Else", callback=self.stop)
+        self.wait()
+
+        User.objects.filter(email="someone@gmail.com").find_all(callback=self.stop)
+        users = self.wait()['kwargs']['result']
+
+        expect(users).to_be_instance_of(list)
+        expect(users).to_length(1)
+
+        first_user = users[0]
+        expect(first_user.first_name).to_equal('Someone')
+        expect(first_user.last_name).to_equal('Else')
+        expect(first_user.email).to_equal("someone@gmail.com")
