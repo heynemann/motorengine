@@ -95,3 +95,18 @@ class TestDocument(AsyncTestCase):
         expect(result.first_name).to_equal("Bernardo")
         expect(result.last_name).to_equal("Heynemann")
         expect(result.emp_number).to_equal("12345")
+
+    def test_can_get_instance(self):
+        user = Employee(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", emp_number="Employee")
+        user.emp_number = "12345"
+        user.save(callback=self.stop)
+        self.wait()
+
+        Employee.objects.get(user._id, callback=self.stop)
+        retrieved_user = self.wait()
+
+        expect(retrieved_user._id).to_equal(user._id)
+        expect(retrieved_user.email).to_equal("heynemann@gmail.com")
+        expect(retrieved_user.first_name).to_equal("Bernardo")
+        expect(retrieved_user.last_name).to_equal("Heynemann")
+        expect(retrieved_user.emp_number).to_equal("Employee")
