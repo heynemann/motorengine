@@ -9,6 +9,7 @@ class QuerySet(object):
     def __init__(self, klass):
         self.__klass__ = klass
         self._filters = {}
+        self._limit = None
 
     def coll(self, alias):
         if alias is not None:
@@ -51,6 +52,10 @@ class QuerySet(object):
             self._filters[field.db_field] = field.to_son(value)
         return self
 
+    def limit(self, limit):
+        self._limit = limit
+        return self
+
     def handle_find_all(self, callback):
         def handle(*arguments, **kwargs):
             result = []
@@ -62,4 +67,7 @@ class QuerySet(object):
         return handle
 
     def find_all(self, callback, alias=None):
-        self.coll(alias).find(self._filters).to_list(callback=self.handle_find_all(callback))
+        arguments = dict(callback=self.handle_find_all(callback))
+        if self._limit is not None:
+            arguments['length'] = self._limit
+        self.coll(alias).find(self._filters).to_list(**arguments)

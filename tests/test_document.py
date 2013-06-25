@@ -154,3 +154,21 @@ class TestDocument(AsyncTestCase):
         expect(first_user.first_name).to_equal('Someone')
         expect(first_user.last_name).to_equal('Else')
         expect(first_user.email).to_equal("someone@gmail.com")
+
+    def test_can_limit_number_of_documents(self):
+        User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
+        self.wait()
+
+        User.objects.create(email="someone@gmail.com", first_name="Someone", last_name="Else", callback=self.stop)
+        self.wait()
+
+        User.objects.limit(1).find_all(callback=self.stop)
+        users = self.wait()['kwargs']['result']
+
+        expect(users).to_be_instance_of(list)
+        expect(users).to_length(1)
+
+        first_user = users[0]
+        expect(first_user.first_name).to_equal('Bernardo')
+        expect(first_user.last_name).to_equal('Heynemann')
+        expect(first_user.email).to_equal("heynemann@gmail.com")
