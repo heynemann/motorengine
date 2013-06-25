@@ -5,7 +5,7 @@ import sys
 
 from preggy import expect
 
-from motorengine import Document, StringField
+from motorengine import Document, StringField, DESCENDING
 from motorengine.errors import InvalidDocumentError
 from tests import AsyncTestCase
 
@@ -172,3 +172,30 @@ class TestDocument(AsyncTestCase):
         expect(first_user.first_name).to_equal('Bernardo')
         expect(first_user.last_name).to_equal('Heynemann')
         expect(first_user.email).to_equal("heynemann@gmail.com")
+
+    def test_cant_order_for_invalid_field(self):
+        try:
+            User.objects.order_by("invalid_field")
+        except ValueError:
+            err = sys.exc_info()[1]
+            expect(err).to_have_an_error_message_of("Invalid order by field 'invalid_field': Field not found in 'User'.")
+        else:
+            assert False, "Should not have gotten this far"
+
+    def test_can_order_documents(self):
+        User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
+        self.wait()
+
+        User.objects.create(email="someone@gmail.com", first_name="Someone", last_name="Else", callback=self.stop)
+        self.wait()
+
+        User.objects.order_by("first_name", DESCENDING).find_all(callback=self.stop)
+        users = self.wait()['kwargs']['result']
+
+        expect(users).to_be_instance_of(list)
+        expect(users).to_length(2)
+
+        first_user = users[0]
+        expect(first_user.first_name).to_equal('Someone')
+        expect(first_user.last_name).to_equal('Else')
+        expect(first_user.email).to_equal("someone@gmail.com")

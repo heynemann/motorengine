@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
+from motorengine import ASCENDING
 from motorengine.connection import get_connection
 
 
@@ -10,6 +10,7 @@ class QuerySet(object):
         self.__klass__ = klass
         self._filters = {}
         self._limit = None
+        self._order_fields = []
 
     def coll(self, alias):
         if alias is not None:
@@ -56,6 +57,14 @@ class QuerySet(object):
         self._limit = limit
         return self
 
+    def order_by(self, field_name, direction=ASCENDING):
+        if field_name not in self.__klass__._fields:
+            raise ValueError("Invalid order by field '%s': Field not found in '%s'." % (field_name, self.__klass__.__name__))
+
+        field = self.__klass__._fields[field_name]
+        self._order_fields.append((field.db_field, direction))
+        return self
+
     def handle_find_all(self, callback):
         def handle(*arguments, **kwargs):
             result = []
@@ -67,7 +76,13 @@ class QuerySet(object):
         return handle
 
     def find_all(self, callback, alias=None):
-        arguments = dict(callback=self.handle_find_all(callback))
+        find_arguments = {}
+        to_list_arguments = dict(callback=self.handle_find_all(callback))
+
         if self._limit is not None:
-            arguments['length'] = self._limit
-        self.coll(alias).find(self._filters).to_list(**arguments)
+            to_list_arguments['length'] = self._limit
+
+        if self._order_fields:
+            find_arguments['sort'] = self._order_fields
+
+        self.coll(alias).find(self._filters, **find_arguments).to_list(**to_list_arguments)
