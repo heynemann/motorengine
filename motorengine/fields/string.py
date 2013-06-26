@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from motorengine.fields import BaseField
+from motorengine.fields.base import BaseField
 
 
 class StringField(BaseField):
