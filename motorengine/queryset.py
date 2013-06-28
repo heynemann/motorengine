@@ -9,7 +9,7 @@ class QuerySet(object):
     def __init__(self, klass):
         self.__klass__ = klass
         self._filters = {}
-        self._limit = None
+        self._limit = 300
         self._order_fields = []
 
     def coll(self, alias):

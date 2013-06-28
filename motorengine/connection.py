@@ -81,11 +81,18 @@ def get_connection(alias=DEFAULT_CONNECTION_NAME, db=None):
 
         try:
             _connections[alias] = connection_class(**conn_settings)
-            _connections[alias].open_sync()
         except Exception:
             exc_info = sys.exc_info()
             err = ConnectionError("Cannot connect to database %s :\n%s" % (alias, exc_info[1]))
-            six.reraise(ConnectionError, err, exc_info[2])
+            raise six.reraise(ConnectionError, err, exc_info[2])
+
+    try:
+        if not _connections[alias].connected:
+            _connections[alias].open_sync()
+    except Exception:
+        exc_info = sys.exc_info()
+        err = ConnectionError("Cannot connect to database %s :\n%s" % (alias, exc_info[1]))
+        raise six.reraise(ConnectionError, err, exc_info[2])
 
     database = None
     if db is None:
