@@ -5,7 +5,7 @@ import sys
 
 from preggy import expect
 
-from motorengine import Document, StringField, DESCENDING
+from motorengine import Document, StringField, BooleanField, DESCENDING
 from motorengine.errors import InvalidDocumentError
 from tests import AsyncTestCase
 
@@ -14,6 +14,7 @@ class User(Document):
     email = StringField(required=True)
     first_name = StringField(max_length=50)
     last_name = StringField(max_length=50)
+    is_admin = BooleanField(default=True)
 
     def __repr__(self):
         return "%s %s <%s>" % (self.first_name, self.last_name, self.email)
@@ -109,6 +110,7 @@ class TestDocument(AsyncTestCase):
         expect(retrieved_user.first_name).to_equal("Bernardo")
         expect(retrieved_user.last_name).to_equal("Heynemann")
         expect(retrieved_user.emp_number).to_equal("Employee")
+        expect(retrieved_user.is_admin).to_be_true()
 
     def test_after_updated_get_proper_data(self):
         user = Employee(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", emp_number="Employee")
@@ -218,3 +220,11 @@ class TestDocument(AsyncTestCase):
         User.objects.filter(email="invalid@gmail.com").count(callback=self.stop)
         user_count = self.wait()['kwargs']['result']
         expect(user_count).to_equal(0)
+
+    def test_saving_without_required_fields_raises(self):
+        user = Employee(first_name="Bernardo", last_name="Heynemann", emp_number="Employee")
+        try:
+            user.save(callback=self.stop)
+        except InvalidDocumentError:
+            err = sys.exc_info()[1]
+            expect(err).to_have_an_error_message_of("Field 'email' is required.")

@@ -4,6 +4,7 @@
 import six
 
 from motorengine.metaclasses import DocumentMetaClass
+from motorengine.errors import InvalidDocumentError
 
 
 AUTHORIZED_FIELDS = ['_id', '_values']
@@ -21,6 +22,9 @@ class BaseDocument(object):
     def __init__(self, *args, **kw):
         self._id = kw.pop('_id', None)
         self._values = {}
+
+        for key, field in self._fields.items():
+            self._values[key] = field.default
 
         for key, value in kw.items():
             if key not in self._db_field_map:
@@ -52,6 +56,13 @@ class BaseDocument(object):
             data[name] = self._fields[name].to_son(value)
         return data
 
+    def validate_fields(self):
+        for name, field in self._fields.items():
+            if field.required and field.is_empty(self._values[field.db_field]):
+                raise InvalidDocumentError("Field '%s' is required." % name)
+
+        return True
+
     def handle_save(self, callback):
         def handle(*args, **kw):
             # error?
@@ -63,7 +74,8 @@ class BaseDocument(object):
         return handle
 
     def save(self, callback, alias=None):
-        self.objects.save(self, callback=self.handle_save(callback), alias=alias)
+        if self.validate_fields():
+            self.objects.save(self, callback=self.handle_save(callback), alias=alias)
 
     def __getattribute__(self, name):
         # required for the next test
