@@ -4,3 +4,4 @@
 from motorengine.fields.base import BaseField  # NOQA
 from motorengine.fields.string import StringField  # NOQA
 from motorengine.fields.bool import BooleanField  # NOQA
+from motorengine.fields.date import DateTimeField  # NOQA

@@ -8,5 +8,5 @@ from motorengine.connection import connect, disconnect  # NOQA
 from motorengine.document import Document  # NOQA
 
 from motorengine.fields import (  # NOQA
-    BaseField, StringField, BooleanField
+    BaseField, StringField, BooleanField, DateTimeField
 )
