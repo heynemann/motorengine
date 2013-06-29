@@ -12,9 +12,14 @@ class StringField(BaseField):
         self.max_length = max_length
 
     def validate(self, value):
-        return isinstance(value, six.string_types) and (
-            self.max_length is not None and len(value) <= self.max_length
-        )
+        is_string = isinstance(value, six.string_types)
+
+        if not is_string:
+            return False
+
+        below_max_length = self.max_length is not None and len(value) <= self.max_length
+
+        return self.max_length is None or below_max_length
 
     def is_empty(self, value):
         return value is None or value == ""

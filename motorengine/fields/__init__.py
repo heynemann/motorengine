@@ -6,3 +6,4 @@ from motorengine.fields.string_field import StringField  # NOQA
 from motorengine.fields.boolean_field import BooleanField  # NOQA
 from motorengine.fields.datetime_field import DateTimeField  # NOQA
 from motorengine.fields.uuid_field import UUIDField  # NOQA
+from motorengine.fields.list_field import ListField  # NOQA
