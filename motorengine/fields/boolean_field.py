@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from motorengine.fields.base import BaseField
+from motorengine.fields.base_field import BaseField
 
 
 class BooleanField(BaseField):

@@ -3,7 +3,7 @@
 
 import six
 
-from motorengine.fields.base import BaseField
+from motorengine.fields.base_field import BaseField
 
 
 class StringField(BaseField):

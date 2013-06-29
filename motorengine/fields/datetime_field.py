@@ -3,7 +3,7 @@
 
 from datetime import datetime
 
-from motorengine.fields.base import BaseField
+from motorengine.fields.base_field import BaseField
 
 FORMAT = "%Y-%m-%d-%H-%M-%S"
 
