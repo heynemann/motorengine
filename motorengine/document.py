@@ -5,17 +5,10 @@ import six
 
 from motorengine.metaclasses import DocumentMetaClass
 from motorengine.errors import InvalidDocumentError
+from motorengine.utils import get_class
 
 
 AUTHORIZED_FIELDS = ['_id', '_values']
-
-
-def get_class(module_name, klass):
-    module = __import__(module_name)
-    if '.' in module_name:
-        module = reduce(getattr, module_name.split('.')[1:], module)
-
-    return getattr(module, klass)
 
 
 class BaseDocument(object):
@@ -34,7 +27,7 @@ class BaseDocument(object):
             self._values[key] = value
 
     @classmethod
-    def from_dict(cls, dic):
+    def from_son(cls, dic):
         klass = get_class(dic.pop('__module__'), dic.pop('__class__'))
 
         field_values = {}
@@ -46,7 +39,7 @@ class BaseDocument(object):
 
         return klass(**field_values)
 
-    def to_dict(self):
+    def to_son(self):
         data = {
             "__module__": self.__module__,
             "__class__": self.__class__.__name__

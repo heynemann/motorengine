@@ -30,13 +30,13 @@ class QuerySet(object):
                 self.__klass__.__name__,
                 document.__class__.__name__,
             ))
-        doc = document.to_dict()
+        doc = document.to_son()
         self.coll(alias).insert(doc, callback=callback)
 
     def handle_get(self, callback):
         def handle(*args, **kw):
             instance = args[0]
-            callback(instance=self.__klass__.from_dict(instance))
+            callback(instance=self.__klass__.from_son(instance))
 
         return handle
 
@@ -72,7 +72,7 @@ class QuerySet(object):
 
             result = []
             for doc in arguments[0]:
-                result.append(self.__klass__.from_dict(doc))
+                result.append(self.__klass__.from_son(doc))
 
             callback(result=result)
 

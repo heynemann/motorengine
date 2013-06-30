@@ -7,3 +7,4 @@ from motorengine.fields.boolean_field import BooleanField  # NOQA
 from motorengine.fields.datetime_field import DateTimeField  # NOQA
 from motorengine.fields.uuid_field import UUIDField  # NOQA
 from motorengine.fields.list_field import ListField  # NOQA
+from motorengine.fields.embedded_document_field import EmbeddedDocumentField  # NOQA
