@@ -11,6 +11,9 @@ class ListField(BaseField):
         if not isinstance(field, BaseField):
             raise ValueError("The list field 'field' argument must be an instance of BaseField, not '%s'." % str(field))
 
+        if not self.default:
+            self.default = []
+
         self._base_field = field
 
     def validate(self, value):

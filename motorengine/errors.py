@@ -4,3 +4,7 @@
 
 class InvalidDocumentError(ValueError):
     pass
+
+
+class LoadReferencesRequiredError(RuntimeError):
+    pass

@@ -24,6 +24,16 @@ class QuerySet(object):
         document = self.__klass__(**kwargs)
         self.save(document=document, callback=callback, alias=alias)
 
+    def handle_save(self, document, callback):
+        def handle(*arguments, **kw):
+            if len(arguments) > 1 and arguments[1]:
+                raise arguments[1]
+
+            document._id = arguments[0]
+            callback(instance=document)
+
+        return handle
+
     def save(self, document, callback, alias=None):
         if not isinstance(document, self.__klass__):
             raise ValueError("This queryset for class '%s' can't save an instance of type '%s'." % (
@@ -31,12 +41,15 @@ class QuerySet(object):
                 document.__class__.__name__,
             ))
         doc = document.to_son()
-        self.coll(alias).insert(doc, callback=callback)
+        self.coll(alias).insert(doc, callback=self.handle_save(document, callback))
 
     def handle_get(self, callback):
         def handle(*args, **kw):
             instance = args[0]
-            callback(instance=self.__klass__.from_son(instance))
+            if instance is None:
+                callback(instance=None)
+            else:
+                callback(instance=self.__klass__.from_son(instance))
 
         return handle
 

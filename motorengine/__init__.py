@@ -9,5 +9,5 @@ from motorengine.document import Document  # NOQA
 
 from motorengine.fields import (  # NOQA
     BaseField, StringField, BooleanField, DateTimeField,
-    UUIDField, ListField, EmbeddedDocumentField
+    UUIDField, ListField, EmbeddedDocumentField, ReferenceField
 )

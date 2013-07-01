@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import six
+from bson.objectid import ObjectId
 
 from motorengine.metaclasses import DocumentMetaClass
-from motorengine.errors import InvalidDocumentError
+from motorengine.errors import InvalidDocumentError, LoadReferencesRequiredError
 from motorengine.utils import get_class
 
 
@@ -25,6 +26,18 @@ class BaseDocument(object):
                     self.__class__.__name__, key
                 ))
             self._values[key] = value
+
+    def is_list_field(self, field):
+        from motorengine.fields.list_field import ListField
+        return isinstance(field, ListField) or (isinstance(field, type) and issubclass(field, ListField))
+
+    def is_reference_field(self, field):
+        from motorengine.fields.reference_field import ReferenceField
+        return isinstance(field, ReferenceField) or (isinstance(field, type) and issubclass(field, ReferenceField))
+
+    def is_embedded_field(self, field):
+        from motorengine.fields.embedded_document_field import EmbeddedDocumentField
+        return isinstance(field, EmbeddedDocumentField) or (isinstance(field, type) and issubclass(field, EmbeddedDocumentField))
 
     @classmethod
     def from_son(cls, dic):
@@ -56,19 +69,58 @@ class BaseDocument(object):
 
         return True
 
-    def handle_save(self, callback):
-        def handle(*args, **kw):
-            # error?
-            if len(args) > 1 and args[1]:
-                raise args[1]
-
-            self._id = args[0]
-            callback(instance=self)
-        return handle
-
     def save(self, callback, alias=None):
         if self.validate_fields():
-            self.objects.save(self, callback=self.handle_save(callback), alias=alias)
+            self.objects.save(self, callback=callback, alias=alias)
+
+    def handle_load_reference(self, callback, references, reference_count, values_collection, field_name):
+        def handle(*args, **kw):
+            values_collection[field_name] = kw['instance']
+            references.pop()
+
+            if len(references) == 0:
+                callback(result=reference_count)
+
+        return handle
+
+    def load_references(self, callback, alias=None):
+        references = self.find_references(self)
+        reference_count = len(references)
+        for dereference_function, document_id, values_collection, field_name in references:
+            dereference_function(
+                document_id,
+                callback=self.handle_load_reference(
+                    callback=callback,
+                    references=references,
+                    reference_count=reference_count,
+                    values_collection=values_collection,
+                    field_name=field_name
+                )
+            )
+
+    def find_references(self, document, results=[]):
+        for field_name, field in document._fields.items():
+            if self.is_reference_field(field):
+                value = document._values.get(field_name, None)
+                if value is not None:
+                    results.append([
+                        field._reference_document_type.objects.get,
+                        ObjectId(value['__id__']),
+                        document._values,
+                        field_name
+                    ])
+
+            if self.is_list_field(field):
+                for value in document._values[field_name]:
+                    if value:
+                        self.find_references(value, results)
+
+            if self.is_embedded_field(field):
+                value = document._values.get(field_name, None)
+                if value:
+                    self.find_references(value, results)
+
+        return results
 
     def __getattribute__(self, name):
         # required for the next test
@@ -76,7 +128,14 @@ class BaseDocument(object):
             return object.__getattribute__(self, name)
 
         if name in self._fields:
-            return self._values.get(name, None)
+            is_reference_field = self.is_reference_field(self._fields[name])
+            value = self._values.get(name, None)
+            is_dict = isinstance(value, dict)
+
+            if is_reference_field and is_dict and not value['__loaded__']:
+                raise LoadReferencesRequiredError("The property '%s' can't be accessed before calling 'load_references' on its instance first (%s)." % (name, self.__class__.__name__))
+
+            return value
 
         return object.__getattribute__(self, name)
 

@@ -5,8 +5,11 @@ import sys
 
 from preggy import expect
 
-from motorengine import Document, StringField, BooleanField, DESCENDING
-from motorengine.errors import InvalidDocumentError
+from motorengine import (
+    Document, StringField, BooleanField, ListField,
+    EmbeddedDocumentField, ReferenceField, DESCENDING
+)
+from motorengine.errors import InvalidDocumentError, LoadReferencesRequiredError
 from tests import AsyncTestCase
 
 
@@ -22,6 +25,18 @@ class User(Document):
 
 class Employee(User):
     emp_number = StringField()
+
+
+class Comment(Document):
+    text = StringField(required=True)
+    user = ReferenceField(User, required=True)
+
+
+class Post(Document):
+    title = StringField(required=True)
+    body = StringField(required=True)
+
+    comments = ListField(EmbeddedDocumentField(Comment))
 
 
 class TestDocument(AsyncTestCase):
@@ -228,3 +243,45 @@ class TestDocument(AsyncTestCase):
         except InvalidDocumentError:
             err = sys.exc_info()[1]
             expect(err).to_have_an_error_message_of("Field 'email' is required.")
+
+    def test_can_save_and_retrieve_blog_post(self):
+        User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
+        user = self.wait()['kwargs']['instance']
+
+        Post.objects.create(title="Testing post", body="Testing post body", callback=self.stop)
+        post = self.wait()['kwargs']['instance']
+
+        post.comments.append(Comment(text="Comment text", user=user))
+        post.save(callback=self.stop)
+        self.wait()
+
+        Post.objects.get(post._id, callback=self.stop)
+        p = self.wait()['kwargs']['instance']
+
+        expect(p).not_to_be_null()
+
+        expect(p._id).to_equal(post._id)
+        expect(p.title).to_equal("Testing post")
+        expect(p.body).to_equal("Testing post body")
+
+        expect(p.comments).to_length(1)
+        expect(p.comments[0].text).to_equal("Comment text")
+
+        try:
+            p.comments[0].user
+        except LoadReferencesRequiredError:
+            err = sys.exc_info()[1]
+            expect(err).to_have_an_error_message_of("The property 'user' can't be accessed before calling 'load_references' on its instance first (Comment).")
+        else:
+            assert False, "Should not have gotten this far"
+
+        p.load_references(callback=self.stop)
+        result = self.wait()['kwargs']['result']
+
+        expect(result).to_equal(1)
+
+        expect(p.comments[0].user).to_be_instance_of(User)
+        expect(p.comments[0].user._id).to_equal(user._id)
+        expect(p.comments[0].user.email).to_equal("heynemann@gmail.com")
+        expect(p.comments[0].user.first_name).to_equal("Bernardo")
+        expect(p.comments[0].user.last_name).to_equal("Heynemann")
