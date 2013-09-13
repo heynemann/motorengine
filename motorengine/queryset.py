@@ -93,13 +93,15 @@ class QuerySet(object):
 
     def filter(self, **kwargs):
         '''
-        Filters a queryset in order to produce a different set of document from subsquent queries.
+        Filters a queryset in order to produce a different set of document from subsequent queries.
 
         Usage::
 
             User.objects.filter(first_name="Bernardo").filter(last_name="Bernardo").find_all(callback="handle_all")
             # or
-            User.objects.filter(first_name="Bernardo", last_name="Bernardo").find_all(callback=handle_all)
+            User.objects.filter(first_name="Bernardo", starting_year__gt=2010).find_all(callback=handle_all)
+
+        The available filter options are the same as used in MongoEngine.
         '''
         for field_name, value in kwargs.items():
             if field_name not in self.__klass__._fields:
@@ -122,6 +124,16 @@ class QuerySet(object):
         return self
 
     def order_by(self, field_name, direction=ASCENDING):
+        '''
+        Specified the order to be used when returning documents in subsequent queries.
+
+        Usage::
+
+            from motorengine import DESCENDING  # or ASCENDING
+
+            User.objects.order_by('first_name', direction=DESCENDING).find_all(callback="handle_all")
+        '''
+
         if field_name not in self.__klass__._fields:
             raise ValueError("Invalid order by field '%s': Field not found in '%s'." % (field_name, self.__klass__.__name__))
 

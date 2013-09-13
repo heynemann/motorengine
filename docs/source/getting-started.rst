@@ -106,3 +106,14 @@ If you want to filter a collection, just chain calls to `filter`:
 To limit a queryset to just return a maximum number of documents, use the `limit` method:
 
 .. automethod:: motorengine.queryset.QuerySet.limit
+
+Ordering the results is achieved with the `order_by` method:
+
+.. automethod:: motorengine.queryset.QuerySet.order_by
+
+All of these options can be combined to really tune how to get items:
+
+.. code-block:: python
+
+    # return the first 10 employees ordered by last_name that joined after 2010
+    Employee.objects.limit(10).order_by("last_name").filter(starting_year__gt=2010).find_all()
