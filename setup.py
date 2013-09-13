@@ -23,9 +23,9 @@ setup(
 MotorEngine is a port of the amazing MongoEngine Mapper. Instead of using pymongo, MotorEngine uses Motor.
 ''',
     keywords='database mongodb tornado python',
-    author='TDispatch',
-    author_email='dev@tdispatch.com',
-    url='http://github.com/TDispatch/motorengine/',
+    author='Bernardo Heynemann',
+    author_email='heynemann@gmail.com',
+    url='http://github.com/heynemann/motorengine/',
     license='MIT',
     classifiers=[
         'Development Status :: 4 - Beta',
