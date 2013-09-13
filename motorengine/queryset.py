@@ -73,6 +73,20 @@ class QuerySet(object):
         return handle
 
     def get(self, id, callback, alias=None):
+        '''
+        Gets a single item of the current queryset collection using it's id.
+
+        In order to query a different database, please specify the `alias` of the database to query.
+
+        Usage::
+
+            User.objects.get(user_id, callback=handle_get_user)
+
+            def handle_get_user(instance):
+                # do something with instance
+                # instance is None if user not found
+                pass
+        '''
         self.coll(alias).find_one({
             "_id": id
         }, callback=self.handle_get(callback))
@@ -119,6 +133,20 @@ class QuerySet(object):
         return self.coll(alias).find(self._filters, **find_arguments)
 
     def find_all(self, callback, alias=None):
+        '''
+        Returns a list of items in the current queryset collection that match specified filters (if any).
+
+        In order to query a different database, please specify the `alias` of the database to query.
+
+        Usage::
+
+            User.objects.find_all(callback=handle_all_users)
+
+            def handle_all_users(result):
+                # do something with result
+                # result is None if no users found
+                pass
+        '''
         to_list_arguments = dict(callback=self.handle_find_all(callback))
 
         if self._limit is not None:

@@ -47,7 +47,7 @@ Modeling a Document
     class Employee(User):
         employee_id = IntField(required=True)
 
-Creating a new Instance
+Creating a new instance
 -----------------------
 
 .. py:module:: motorengine.document
@@ -60,3 +60,42 @@ Due to the asynchronous nature of MotorEngine, you are required to handle saving
     def create_employee():
         emp = yield Employee(first_name="Bernardo", last_name="Heynemann", employee_id=1532).save()
         assert emp.employee_id == 1532
+
+Updating an instance
+--------------------
+
+Updating an instance is as easy as changing a property and calling save again:
+
+.. code-block:: python
+
+    def update_employee():
+        emp = yield Employee(first_name="Bernardo", last_name="Heynemann", employee_id=1532).save()
+
+        emp.employee_id = 1993
+        yield emp.save()
+
+Getting an instance
+-------------------
+
+.. automethod:: motorengine.queryset.QuerySet.get
+
+In order to get an object by id, you must specify the ObjectId that the instance got created with. This method takes a string as well and transforms it into a :mod:`bson.objectid.ObjectId <bson.objectid.ObjectId>`.
+
+.. code-block:: python
+
+    def get_employee_by_id(object_id):
+        emp = yield Employee.objects.get(object_id)
+        return emp
+
+    emp = yield Employee(first_name="Bernardo", last_name="Heynemann", employee_id=1532).save()
+
+    loaded_emp = get_employee_by_id(emp._id)  # every object in MotorEngine has an _id property with
+                                              # it's ObjectId.
+
+Querying collections
+--------------------
+
+To query a collection in mongo, we use the `find_all` method.
+
+.. automethod:: motorengine.queryset.QuerySet.find_all
+
