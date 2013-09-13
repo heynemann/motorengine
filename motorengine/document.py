@@ -101,7 +101,7 @@ class BaseDocument(object):
                 if value is not None:
                     results.append([
                         field._reference_document_type.objects.get,
-                        value['_id'],
+                        value,
                         document._values,
                         field_name
                     ])
@@ -126,10 +126,9 @@ class BaseDocument(object):
         if name in self._fields:
             is_reference_field = self.is_reference_field(self._fields[name])
             value = self._values.get(name, None)
-            is_dict = isinstance(value, dict)
 
-            if is_reference_field and is_dict and not value['__loaded__']:
-                raise LoadReferencesRequiredError("The property '%s' can't be accessed before calling 'load_references' on its instance first (%s)." % (name, self.__class__.__name__))
+            if is_reference_field and not isinstance(value, self._fields[name]._reference_document_type):
+                raise LoadReferencesRequiredError("The property '%s' can't be accessed before calling 'load_references' on its instance first (%s) or setting __lazy__ to False in the %s class." % (name, self.__class__.__name__, self.__class__.__name__))
 
             return value
 

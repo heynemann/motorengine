@@ -32,6 +32,13 @@ class Comment(Document):
     user = ReferenceField(User, required=True)
 
 
+class CommentNotLazy(Document):
+    __lazy__ = False
+
+    text = StringField(required=True)
+    user = ReferenceField(User, required=True)
+
+
 class Post(Document):
     title = StringField(required=True)
     body = StringField(required=True)
@@ -244,6 +251,20 @@ class TestDocument(AsyncTestCase):
             err = sys.exc_info()[1]
             expect(err).to_have_an_error_message_of("Field 'email' is required.")
 
+    def test_can_save_and_get_reference_without_lazy(self):
+        User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
+        user = self.wait()['kwargs']['instance']
+
+        comment = CommentNotLazy(text="Comment text", user=user)
+        comment.save(callback=self.stop)
+        self.wait()
+
+        CommentNotLazy.objects.get(comment._id, callback=self.stop)
+        loaded_comment = self.wait()['kwargs']['instance']
+
+        expect(loaded_comment).not_to_be_null()
+        expect(loaded_comment.user._id).to_equal(user._id)
+
     def test_can_save_and_retrieve_blog_post(self):
         User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
         user = self.wait()['kwargs']['instance']
@@ -256,32 +277,33 @@ class TestDocument(AsyncTestCase):
         self.wait()
 
         Post.objects.get(post._id, callback=self.stop)
-        p = self.wait()['kwargs']['instance']
+        loaded_post = self.wait()['kwargs']['instance']
 
-        expect(p).not_to_be_null()
+        expect(loaded_post).not_to_be_null()
 
-        expect(p._id).to_equal(post._id)
-        expect(p.title).to_equal("Testing post")
-        expect(p.body).to_equal("Testing post body")
+        expect(loaded_post._id).to_equal(post._id)
+        expect(loaded_post.title).to_equal("Testing post")
+        expect(loaded_post.body).to_equal("Testing post body")
 
-        expect(p.comments).to_length(1)
-        expect(p.comments[0].text).to_equal("Comment text")
+        expect(loaded_post.comments).to_length(1)
+        expect(loaded_post.comments[0].text).to_equal("Comment text")
 
         try:
-            p.comments[0].user
+            loaded_post.comments[0].user
         except LoadReferencesRequiredError:
             err = sys.exc_info()[1]
-            expect(err).to_have_an_error_message_of("The property 'user' can't be accessed before calling 'load_references' on its instance first (Comment).")
+            expected = "The property 'user' can't be accessed before calling 'load_references' on its instance first (Comment) or setting __lazy__ to False in the Comment class."
+            expect(err).to_have_an_error_message_of(expected)
         else:
             assert False, "Should not have gotten this far"
 
-        p.load_references(callback=self.stop)
+        loaded_post.load_references(callback=self.stop)
         result = self.wait()['kwargs']['result']
 
         expect(result).to_equal(1)
 
-        expect(p.comments[0].user).to_be_instance_of(User)
-        expect(p.comments[0].user._id).to_equal(user._id)
-        expect(p.comments[0].user.email).to_equal("heynemann@gmail.com")
-        expect(p.comments[0].user.first_name).to_equal("Bernardo")
-        expect(p.comments[0].user.last_name).to_equal("Heynemann")
+        expect(loaded_post.comments[0].user).to_be_instance_of(User)
+        expect(loaded_post.comments[0].user._id).to_equal(user._id)
+        expect(loaded_post.comments[0].user.email).to_equal("heynemann@gmail.com")
+        expect(loaded_post.comments[0].user.first_name).to_equal("Bernardo")
+        expect(loaded_post.comments[0].user.last_name).to_equal("Heynemann")

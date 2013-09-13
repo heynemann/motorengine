@@ -23,13 +23,7 @@ class ReferenceField(BaseField):
         return value._id is not None
 
     def to_son(self, value):
-        return {
-            '_id': value._id,
-            '__loaded__': False
-        }
+        return value._id
 
     def from_son(self, value):
-        return {
-            '_id': value,
-            '__loaded__': False
-        }
+        return value

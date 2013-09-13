@@ -12,6 +12,10 @@ class QuerySet(object):
         self._limit = 300
         self._order_fields = []
 
+    @property
+    def is_lazy(self):
+        return self.__klass__.__lazy__
+
     def coll(self, alias):
         if alias is not None:
             conn = get_connection(alias=alias)
@@ -43,13 +47,28 @@ class QuerySet(object):
         doc = document.to_son()
         self.coll(alias).insert(doc, callback=self.handle_save(document, callback))
 
+    def handle_auto_load_references(self, doc, callback):
+        def handle(*args, **kw):
+            if 'result' in kw:
+                callback(instance=doc)
+                return
+
+            callback(instance=None)
+
+        return handle
+
     def handle_get(self, callback):
         def handle(*args, **kw):
             instance = args[0]
+
             if instance is None:
                 callback(instance=None)
             else:
-                callback(instance=self.__klass__.from_son(instance))
+                doc = self.__klass__.from_son(instance)
+                if self.is_lazy:
+                    callback(instance=doc)
+                else:
+                    doc.load_references(callback=self.handle_auto_load_references(doc, callback))
 
         return handle
 
