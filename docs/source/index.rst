@@ -3,15 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to motorengine's documentation!
-=======================================
+MotorEngine MongoDB Async ORM
+=============================
 
-Contents:
+MotorEngine is a port of the amazing :mod:`mongoengine <mongoengine>`.
 
 .. toctree::
    :maxdepth: 2
-
-
 
 Indices and tables
 ==================
@@ -19,4 +17,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
