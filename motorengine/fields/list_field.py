@@ -26,8 +26,9 @@ class ListField(BaseField):
     def is_empty(self, value):
         return value is None or value == []
 
+    # TODO: use multiprocessing map if available
     def to_son(self, value):
-        return map(self._base_field.to_son, value)
+        return list(map(self._base_field.to_son, value))
 
     def from_son(self, value):
-        return map(self._base_field.from_son, value)
+        return list(map(self._base_field.from_son, value))

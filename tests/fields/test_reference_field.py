@@ -17,10 +17,11 @@ class User(Document):
 class TestReferenceField(AsyncTestCase):
     def test_cant_create_reference_field_of_the_wrong_type(self):
         try:
-            ReferenceField(reference_document_type=int)
+            ReferenceField(reference_document_type="test")
         except ValueError:
             err = sys.exc_info()[1]
-            expect(err).to_have_an_error_message_of("The field 'reference_document_type' argument must be a subclass of Document, not '<type 'int'>'.")
+            expected = "The field 'reference_document_type' argument must be a subclass of Document, not 'test'."
+            expect(err).to_have_an_error_message_of(expected)
         else:
             assert False, "Should not have gotten this far"
 

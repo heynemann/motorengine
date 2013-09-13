@@ -16,10 +16,10 @@ class User(Document):
 class TestEmbeddedDocumentField(AsyncTestCase):
     def test_cant_create_embedded_field_of_wrong_embedded_type(self):
         try:
-            EmbeddedDocumentField(embedded_document_type=int)
+            EmbeddedDocumentField(embedded_document_type="test")
         except ValueError:
             err = sys.exc_info()[1]
-            expect(err).to_have_an_error_message_of("The field 'embedded_document_type' argument must be a subclass of Document, not '<type 'int'>'.")
+            expect(err).to_have_an_error_message_of("The field 'embedded_document_type' argument must be a subclass of Document, not 'test'.")
         else:
             assert False, "Should not have gotten this far"
 
