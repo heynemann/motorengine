@@ -99,3 +99,10 @@ To query a collection in mongo, we use the `find_all` method.
 
 .. automethod:: motorengine.queryset.QuerySet.find_all
 
+If you want to filter a collection, just chain calls to `filter`:
+
+.. automethod:: motorengine.queryset.QuerySet.filter
+
+To limit a queryset to just return a maximum number of documents, use the `limit` method:
+
+.. automethod:: motorengine.queryset.QuerySet.limit

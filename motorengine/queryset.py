@@ -92,6 +92,15 @@ class QuerySet(object):
         }, callback=self.handle_get(callback))
 
     def filter(self, **kwargs):
+        '''
+        Filters a queryset in order to produce a different set of document from subsquent queries.
+
+        Usage::
+
+            User.objects.filter(first_name="Bernardo").filter(last_name="Bernardo").find_all(callback="handle_all")
+            # or
+            User.objects.filter(first_name="Bernardo", last_name="Bernardo").find_all(callback=handle_all)
+        '''
         for field_name, value in kwargs.items():
             if field_name not in self.__klass__._fields:
                 raise ValueError("Invalid filter '%s': Field not found in '%s'." % (field_name, self.__klass__.__name__))
@@ -100,6 +109,15 @@ class QuerySet(object):
         return self
 
     def limit(self, limit):
+        '''
+        Limits the number of documents to return in subsequent queries.
+
+        Usage::
+
+            User.objects.limit(10).find_all(callback="handle_all")  # even if there are 100s of users,
+                                                                    # only first 10 will be returned
+        '''
+
         self._limit = limit
         return self
 
