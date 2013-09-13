@@ -13,6 +13,7 @@ tests_require = [
     'ipdb',
     'coveralls',
     'mongoengine',
+    'sphinx',
 ]
 
 setup(
