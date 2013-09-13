@@ -8,10 +8,4 @@ motorengine
 
 motorengine is a port of the incredible mongoengine mapper, using Motor for asynchronous access to mongo.
 
-Installing
-----------
-
-Installing motorengine is as simple as:
-
-    $ pip install motorengine
-
+Find out more by reading [motorengine documentation](http://motorengine.readthedocs.org/en/latest/).
