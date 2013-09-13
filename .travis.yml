@@ -17,7 +17,7 @@ install:
 
 script:
     # finally run tests
-    - make test
+    - make ci_test
 
 after_success:
   - coveralls
