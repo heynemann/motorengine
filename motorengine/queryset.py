@@ -193,4 +193,16 @@ class QuerySet(object):
         return handle
 
     def count(self, callback, alias=None):
+        '''
+        Returns the number of documents in the collection that match the specified filters (if any).
+
+        Usage::
+
+            User.objects.count(callback=handle_count)
+
+            def handle_count(result):
+                # do something with result
+                # result is 0 if no users found
+                pass
+        '''
         self._get_find_cursor(alias=alias).count(callback=self.handle_count(callback))

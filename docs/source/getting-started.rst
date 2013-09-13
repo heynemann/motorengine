@@ -1,6 +1,10 @@
 Getting Started
 ===============
 
+.. py:module:: motorengine
+.. py:module:: motorengine.connection
+.. py:module:: motorengine.document
+
 Installing
 ----------
 
@@ -15,8 +19,6 @@ If you wish to install it from the source code, you can install it using::
 Connecting to a Database
 ------------------------
 
-.. py:module:: motorengine
-.. py:module:: motorengine.connection
 .. autofunction:: motorengine.connection.connect
 
 .. code-block:: python
@@ -33,7 +35,6 @@ Connecting to a Database
 Modeling a Document
 -------------------
 
-.. py:module:: motorengine.document
 .. autoclass:: motorengine.document.Document
 
 .. code-block:: python
@@ -50,7 +51,6 @@ Modeling a Document
 Creating a new instance
 -----------------------
 
-.. py:module:: motorengine.document
 .. automethod:: motorengine.document.BaseDocument.save
 
 Due to the asynchronous nature of MotorEngine, you are required to handle saving in a callback (or using yield method with tornado.concurrent).
@@ -117,3 +117,8 @@ All of these options can be combined to really tune how to get items:
 
     # return the first 10 employees ordered by last_name that joined after 2010
     Employee.objects.limit(10).order_by("last_name").filter(starting_year__gt=2010).find_all()
+
+Counting documents in collections
+---------------------------------
+
+.. automethod:: motorengine.queryset.QuerySet.count

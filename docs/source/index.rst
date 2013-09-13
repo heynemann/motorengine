@@ -63,7 +63,6 @@ Or if you are using the new style of doing asynchronous operations in Tornado:
 
     def get_active_users():
         users = yield User.objects.filter(active=True).find_all()
-
         return users
 
 Contents
@@ -73,3 +72,5 @@ Contents
   :maxdepth: 2
 
   getting-started
+  connecting
+
