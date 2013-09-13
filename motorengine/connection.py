@@ -111,6 +111,12 @@ def connect(db, alias=DEFAULT_CONNECTION_NAME, **kwargs):
 
     Multiple databases are supported by using aliases.  Provide a separate
     `alias` to connect to a different instance of :program:`mongod`.
+
+    Extra keyword-arguments are passed to Motor when connecting to the database.
+
+    Usage::
+
+        connect("test", host="localhost", port=3924, io_loop=io_loop)
     """
     global _connections
     if alias not in _connections:

@@ -73,4 +73,7 @@ Contents
 
   getting-started
   connecting
+  modeling
+  saving
+  getting-and-querying
 
