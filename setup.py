@@ -12,6 +12,7 @@ tests_require = [
     'tox',
     'ipdb',
     'coveralls',
+    'mongoengine',
 ]
 
 setup(

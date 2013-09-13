@@ -41,8 +41,6 @@ class BaseDocument(object):
 
     @classmethod
     def from_son(cls, dic):
-        klass = get_class(dic.pop('__module__'), dic.pop('__class__'))
-
         field_values = {}
         for name, value in dic.items():
             if name in cls._fields:
@@ -50,16 +48,14 @@ class BaseDocument(object):
             else:
                 field_values[name] = value
 
-        return klass(**field_values)
+        return cls(**field_values)
 
     def to_son(self):
-        data = {
-            "__module__": self.__module__,
-            "__class__": self.__class__.__name__
-        }
+        data = dict()
 
         for name, value in self._values.items():
             data[name] = self._fields[name].to_son(value)
+
         return data
 
     def validate_fields(self):

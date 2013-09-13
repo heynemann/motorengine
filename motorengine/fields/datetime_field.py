@@ -16,6 +16,9 @@ class DateTimeField(BaseField):
         return value.strftime(FORMAT)
 
     def from_son(self, value):
+        if isinstance(value, datetime):
+            return value
+
         return datetime.strptime(value, FORMAT)
 
     def validate(self, value):
