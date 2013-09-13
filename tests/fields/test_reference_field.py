@@ -37,24 +37,14 @@ class TestReferenceField(AsyncTestCase):
         u._id = ObjectId("123456789012123456789012")
 
         result = field.to_son(u)
-        expect(result['__module__']).to_equal('tests.fields.test_reference_field')
-        expect(result['__class__']).to_equal('User')
-        expect(str(result['__id__'])).to_equal(str(u._id))
+        expect(str(result['_id'])).to_equal(str(u._id))
 
     def test_from_son(self):
         field = ReferenceField(db_field="test", reference_document_type=User)
 
-        data = {
-            '__module__': 'tests.fields.test_reference_field',
-            '__class__': 'User',
-            '__id__': ObjectId("123456789012123456789012")
-        }
+        data = ObjectId("123456789012123456789012")
 
         result = field.from_son(data)
 
-        expect(result).to_equal({
-            '__module__': 'tests.fields.test_reference_field',
-            '__class__': 'User',
-            '__id__': ObjectId("123456789012123456789012"),
-            '__loaded__': False
-        })
+        expect(result['_id']).to_equal(ObjectId("123456789012123456789012"))
+        expect(result['__loaded__']).to_be_false()

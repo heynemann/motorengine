@@ -24,19 +24,11 @@ class EmbeddedDocumentField(BaseField):
         return self._embedded_document_type.validate(value)
 
     def to_son(self, value):
-        base = {
-            '__module__': value.__module__,
-            '__class__': value.__class__.__name__
-        }
+        base = dict()
 
         base.update(value.to_son())
 
         return base
 
     def from_son(self, value):
-        module_name = value.pop('__module__')
-        klass_name = value.pop('__class__')
-
-        klass = get_class(module_name, klass_name)
-
-        return klass(**value)
+        return self._embedded_document_type(**value)

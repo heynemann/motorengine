@@ -101,7 +101,7 @@ class BaseDocument(object):
                 if value is not None:
                     results.append([
                         field._reference_document_type.objects.get,
-                        ObjectId(value['__id__']),
+                        value['_id'],
                         document._values,
                         field_name
                     ])

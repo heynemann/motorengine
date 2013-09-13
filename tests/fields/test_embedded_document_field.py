@@ -34,8 +34,6 @@ class TestEmbeddedDocumentField(AsyncTestCase):
         u = User(name="test")
 
         expect(field.to_son(u)).to_be_like({
-            '__module__': 'tests.fields.test_embedded_document_field',
-            '__class__': 'User',
             'name': 'test'
         })
 
@@ -43,8 +41,6 @@ class TestEmbeddedDocumentField(AsyncTestCase):
         field = EmbeddedDocumentField(db_field="test", embedded_document_type=User)
 
         user = field.from_son({
-            '__module__': 'tests.fields.test_embedded_document_field',
-            '__class__': 'User',
             'name': 'test2'
         })
 

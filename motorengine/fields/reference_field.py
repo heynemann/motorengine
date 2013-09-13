@@ -24,16 +24,12 @@ class ReferenceField(BaseField):
 
     def to_son(self, value):
         return {
-            '__module__': value.__module__,
-            '__class__': value.__class__.__name__,
-            '__id__': str(value._id),
+            '_id': value._id,
             '__loaded__': False
         }
 
     def from_son(self, value):
         return {
-            '__module__': value['__module__'],
-            '__class__': value['__class__'],
-            '__id__': value['__id__'],
+            '_id': value,
             '__loaded__': False
         }
