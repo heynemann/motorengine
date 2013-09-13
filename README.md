@@ -7,3 +7,10 @@ motorengine
 [![Coverage Status](https://coveralls.io/repos/heynemann/motorengine/badge.png?branch=master)](https://coveralls.io/r/heynemann/wight?branch=master)
 
 motorengine is a port of the incredible mongoengine mapper, using Motor for asynchronous access to mongo.
+
+Installing
+----------
+
+Installing motorengine is as simple as:
+
+    $ pip install motorengine
