@@ -12,7 +12,10 @@ tox3: mongo_test
 	@PATH=$$PATH:~/.pythonbrew/pythons/Python-2.6.*/bin/:~/.pythonbrew/pythons/Python-2.7.*/bin/:~/.pythonbrew/pythons/Python-3.0.*/bin/:~/.pythonbrew/pythons/Python-3.1.*/bin/:~/.pythonbrew/pythons/Python-3.2.3/bin/:~/.pythonbrew/pythons/Python-3.3.0/bin/ tox -e py33
 
 doc:
-	@cd docs && make html && open build/html/index.html
+	@cd docs && make html
+
+open_doc open-doc:
+	@cd docs && open build/html/index.html
 
 setup:
 	@pip install -e .\[tests\]

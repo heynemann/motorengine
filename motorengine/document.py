@@ -66,6 +66,17 @@ class BaseDocument(object):
         return True
 
     def save(self, callback, alias=None):
+        '''
+        Saves a new instance of this document.
+
+        Usage::
+
+            doc = MyDocument(some_property="value")
+            doc.save(callback)
+
+            def callback(instance):
+                # do something with instance
+        '''
         if self.validate_fields():
             self.objects.save(self, callback=callback, alias=alias)
 
@@ -146,4 +157,7 @@ class BaseDocument(object):
 
 
 class Document(six.with_metaclass(DocumentMetaClass, BaseDocument)):
+    '''
+    Base class for all documents specified in MotorEngine.
+    '''
     pass
