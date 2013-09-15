@@ -17,7 +17,10 @@ class BaseDocument(object):
         self._values = {}
 
         for key, field in self._fields.items():
-            self._values[key] = field.default
+            if callable(field.default):
+                self._values[key] = field.default()
+            else:
+                self._values[key] = field.default
 
         for key, value in kw.items():
             if key not in self._db_field_map:
@@ -111,27 +114,34 @@ class BaseDocument(object):
 
     def find_references(self, document, results=[]):
         for field_name, field in document._fields.items():
-            if self.is_reference_field(field):
-                value = document._values.get(field_name, None)
-                if value is not None:
-                    results.append([
-                        field._reference_document_type.objects.get,
-                        value,
-                        document._values,
-                        field_name
-                    ])
+            self.find_reference_field(document, results, field_name, field)
+            self.find_list_field(document, results, field_name, field)
+            self.find_embed_field(document, results, field_name, field)
 
-            if self.is_list_field(field):
-                for value in document._values[field_name]:
-                    if value:
-                        self.find_references(value, results)
+        return results
 
-            if self.is_embedded_field(field):
-                value = document._values.get(field_name, None)
+    def find_reference_field(self, document, results, field_name, field):
+        if self.is_reference_field(field):
+            value = document._values.get(field_name, None)
+            if value is not None:
+                results.append([
+                    field._reference_document_type.objects.get,
+                    value,
+                    document._values,
+                    field_name
+                ])
+
+    def find_list_field(self, document, results, field_name, field):
+        if self.is_list_field(field):
+            for value in document._values[field_name]:
                 if value:
                     self.find_references(value, results)
 
-        return results
+    def find_embed_field(self, document, results, field_name, field):
+        if self.is_embedded_field(field):
+            value = document._values.get(field_name, None)
+            if value:
+                self.find_references(value, results)
 
     def __getattribute__(self, name):
         # required for the next test

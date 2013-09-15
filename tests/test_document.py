@@ -15,8 +15,8 @@ from tests import AsyncTestCase
 
 class User(Document):
     email = StringField(required=True)
-    first_name = StringField(max_length=50)
-    last_name = StringField(max_length=50)
+    first_name = StringField(max_length=50, default=lambda: "Bernardo")
+    last_name = StringField(max_length=50, default="Heynemann")
     is_admin = BooleanField(default=True)
 
     def __repr__(self):
@@ -83,6 +83,18 @@ class TestDocument(AsyncTestCase):
         expect(result.email).to_equal("heynemann@gmail.com")
         expect(result.first_name).to_equal("Bernardo")
         expect(result.last_name).to_equal("Heynemann")
+
+    def test_can_create_new_instance_with_defaults(self):
+        user = User(email="heynemann@gmail.com")
+        user.save(callback=self.stop)
+
+        result = self.wait()
+
+        expect(result._id).not_to_be_null()
+        expect(result.email).to_equal("heynemann@gmail.com")
+        expect(result.first_name).to_equal("Bernardo")
+        expect(result.last_name).to_equal("Heynemann")
+        expect(result.is_admin).to_be_true()
 
     def test_can_create_employee(self):
         user = Employee(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", emp_number="Employee")
