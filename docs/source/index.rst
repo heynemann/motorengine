@@ -15,6 +15,13 @@ MotorEngine MongoDB Async ORM
 .. image:: https://coveralls.io/repos/heynemann/motorengine/badge.png?branch=master
   :target: https://coveralls.io/r/heynemann/motorengine?branch=master
 
+Compatibility
+-------------
+
+MotorEngine is compatible and tested against python 2.7, 3.3 and pypy.
+
+The tests of compatibility are always run against the current stable version of MongoEngine.
+
 Why use MotorEngine?
 --------------------
 
