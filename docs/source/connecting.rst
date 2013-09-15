@@ -1,10 +1,7 @@
 Connecting
 ==========
 
-.. py:module:: motorengine
-  :noindex:
 .. py:module:: motorengine.connection
-  :noindex:
 
 Simple Connection
 -----------------

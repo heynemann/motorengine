@@ -1,6 +1,8 @@
 MotorEngine MongoDB Async ORM
 =============================
 
+.. py:module:: motorengine
+
 :mod:`MotorEngine <motorengine>` is a port of the amazing :mod:`MongoEngine <mongoengine>`.
 
 .. image:: https://travis-ci.org/heynemann/motorengine.png
