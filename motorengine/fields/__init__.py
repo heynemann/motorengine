@@ -10,3 +10,4 @@ from motorengine.fields.list_field import ListField  # NOQA
 from motorengine.fields.embedded_document_field import EmbeddedDocumentField  # NOQA
 from motorengine.fields.reference_field import ReferenceField  # NOQA
 from motorengine.fields.url_field import URLField  # NOQA
+from motorengine.fields.email_field import EmailField  # NOQA

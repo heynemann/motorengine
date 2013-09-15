@@ -57,6 +57,8 @@ Available Fields
 
 .. autoclass:: motorengine.fields.url_field.URLField
 
+.. autoclass:: motorengine.fields.email_field.EmailField
+
 Multiple Value Fields
 ---------------------
 
