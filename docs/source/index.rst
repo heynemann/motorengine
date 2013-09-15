@@ -3,6 +3,18 @@ MotorEngine MongoDB Async ORM
 
 :mod:`MotorEngine <motorengine>` is a port of the amazing :mod:`MongoEngine <mongoengine>`.
 
+.. image:: https://travis-ci.org/heynemann/motorengine.png
+  :target: https://travis-ci.org/heynemann/motorengine
+
+.. image:: https://pypip.in/v/motorengine/badge.png
+  :target: https://crate.io/packages/motorengine/
+
+.. image:: https://pypip.in/d/motorengine/badge.png
+  :target: https://crate.io/packages/motorengine/
+
+.. image:: https://coveralls.io/repos/heynemann/motorengine/badge.png?branch=master
+  :target: https://coveralls.io/r/heynemann/motorengine?branch=master
+
 Why use MotorEngine?
 --------------------
 
