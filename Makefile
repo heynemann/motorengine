@@ -14,7 +14,7 @@ tox3:
 doc:
 	@cd docs && make html
 
-open_doc open-doc:
+open-doc:
 	@cd docs && open build/html/index.html
 
 setup:

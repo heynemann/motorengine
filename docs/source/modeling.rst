@@ -9,6 +9,7 @@ Modeling
 .. py:module:: motorengine.fields.list_field
 .. py:module:: motorengine.fields.embedded_document_field
 .. py:module:: motorengine.fields.reference_field
+.. py:module:: motorengine.fields.url_field
 
 MotorEngine uses the concept of models to interact with MongoDB. To create a model we inherif from the `Document` class:
 
@@ -53,6 +54,8 @@ Available Fields
 .. autoclass:: motorengine.fields.datetime_field.DateTimeField
 
 .. autoclass:: motorengine.fields.uuid_field.UUIDField
+
+.. autoclass:: motorengine.fields.url_field.URLField
 
 Multiple Value Fields
 ---------------------
