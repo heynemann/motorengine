@@ -26,8 +26,16 @@ class DateTimeField(BaseField):
 
     def __init__(self, auto_now_on_insert=False, auto_now_on_update=False, *args, **kw):
         super(DateTimeField, self).__init__(*args, **kw)
+        self.auto_now_on_insert = auto_now_on_insert
+        self.auto_now_on_update = auto_now_on_update
 
     def to_son(self, value):
+        if self.auto_now_on_insert and value is None:
+            return datetime.now()
+
+        if self.auto_now_on_update:
+            return datetime.now()
+
         if value is None:
             return None
 
