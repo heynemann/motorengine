@@ -18,11 +18,27 @@ class TestDateTimeField(AsyncTestCase):
 
         dt = datetime(2010, 11, 12, 13, 14, 15)
 
-        expect(field.to_son(dt)).to_equal("2010-11-12-13-14-15")
+        expect(field.to_son(dt)).to_equal(dt)
 
     def test_from_son(self):
         field = DateTimeField()
 
         dt = datetime(2010, 11, 12, 13, 14, 15)
 
-        expect(field.from_son("2010-11-12-13-14-15")).to_equal(dt)
+        expect(field.from_son(dt)).to_equal(dt)
+
+    def test_to_son_from_string(self):
+        field = DateTimeField()
+
+        dt_str = "2010-11-12 13:14:15"
+        dt = datetime(2010, 11, 12, 13, 14, 15)
+
+        expect(field.to_son(dt_str)).to_equal(dt)
+
+    def test_from_son_from_string(self):
+        field = DateTimeField()
+
+        dt_str = "2010-11-12 13:14:15"
+        dt = datetime(2010, 11, 12, 13, 14, 15)
+
+        expect(field.from_son(dt_str)).to_equal(dt)

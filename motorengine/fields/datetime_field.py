@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import six
+
 from datetime import datetime
 
 from motorengine.fields.base_field import BaseField
 
-FORMAT = "%Y-%m-%d-%H-%M-%S"
+FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 class DateTimeField(BaseField):
@@ -13,7 +15,13 @@ class DateTimeField(BaseField):
         super(DateTimeField, self).__init__(*args, **kw)
 
     def to_son(self, value):
-        return value.strftime(FORMAT)
+        if value is None:
+            return None
+
+        if isinstance(value, six.string_types):
+            return datetime.strptime(value, FORMAT)
+
+        return value
 
     def from_son(self, value):
         if isinstance(value, datetime):
