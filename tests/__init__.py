@@ -5,7 +5,7 @@ from tornado.testing import AsyncTestCase as TornadoAsyncTestCase
 from tornado.testing import gen_test  # NOQA
 
 import motorengine.connection
-from motorengine import connect, disconnect
+from motorengine import connect
 
 
 class AsyncTestCase(TornadoAsyncTestCase):
@@ -30,7 +30,11 @@ class AsyncTestCase(TornadoAsyncTestCase):
         Keyword arguments or a single positional argument passed to stop() are
         saved and will be returned by wait().
         '''
-        self.__stop_args = {'args': args, 'kwargs': kwargs}
+        if len(args) == 1:
+            self.__stop_args = args[0]
+        else:
+            self.__stop_args = {'args': args, 'kwargs': kwargs}
+
         if self.__running:
             self.io_loop.stop()
             self.__running = False

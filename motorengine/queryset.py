@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from tornado.concurrent import return_future
+
 from motorengine import ASCENDING
 from motorengine.connection import get_connection
 
@@ -24,6 +26,7 @@ class QuerySet(object):
 
         return conn[self.__klass__.__collection__]
 
+    @return_future
     def create(self, callback, alias=None, **kwargs):
         document = self.__klass__(**kwargs)
         self.save(document=document, callback=callback, alias=alias)
@@ -34,7 +37,7 @@ class QuerySet(object):
                 raise arguments[1]
 
             document._id = arguments[0]
-            callback(instance=document)
+            callback(document)
 
         return handle
 
@@ -49,11 +52,11 @@ class QuerySet(object):
 
     def handle_auto_load_references(self, doc, callback):
         def handle(*args, **kw):
-            if 'result' in kw:
-                callback(instance=doc)
+            if len(args) > 0:
+                callback(doc)
                 return
 
-            callback(instance=None)
+            callback(None)
 
         return handle
 
@@ -62,16 +65,17 @@ class QuerySet(object):
             instance = args[0]
 
             if instance is None:
-                callback(instance=None)
+                callback(None)
             else:
                 doc = self.__klass__.from_son(instance)
                 if self.is_lazy:
-                    callback(instance=doc)
+                    callback(doc)
                 else:
                     doc.load_references(callback=self.handle_auto_load_references(doc, callback))
 
         return handle
 
+    @return_future
     def get(self, id, callback, alias=None):
         '''
         Gets a single item of the current queryset collection using it's id.
@@ -150,7 +154,7 @@ class QuerySet(object):
             for doc in arguments[0]:
                 result.append(self.__klass__.from_son(doc))
 
-            callback(result=result)
+            callback(result)
 
         return handle
 
@@ -162,6 +166,7 @@ class QuerySet(object):
 
         return self.coll(alias).find(self._filters, **find_arguments)
 
+    @return_future
     def find_all(self, callback, alias=None):
         '''
         Returns a list of items in the current queryset collection that match specified filters (if any).
@@ -188,10 +193,11 @@ class QuerySet(object):
         def handle(*arguments, **kwargs):
             if arguments and len(arguments) > 1 and arguments[1]:
                 raise arguments[1]
-            callback(result=arguments[0])
+            callback(arguments[0])
 
         return handle
 
+    @return_future
     def count(self, callback, alias=None):
         '''
         Returns the number of documents in the collection that match the specified filters (if any).

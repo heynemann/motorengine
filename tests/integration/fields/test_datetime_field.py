@@ -5,13 +5,15 @@
 from datetime import datetime
 
 from preggy import expect
-import motorengine
 import mongoengine
+from tornado.testing import gen_test
 
+import motorengine
 from tests.integration.base import BaseIntegrationTest
 
 
 class TestDatetimeField(BaseIntegrationTest):
+    @gen_test
     def test_can_integrate(self):
         class MongoDocument(mongoengine.Document):
             meta = {'collection': 'IntegrationTestDateTimeField'}
@@ -23,8 +25,7 @@ class TestDatetimeField(BaseIntegrationTest):
 
         mongo_document = MongoDocument(date=datetime.now()).save()
 
-        MotorDocument.objects.get(mongo_document.id, self.stop)
+        result = yield MotorDocument.objects.get(mongo_document.id)
 
-        result = self.wait()['kwargs']['instance']
         expect(result._id).to_equal(mongo_document.id)
         expect(result.date).to_be_like(mongo_document.date)

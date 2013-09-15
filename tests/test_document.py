@@ -77,7 +77,7 @@ class TestDocument(AsyncTestCase):
         user = User(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann")
         user.save(callback=self.stop)
 
-        result = self.wait()['kwargs']['instance']
+        result = self.wait()
 
         expect(result._id).not_to_be_null()
         expect(result.email).to_equal("heynemann@gmail.com")
@@ -88,7 +88,7 @@ class TestDocument(AsyncTestCase):
         user = Employee(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", emp_number="Employee")
         user.save(callback=self.stop)
 
-        result = self.wait()['kwargs']['instance']
+        result = self.wait()
 
         expect(result._id).not_to_be_null()
         expect(result.email).to_equal("heynemann@gmail.com")
@@ -111,7 +111,7 @@ class TestDocument(AsyncTestCase):
         user.emp_number = "12345"
         user.save(callback=self.stop)
 
-        result = self.wait()['kwargs']['instance']
+        result = self.wait()
 
         expect(result._id).not_to_be_null()
         expect(result.email).to_equal("heynemann@gmail.com")
@@ -125,7 +125,7 @@ class TestDocument(AsyncTestCase):
         self.wait()
 
         Employee.objects.get(user._id, callback=self.stop)
-        retrieved_user = self.wait()['kwargs']['instance']
+        retrieved_user = self.wait()
 
         expect(retrieved_user._id).to_equal(user._id)
         expect(retrieved_user.email).to_equal("heynemann@gmail.com")
@@ -144,7 +144,7 @@ class TestDocument(AsyncTestCase):
         self.wait()
 
         Employee.objects.get(user._id, callback=self.stop)
-        retrieved_user = self.wait()['kwargs']['instance']
+        retrieved_user = self.wait()
 
         expect(retrieved_user._id).to_equal(user._id)
         expect(retrieved_user.email).to_equal("heynemann@gmail.com")
@@ -169,7 +169,7 @@ class TestDocument(AsyncTestCase):
         self.wait()
 
         User.objects.filter(email="someone@gmail.com").find_all(callback=self.stop)
-        users = self.wait()['kwargs']['result']
+        users = self.wait()
 
         expect(users).to_be_instance_of(list)
         expect(users).to_length(1)
@@ -187,7 +187,7 @@ class TestDocument(AsyncTestCase):
         self.wait()
 
         User.objects.limit(1).find_all(callback=self.stop)
-        users = self.wait()['kwargs']['result']
+        users = self.wait()
 
         expect(users).to_be_instance_of(list)
         expect(users).to_length(1)
@@ -214,7 +214,7 @@ class TestDocument(AsyncTestCase):
         self.wait()
 
         User.objects.order_by("first_name", DESCENDING).find_all(callback=self.stop)
-        users = self.wait()['kwargs']['result']
+        users = self.wait()
 
         expect(users).to_be_instance_of(list)
         expect(users).to_length(2)
@@ -232,15 +232,15 @@ class TestDocument(AsyncTestCase):
         self.wait()
 
         User.objects.count(callback=self.stop)
-        user_count = self.wait()['kwargs']['result']
+        user_count = self.wait()
         expect(user_count).to_equal(2)
 
         User.objects.filter(email="someone@gmail.com").count(callback=self.stop)
-        user_count = self.wait()['kwargs']['result']
+        user_count = self.wait()
         expect(user_count).to_equal(1)
 
         User.objects.filter(email="invalid@gmail.com").count(callback=self.stop)
-        user_count = self.wait()['kwargs']['result']
+        user_count = self.wait()
         expect(user_count).to_equal(0)
 
     def test_saving_without_required_fields_raises(self):
@@ -253,31 +253,31 @@ class TestDocument(AsyncTestCase):
 
     def test_can_save_and_get_reference_without_lazy(self):
         User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
-        user = self.wait()['kwargs']['instance']
+        user = self.wait()
 
         comment = CommentNotLazy(text="Comment text", user=user)
         comment.save(callback=self.stop)
         self.wait()
 
         CommentNotLazy.objects.get(comment._id, callback=self.stop)
-        loaded_comment = self.wait()['kwargs']['instance']
+        loaded_comment = self.wait()
 
         expect(loaded_comment).not_to_be_null()
         expect(loaded_comment.user._id).to_equal(user._id)
 
     def test_can_save_and_retrieve_blog_post(self):
         User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
-        user = self.wait()['kwargs']['instance']
+        user = self.wait()
 
         Post.objects.create(title="Testing post", body="Testing post body", callback=self.stop)
-        post = self.wait()['kwargs']['instance']
+        post = self.wait()
 
         post.comments.append(Comment(text="Comment text", user=user))
         post.save(callback=self.stop)
         self.wait()
 
         Post.objects.get(post._id, callback=self.stop)
-        loaded_post = self.wait()['kwargs']['instance']
+        loaded_post = self.wait()
 
         expect(loaded_post).not_to_be_null()
 
@@ -298,9 +298,10 @@ class TestDocument(AsyncTestCase):
             assert False, "Should not have gotten this far"
 
         loaded_post.load_references(callback=self.stop)
-        result = self.wait()['kwargs']['result']
+        result = self.wait()
 
-        expect(result).to_equal(1)
+        loaded_reference_count = result['loaded_reference_count']
+        expect(loaded_reference_count).to_equal(1)
 
         expect(loaded_post.comments[0].user).to_be_instance_of(User)
         expect(loaded_post.comments[0].user._id).to_equal(user._id)

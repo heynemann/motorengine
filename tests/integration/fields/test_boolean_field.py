@@ -3,13 +3,15 @@
 # -*- coding: utf-8 -*-
 
 from preggy import expect
-import motorengine
 import mongoengine
+from tornado.testing import gen_test
 
+import motorengine
 from tests.integration.base import BaseIntegrationTest
 
 
 class TestBooleanField(BaseIntegrationTest):
+    @gen_test
     def test_can_integrate(self):
         class MongoDocument(mongoengine.Document):
             meta = {'collection': 'IntegrationTestBooleanField'}
@@ -21,8 +23,7 @@ class TestBooleanField(BaseIntegrationTest):
 
         mongo_document = MongoDocument(is_active=True).save()
 
-        MotorDocument.objects.get(mongo_document.id, self.stop)
+        result = yield MotorDocument.objects.get(mongo_document.id)
 
-        result = self.wait()['kwargs']['instance']
         expect(result._id).to_equal(mongo_document.id)
         expect(result.is_active).to_be_true()

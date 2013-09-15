@@ -3,14 +3,17 @@
 # -*- coding: utf-8 -*-
 
 from preggy import expect
-import motorengine
 import mongoengine
+from tornado.testing import gen_test
+
+import motorengine
 
 
 from tests.integration.base import BaseIntegrationTest
 
 
 class TestDocument(BaseIntegrationTest):
+    @gen_test
     def test_can_save_document(self):
         class MongoUser(mongoengine.Document):
             meta = {'collection': 'IntegrationTestUsers'}
@@ -22,12 +25,12 @@ class TestDocument(BaseIntegrationTest):
 
         mongo_user = MongoUser(email="test@test.com").save()
 
-        MotorUser.objects.get(mongo_user.id, self.stop)
+        result = yield MotorUser.objects.get(mongo_user.id)
 
-        result = self.wait()['kwargs']['instance']
         expect(result._id).to_equal(mongo_user.id)
         expect(result.email).to_equal("test@test.com")
 
+    @gen_test
     def test_can_save_embedded_document(self):
         class MongoBase(mongoengine.EmbeddedDocument):
             meta = {'collection': 'IntegrationTestEmbeddedBase'}
@@ -47,15 +50,14 @@ class TestDocument(BaseIntegrationTest):
 
         mongo_doc = MongoDoc(embed=MongoBase(string="test@test.com")).save()
 
-        MotorDoc.objects.get(mongo_doc.id, self.stop)
-
-        result = self.wait()['kwargs']['instance']
+        result = yield MotorDoc.objects.get(mongo_doc.id)
 
         expect(result).not_to_be_null()
 
         expect(result._id).to_equal(mongo_doc.id)
         expect(result.embed.string).to_equal("test@test.com")
 
+    @gen_test
     def test_can_save_reference_field(self):
         class MongoBase(mongoengine.Document):
             meta = {'collection': 'IntegrationTestRefBase'}
@@ -76,12 +78,9 @@ class TestDocument(BaseIntegrationTest):
         mongo_base = MongoBase(string="test@test.com").save()
         mongo_doc = MongoDoc(embed=mongo_base).save()
 
-        MotorDoc.objects.get(mongo_doc.id, self.stop)
+        result = yield MotorDoc.objects.get(mongo_doc.id)
 
-        result = self.wait()['kwargs']['instance']
-
-        result.load_references(self.stop)
-        self.wait()
+        yield result.load_references()
 
         expect(result).not_to_be_null()
 

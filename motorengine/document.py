@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import six
-from bson.objectid import ObjectId
+from tornado.concurrent import return_future
 
 from motorengine.metaclasses import DocumentMetaClass
 from motorengine.errors import InvalidDocumentError, LoadReferencesRequiredError
-from motorengine.utils import get_class
 
 
 AUTHORIZED_FIELDS = ['_id', '_values']
@@ -65,6 +64,7 @@ class BaseDocument(object):
 
         return True
 
+    @return_future
     def save(self, callback, alias=None):
         '''
         Saves a new instance of this document.
@@ -82,14 +82,18 @@ class BaseDocument(object):
 
     def handle_load_reference(self, callback, references, reference_count, values_collection, field_name):
         def handle(*args, **kw):
-            values_collection[field_name] = kw['instance']
+            values_collection[field_name] = args[0]
             references.pop()
 
             if len(references) == 0:
-                callback(result=reference_count)
+                callback({
+                    'loaded_reference_count': reference_count,
+                    'loaded_values': values_collection
+                })
 
         return handle
 
+    @return_future
     def load_references(self, callback, alias=None):
         references = self.find_references(self)
         reference_count = len(references)
@@ -139,7 +143,12 @@ class BaseDocument(object):
             value = self._values.get(name, None)
 
             if is_reference_field and not isinstance(value, self._fields[name]._reference_document_type):
-                raise LoadReferencesRequiredError("The property '%s' can't be accessed before calling 'load_references' on its instance first (%s) or setting __lazy__ to False in the %s class." % (name, self.__class__.__name__, self.__class__.__name__))
+                message = "The property '%s' can't be accessed before calling 'load_references'" + \
+                    " on its instance first (%s) or setting __lazy__ to False in the %s class."
+
+                raise LoadReferencesRequiredError(
+                    message % (name, self.__class__.__name__, self.__class__.__name__)
+                )
 
             return value
 
