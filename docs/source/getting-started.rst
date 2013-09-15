@@ -1,8 +1,6 @@
 Getting Started
 ===============
 
-.. py:module:: motorengine.document
-
 Installing
 ----------
 

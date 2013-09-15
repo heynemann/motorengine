@@ -11,7 +11,20 @@ FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 class DateTimeField(BaseField):
-    def __init__(self, *args, **kw):
+    '''
+    Field responsible for storing dates.
+
+    Usage::
+
+        date = DateTimeField(required=True, auto_now_on_insert=True, auto_now_on_update=True)
+
+    Available arguments (apart from those in BaseField):
+
+    * `auto_now_on_insert` - When an instance is created sets the field to datetime.now()
+    * `auto_now_on_update` - Whenever the instance is saved the field value gets updated to datetime.now()
+    '''
+
+    def __init__(self, auto_now_on_insert=False, auto_now_on_update=False, *args, **kw):
         super(DateTimeField, self).__init__(*args, **kw)
 
     def to_son(self, value):

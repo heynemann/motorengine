@@ -9,6 +9,14 @@ from motorengine.fields.base_field import BaseField
 
 
 class UUIDField(BaseField):
+    '''
+    Field responsible for storing :py:class:`uuid.UUID`.
+
+    Usage::
+
+        name = UUIDField(required=True)
+    '''
+
     def validate(self, value):
         if isinstance(value, UUID):
             return True
@@ -18,9 +26,9 @@ class UUIDField(BaseField):
                 UUID(value)
                 return True
             except TypeError:
-                return False
+                pass
             except ValueError:
-                return False
+                pass
 
         return False
 

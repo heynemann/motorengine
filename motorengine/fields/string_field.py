@@ -7,6 +7,18 @@ from motorengine.fields.base_field import BaseField
 
 
 class StringField(BaseField):
+    '''
+    Field responsible for storing text.
+
+    Usage::
+
+        name = StringField(required=True, max_length=255)
+
+    Available arguments (apart from those in `BaseField`):
+
+    * `max_length` - Raises a validation error if the string being stored exceeds the number of characters specified by this parameter
+    '''
+
     def __init__(self, max_length=None, *args, **kw):
         super(StringField, self).__init__(*args, **kw)
         self.max_length = max_length
