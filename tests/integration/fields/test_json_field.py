@@ -5,7 +5,11 @@
 from preggy import expect
 import mongoengine
 from tornado.testing import gen_test
-from ujson import dumps, loads
+
+try:
+    from ujson import dumps, loads
+except:
+    from json import dumps, loads
 
 import motorengine
 from tests.integration.base import BaseIntegrationTest
