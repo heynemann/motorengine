@@ -15,6 +15,7 @@ Modeling
 .. py:module:: motorengine.fields.float_field
 .. py:module:: motorengine.fields.decimal_field
 .. py:module:: motorengine.fields.binary_field
+.. py:module:: motorengine.fields.json_field
 
 MotorEngine uses the concept of models to interact with MongoDB. To create a model we inherif from the `Document` class:
 
@@ -71,6 +72,8 @@ Available Fields
 .. autoclass:: motorengine.fields.decimal_field.DecimalField
 
 .. autoclass:: motorengine.fields.binary_field.BinaryField
+
+.. autoclass:: motorengine.fields.json_field.JsonField
 
 Multiple Value Fields
 ---------------------

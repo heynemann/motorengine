@@ -12,7 +12,8 @@ try:
     from motorengine.fields import (  # NOQA
         BaseField, StringField, BooleanField, DateTimeField,
         UUIDField, ListField, EmbeddedDocumentField, ReferenceField, URLField,
-        EmailField, IntField, FloatField, DecimalField, BinaryField
+        EmailField, IntField, FloatField, DecimalField, BinaryField,
+        JsonField
     )
 except ImportError:  # NOQA
     pass  # likely setup.py trying to import version
