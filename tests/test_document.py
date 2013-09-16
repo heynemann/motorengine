@@ -7,7 +7,8 @@ from preggy import expect
 
 from motorengine import (
     Document, StringField, BooleanField, ListField,
-    EmbeddedDocumentField, ReferenceField, DESCENDING
+    EmbeddedDocumentField, ReferenceField, DESCENDING,
+    URLField
 )
 from motorengine.errors import InvalidDocumentError, LoadReferencesRequiredError
 from tests import AsyncTestCase
@@ -18,6 +19,7 @@ class User(Document):
     first_name = StringField(max_length=50, default=lambda: "Bernardo")
     last_name = StringField(max_length=50, default="Heynemann")
     is_admin = BooleanField(default=True)
+    website = URLField(default="http://google.com/")
 
     def __repr__(self):
         return "%s %s <%s>" % (self.first_name, self.last_name, self.email)
@@ -95,6 +97,16 @@ class TestDocument(AsyncTestCase):
         expect(result.first_name).to_equal("Bernardo")
         expect(result.last_name).to_equal("Heynemann")
         expect(result.is_admin).to_be_true()
+
+    def test_creating_invalid_instance_fails(self):
+        user = User(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", website="bla")
+        try:
+            user.save(callback=self.stop)
+        except InvalidDocumentError:
+            err = sys.exc_info()[1]
+            expect(err).to_have_an_error_message_of("Field 'website' must be valid.")
+        else:
+            assert False, "Should not have gotten this far"
 
     def test_can_create_employee(self):
         user = Employee(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", emp_number="Employee")

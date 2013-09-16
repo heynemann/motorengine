@@ -60,10 +60,16 @@ class BaseDocument(object):
 
         return data
 
+    def validate(self):
+        return self.validate_fields()
+
     def validate_fields(self):
         for name, field in self._fields.items():
-            if field.required and field.is_empty(self._values[field.db_field]):
+            value = self._values[field.db_field]
+            if field.required and field.is_empty(value):
                 raise InvalidDocumentError("Field '%s' is required." % name)
+            if not field.validate(value):
+                raise InvalidDocumentError("Field '%s' must be valid." % name)
 
         return True
 
