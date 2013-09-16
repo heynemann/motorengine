@@ -18,14 +18,14 @@ class TestBinaryField(AsyncTestCase):
         field = BinaryField()
 
         expect(field.validate(1)).to_be_false()
-        expect(field.validate('abc')).to_be_true()
+        expect(field.validate(b'abc')).to_be_true()
         expect(field.validate(six.u('abc'))).to_be_false()
 
     def test_validate_enforces_max_bytes(self):
         field = BinaryField(max_bytes=20)
 
-        expect(field.validate("-----")).to_be_true()
-        expect(field.validate("-----" * 40)).to_be_false()
+        expect(field.validate(b"-----")).to_be_true()
+        expect(field.validate(b"-----" * 40)).to_be_false()
 
     def test_is_empty(self):
         field = BinaryField()
