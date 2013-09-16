@@ -51,4 +51,4 @@ class DateTimeField(BaseField):
         return datetime.strptime(value, FORMAT)
 
     def validate(self, value):
-        return isinstance(value, datetime)
+        return value is None or isinstance(value, datetime)

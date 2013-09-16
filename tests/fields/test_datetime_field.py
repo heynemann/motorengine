@@ -19,6 +19,7 @@ class TestDateTimeField(AsyncTestCase):
         dt = datetime(2010, 11, 12, 13, 14, 15)
 
         expect(field.to_son(dt)).to_equal(dt)
+        expect(field.to_son(None)).to_be_null()
 
     def test_from_son(self):
         field = DateTimeField()
@@ -55,3 +56,11 @@ class TestDateTimeField(AsyncTestCase):
         field = DateTimeField(auto_now_on_update=True)
 
         expect(field.to_son(dt)).to_be_greater_or_equal_to(now)
+
+    def test_validate(self):
+        dt = datetime(2010, 11, 12, 13, 14, 15)
+        field = DateTimeField()
+
+        expect(field.validate(None)).to_be_true()
+        expect(field.validate(dt)).to_be_true()
+        expect(field.validate("qwieiqw")).to_be_false()

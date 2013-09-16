@@ -21,3 +21,12 @@ class TestUUIDField(AsyncTestCase):
         expect(field.validate("123")).to_be_false()
         expect(field.validate(uuid)).to_be_true()
         expect(field.validate(str(uuid))).to_be_true()
+
+    def test_is_empty(self):
+        field = UUIDField()
+
+        uuid = uuid4()
+
+        expect(field.is_empty(uuid)).to_be_false()
+        expect(field.is_empty("")).to_be_true()
+        expect(field.is_empty(None)).to_be_true()

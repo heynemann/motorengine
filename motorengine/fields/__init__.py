@@ -14,3 +14,4 @@ from motorengine.fields.email_field import EmailField  # NOQA
 from motorengine.fields.int_field import IntField  # NOQA
 from motorengine.fields.float_field import FloatField  # NOQA
 from motorengine.fields.decimal_field import DecimalField  # NOQA
+from motorengine.fields.binary_field import BinaryField  # NOQA

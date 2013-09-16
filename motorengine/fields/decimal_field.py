@@ -55,12 +55,7 @@ class DecimalField(BaseField):
         return six.u(str(value.quantize(self.precision, rounding=self.rounding)))
 
     def from_son(self, value):
-        original_value = value
-
-        try:
-            value = decimal.Decimal(value)
-        except ValueError:
-            return original_value
+        value = decimal.Decimal(value)
 
         return value.quantize(self.precision, rounding=self.rounding)
 
