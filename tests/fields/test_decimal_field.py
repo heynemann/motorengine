@@ -25,8 +25,8 @@ class TestDecimalField(AsyncTestCase):
     def test_from_son(self):
         field = DecimalField()
 
-        expect(field.from_son(u"10.0230")).to_equal(Decimal("10.023"))
-        expect(field.from_son(u"10.56")).to_equal(Decimal("10.56"))
+        expect(field.from_son(u"10.0230")).to_equal(Decimal("10.02"))
+        expect(field.from_son(u"10.56948")).to_equal(Decimal("10.57"))
 
     def test_validate_enforces_decimals(self):
         field = DecimalField()

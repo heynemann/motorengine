@@ -52,20 +52,17 @@ class DecimalField(BaseField):
 
     def to_son(self, value):
         value = decimal.Decimal(value)
-        return unicode(value.quantize(self.precision, rounding=self.rounding))
+        return six.u(str(value.quantize(self.precision, rounding=self.rounding)))
 
     def from_son(self, value):
         original_value = value
-
-        if not isinstance(value, six.string_types):
-            value = unicode(value)
 
         try:
             value = decimal.Decimal(value)
         except ValueError:
             return original_value
 
-        return value
+        return value.quantize(self.precision, rounding=self.rounding)
 
     def validate(self, value):
         try:
