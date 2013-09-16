@@ -65,6 +65,8 @@ Available Fields
 
 .. autoclass:: motorengine.fields.float_field.FloatField
 
+.. autoclass:: motorengine.fields.decimal_field.DecimalField
+
 Multiple Value Fields
 ---------------------
 

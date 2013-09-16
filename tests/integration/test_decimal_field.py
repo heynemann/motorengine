@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-
 # -*- coding: utf-8 -*-
+
+from decimal import Decimal
 
 from preggy import expect
 import mongoengine
@@ -9,23 +10,23 @@ from tornado.testing import gen_test
 import motorengine
 from tests.integration.base import BaseIntegrationTest
 
-COLLECTION = 'IntegrationTestFloatField'
+COLLECTION = 'IntegrationTestDecimalField'
 
 
 class MongoDocument(mongoengine.Document):
     meta = {'collection': COLLECTION}
-    number = mongoengine.FloatField()
+    number = mongoengine.DecimalField()
 
 
 class MotorDocument(motorengine.Document):
     __collection__ = COLLECTION
-    number = motorengine.FloatField()
+    number = motorengine.DecimalField()
 
 
 class TestIntField(BaseIntegrationTest):
     @gen_test
     def test_can_integrate(self):
-        mongo_document = MongoDocument(number=10.5).save()
+        mongo_document = MongoDocument(number=Decimal("10.53")).save()
 
         result = yield MotorDocument.objects.get(mongo_document.id)
 
@@ -34,7 +35,7 @@ class TestIntField(BaseIntegrationTest):
 
     @gen_test
     def test_can_integrate_backwards(self):
-        motor_document = yield MotorDocument.objects.create(number=10.5)
+        motor_document = yield MotorDocument.objects.create(number=Decimal("10.53"))
 
         result = MongoDocument.objects.get(id=motor_document._id)
 
