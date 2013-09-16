@@ -108,6 +108,20 @@ class TestDocument(AsyncTestCase):
         else:
             assert False, "Should not have gotten this far"
 
+        try:
+            user = User.objects.create(
+                email="heynemann@gmail.com",
+                first_name="Bernardo",
+                last_name="Heynemann",
+                website="bla",
+                callback=self.stop
+            )
+        except InvalidDocumentError:
+            err = sys.exc_info()[1]
+            expect(err).to_have_an_error_message_of("Field 'website' must be valid.")
+        else:
+            assert False, "Should not have gotten this far"
+
     def test_can_create_employee(self):
         user = Employee(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", emp_number="Employee")
         user.save(callback=self.stop)

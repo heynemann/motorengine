@@ -86,8 +86,7 @@ class BaseDocument(object):
             def callback(instance):
                 # do something with instance
         '''
-        if self.validate_fields():
-            self.objects.save(self, callback=callback, alias=alias)
+        self.objects.save(self, callback=callback, alias=alias)
 
     def handle_load_reference(self, callback, references, reference_count, values_collection, field_name):
         def handle(*args, **kw):

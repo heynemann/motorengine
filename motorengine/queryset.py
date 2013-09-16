@@ -47,8 +47,10 @@ class QuerySet(object):
                 self.__klass__.__name__,
                 document.__class__.__name__,
             ))
-        doc = document.to_son()
-        self.coll(alias).insert(doc, callback=self.handle_save(document, callback))
+
+        if document.validate():
+            doc = document.to_son()
+            self.coll(alias).insert(doc, callback=self.handle_save(document, callback))
 
     def handle_auto_load_references(self, doc, callback):
         def handle(*args, **kw):
