@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import six
 import re
 
 from motorengine.fields.base_field import BaseField

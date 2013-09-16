@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from motorengine.fields.base_field import BaseField
-from motorengine.utils import get_class
 
 
 class EmbeddedDocumentField(BaseField):
@@ -13,7 +12,10 @@ class EmbeddedDocumentField(BaseField):
         from motorengine import Document
 
         if not isinstance(embedded_document_type, type) or not issubclass(embedded_document_type, Document):
-            raise ValueError("The field 'embedded_document_type' argument must be a subclass of Document, not '%s'." % str(embedded_document_type))
+            raise ValueError(
+                "The field 'embedded_document_type' argument must be a subclass of Document, not '%s'." %
+                str(embedded_document_type)
+            )
 
         self._embedded_document_type = embedded_document_type
 
