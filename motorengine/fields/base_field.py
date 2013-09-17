@@ -34,6 +34,9 @@ class BaseField(object):
     def is_empty(self, value):
         return value is None
 
+    def get_value(self, value):
+        return value
+
     def to_son(self, value):
         return value
 

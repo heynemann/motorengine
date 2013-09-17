@@ -48,14 +48,14 @@ class TestDateTimeField(AsyncTestCase):
         dt = datetime.now()
         field = DateTimeField(auto_now_on_insert=True)
 
-        expect(field.to_son(None)).to_be_greater_or_equal_to(dt)
+        expect(field.to_son(field.get_value(None))).to_be_greater_or_equal_to(dt)
 
     def test_to_son_with_auto_update(self):
         dt = datetime(2010, 11, 12, 13, 14, 15)
         now = datetime.now()
         field = DateTimeField(auto_now_on_update=True)
 
-        expect(field.to_son(dt)).to_be_greater_or_equal_to(now)
+        expect(field.to_son(field.get_value(dt))).to_be_greater_or_equal_to(now)
 
     def test_validate(self):
         dt = datetime(2010, 11, 12, 13, 14, 15)

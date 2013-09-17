@@ -55,8 +55,9 @@ class BaseDocument(object):
     def to_son(self):
         data = dict()
 
-        for name, value in self._values.items():
-            data[name] = self._fields[name].to_son(value)
+        for name, field in self._fields.items():
+            actual_value = field.get_value(self._values[field.db_field])
+            data[name] = field.to_son(actual_value)
 
         return data
 
@@ -65,9 +66,11 @@ class BaseDocument(object):
 
     def validate_fields(self):
         for name, field in self._fields.items():
-            value = self._values[field.db_field]
+            value = field.get_value(self._values[field.db_field])
+
             if field.required and field.is_empty(value):
                 raise InvalidDocumentError("Field '%s' is required." % name)
+
             if not field.validate(value):
                 raise InvalidDocumentError("Field '%s' must be valid." % name)
 

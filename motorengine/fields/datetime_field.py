@@ -29,16 +29,16 @@ class DateTimeField(BaseField):
         self.auto_now_on_insert = auto_now_on_insert
         self.auto_now_on_update = auto_now_on_update
 
-    def to_son(self, value):
+    def get_value(self, value):
         if self.auto_now_on_insert and value is None:
             return datetime.now()
 
         if self.auto_now_on_update:
             return datetime.now()
 
-        if value is None:
-            return None
+        return value
 
+    def to_son(self, value):
         if isinstance(value, six.string_types):
             return datetime.strptime(value, FORMAT)
 
