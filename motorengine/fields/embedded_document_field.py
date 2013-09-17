@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import six
+
+from motorengine.utils import get_class
 from motorengine.fields.base_field import BaseField
 
 
@@ -8,22 +11,33 @@ class EmbeddedDocumentField(BaseField):
     def __init__(self, embedded_document_type=None, *args, **kw):
         super(EmbeddedDocumentField, self).__init__(*args, **kw)
 
+        self._embedded_document_type = embedded_document_type
+        self._resolved_embedded_type = None
+
+    @property
+    def embedded_type(self):
+        if self._resolved_embedded_type is None:
+            if isinstance(self._embedded_document_type, six.string_types):
+                self._resolved_embedded_type = get_class(self._embedded_document_type)
+            else:
+                self._resolved_embedded_type = self._embedded_document_type
+
+        return self._resolved_embedded_type
+
+    def validate(self, value):
         # avoiding circular reference
         from motorengine import Document
 
-        if not isinstance(embedded_document_type, type) or not issubclass(embedded_document_type, Document):
+        if not isinstance(self.embedded_type, type) or not issubclass(self.embedded_type, Document):
             raise ValueError(
                 "The field 'embedded_document_type' argument must be a subclass of Document, not '%s'." %
-                str(embedded_document_type)
+                str(self.embedded_type)
             )
 
-        self._embedded_document_type = embedded_document_type
-
-    def validate(self, value):
-        if not isinstance(value, self._embedded_document_type):
+        if value is not None and not isinstance(value, self.embedded_type):
             return False
 
-        return self._embedded_document_type.validate(value)
+        return self.embedded_type.validate(value)
 
     def to_son(self, value):
         base = dict()

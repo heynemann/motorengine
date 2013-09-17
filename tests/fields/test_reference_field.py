@@ -17,10 +17,10 @@ class User(Document):
 class TestReferenceField(AsyncTestCase):
     def test_cant_create_reference_field_of_the_wrong_type(self):
         try:
-            ReferenceField(reference_document_type="test")
+            ReferenceField(reference_document_type=10).validate(None)
         except ValueError:
             err = sys.exc_info()[1]
-            expected = "The field 'reference_document_type' argument must be a subclass of Document, not 'test'."
+            expected = "The field 'reference_document_type' argument must be a subclass of Document, not '10'."
             expect(err).to_have_an_error_message_of(expected)
         else:
             assert False, "Should not have gotten this far"
@@ -28,11 +28,11 @@ class TestReferenceField(AsyncTestCase):
     def test_create_reference_field(self):
         field = ReferenceField(db_field="test", reference_document_type=User)
         expect(field.db_field).to_equal("test")
-        expect(field._reference_document_type).to_equal(User)
+        expect(field.reference_type).to_equal(User)
 
     def test_create_reference_field_with_string_class(self):
         field = ReferenceField(db_field="test", reference_document_type="tests.fields.test_reference_field.User")
-        expect(field._reference_document_type).to_equal(User)
+        expect(field.reference_type).to_equal(User)
 
     def test_to_son(self):
         field = ReferenceField(db_field="test", reference_document_type=User)
