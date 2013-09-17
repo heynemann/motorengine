@@ -154,10 +154,11 @@ class BaseDocument(object):
             return object.__getattribute__(self, name)
 
         if name in self._fields:
-            is_reference_field = self.is_reference_field(self._fields[name])
-            value = self._values.get(name, None)
+            field = self._fields[name]
+            is_reference_field = self.is_reference_field(field)
+            value = field.get_value(self._values.get(name, None))
 
-            if is_reference_field and not isinstance(value, self._fields[name]._reference_document_type):
+            if is_reference_field and not isinstance(value, field._reference_document_type):
                 message = "The property '%s' can't be accessed before calling 'load_references'" + \
                     " on its instance first (%s) or setting __lazy__ to False in the %s class."
 
