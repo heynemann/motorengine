@@ -30,6 +30,10 @@ class TestReferenceField(AsyncTestCase):
         expect(field.db_field).to_equal("test")
         expect(field._reference_document_type).to_equal(User)
 
+    def test_create_reference_field_with_string_class(self):
+        field = ReferenceField(db_field="test", reference_document_type="tests.fields.test_reference_field.User")
+        expect(field._reference_document_type).to_equal(User)
+
     def test_to_son(self):
         field = ReferenceField(db_field="test", reference_document_type=User)
 

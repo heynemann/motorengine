@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import six
+
 from motorengine.fields.base_field import BaseField
+from motorengine.utils import get_class
 
 
 class ReferenceField(BaseField):
@@ -10,6 +13,12 @@ class ReferenceField(BaseField):
 
         # avoiding circular reference
         from motorengine import Document
+
+        if isinstance(reference_document_type, six.string_types):
+            try:
+                reference_document_type = get_class(reference_document_type)
+            except ImportError:
+                pass
 
         if not isinstance(reference_document_type, type) or not issubclass(reference_document_type, Document):
             raise ValueError("The field 'reference_document_type' argument must be a subclass of Document, not '%s'." % str(reference_document_type))
