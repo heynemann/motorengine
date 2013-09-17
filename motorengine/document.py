@@ -55,8 +55,9 @@ class BaseDocument(object):
     def to_son(self):
         data = dict()
 
-        for name, value in self._values.items():
-            data[name] = self._fields[name].to_son(value)
+        for name, field in self._fields.items():
+            value = getattr(self, field.db_field)
+            data[name] = field.to_son(value)
 
         return data
 
@@ -65,7 +66,7 @@ class BaseDocument(object):
 
     def validate_fields(self):
         for name, field in self._fields.items():
-            value = self._values[field.db_field]
+            value = getattr(self, field.db_field)
             if field.required and field.is_empty(value):
                 raise InvalidDocumentError("Field '%s' is required." % name)
             if not field.validate(value):
@@ -105,6 +106,7 @@ class BaseDocument(object):
     def load_references(self, callback, alias=None):
         references = self.find_references(self)
         reference_count = len(references)
+
         for dereference_function, document_id, values_collection, field_name in references:
             dereference_function(
                 document_id,
@@ -138,7 +140,7 @@ class BaseDocument(object):
 
     def find_list_field(self, document, results, field_name, field):
         if self.is_list_field(field):
-            for value in document._values[field_name]:
+            for value in document._values.get(field_name):
                 if value:
                     self.find_references(value, results)
 
@@ -158,7 +160,7 @@ class BaseDocument(object):
             is_reference_field = self.is_reference_field(field)
             value = field.get_value(self._values.get(name, None))
 
-            if is_reference_field and not isinstance(value, field._reference_document_type):
+            if is_reference_field and value is not None and not isinstance(value, field._reference_document_type):
                 message = "The property '%s' can't be accessed before calling 'load_references'" + \
                     " on its instance first (%s) or setting __lazy__ to False in the %s class."
 
@@ -175,7 +177,7 @@ class BaseDocument(object):
             raise ValueError("Error updating property: Invalid property '%s'." % name)
 
         if name in self._fields:
-            self._values[name] = self._fields[name].get_value(value)
+            self._values[name] = value
             return
 
         object.__setattr__(self, name, value)

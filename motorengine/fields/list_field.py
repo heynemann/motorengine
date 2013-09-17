@@ -26,7 +26,7 @@ class ListField(BaseField):
             raise ValueError("The list field 'field' argument must be an instance of BaseField, not '%s'." % str(base_field))
 
         if not self.default:
-            self.default = []
+            self.default = lambda: []
 
         self._base_field = base_field
 

@@ -8,7 +8,7 @@ from preggy import expect
 from motorengine import (
     Document, StringField, BooleanField, ListField,
     EmbeddedDocumentField, ReferenceField, DESCENDING,
-    URLField
+    URLField, DateTimeField
 )
 from motorengine.errors import InvalidDocumentError, LoadReferencesRequiredError
 from tests import AsyncTestCase
@@ -20,6 +20,7 @@ class User(Document):
     last_name = StringField(max_length=50, default="Heynemann")
     is_admin = BooleanField(default=True)
     website = URLField(default="http://google.com/")
+    updated_at = DateTimeField(required=True, auto_now_on_insert=True, auto_now_on_update=True)
 
     def __repr__(self):
         return "%s %s <%s>" % (self.first_name, self.last_name, self.email)
@@ -53,6 +54,9 @@ class TestDocument(AsyncTestCase):
         super(TestDocument, self).setUp()
         self.drop_coll("User")
         self.drop_coll("Employee")
+        self.drop_coll("Post")
+        self.drop_coll("Comment")
+        self.drop_coll("CommentNotLazy")
 
     def test_has_proper_collection(self):
         assert User.__collection__ == 'User'
@@ -289,6 +293,26 @@ class TestDocument(AsyncTestCase):
             err = sys.exc_info()[1]
             expect(err).to_have_an_error_message_of("Field 'email' is required.")
 
+    def test_can_save_and_get_reference_with_lazy(self):
+        User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
+        user = self.wait()
+
+        Post.objects.create(title="Testing post", body="Testing post body", callback=self.stop)
+        post = self.wait()
+
+        comment = Comment(text="Comment text for lazy test", user=user)
+        post.comments.append(comment)
+        post.save(self.stop)
+        self.wait()
+
+        Post.objects.get(post._id, callback=self.stop)
+        loaded_post = self.wait()
+
+        loaded_post.load_references(callback=self.stop)
+        result = self.wait()
+
+        expect(result['loaded_reference_count']).to_equal(1)
+
     def test_can_save_and_get_reference_without_lazy(self):
         User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
         user = self.wait()
@@ -310,7 +334,7 @@ class TestDocument(AsyncTestCase):
         Post.objects.create(title="Testing post", body="Testing post body", callback=self.stop)
         post = self.wait()
 
-        post.comments.append(Comment(text="Comment text", user=user))
+        post.comments.append(Comment(text="Comment text for blog post", user=user))
         post.save(callback=self.stop)
         self.wait()
 
@@ -324,7 +348,7 @@ class TestDocument(AsyncTestCase):
         expect(loaded_post.body).to_equal("Testing post body")
 
         expect(loaded_post.comments).to_length(1)
-        expect(loaded_post.comments[0].text).to_equal("Comment text")
+        expect(loaded_post.comments[0].text).to_equal("Comment text for blog post")
 
         try:
             loaded_post.comments[0].user
