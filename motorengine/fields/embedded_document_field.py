@@ -47,4 +47,4 @@ class EmbeddedDocumentField(BaseField):
         return base
 
     def from_son(self, value):
-        return self.embedded_type(**value)
+        return self.embedded_type.from_son(value)
