@@ -26,6 +26,12 @@ class MotorDocument(motorengine.Document):
     __collection__ = COLLECTION
     data = motorengine.JsonField()
 
+
+class Other(motorengine.Document):
+    __collection__ = "Other_%s" % COLLECTION
+    items = motorengine.ListField(motorengine.EmbeddedDocumentField(MotorDocument))
+
+
 data = {
     "value": 10,
     "list": [1, 2, "a"],
@@ -54,3 +60,19 @@ class TestStringField(BaseIntegrationTest):
 
         expect(result.id).to_equal(motor_document._id)
         expect(loads(result.data)).to_be_like(data)
+
+    @gen_test
+    def test_gets_right_types(self):
+        motor_document = yield MotorDocument.objects.create(data=10)
+        expect(motor_document.data).to_equal(10)
+
+        loaded = yield MotorDocument.objects.get(motor_document._id)
+        expect(loaded.data).to_equal(10)
+
+        other = yield Other.objects.create()
+        other.items.append(MotorDocument(data=10))
+        yield other.save()
+
+        loaded = yield Other.objects.get(other._id)
+        expect(other.items).to_length(1)
+        expect(other.items[0].data).to_equal(10)
