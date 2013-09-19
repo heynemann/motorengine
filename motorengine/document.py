@@ -132,7 +132,7 @@ class BaseDocument(object):
             value = document._values.get(field_name, None)
             if value is not None:
                 results.append([
-                    field._reference_document_type.objects.get,
+                    field.reference_type.objects.get,
                     value,
                     document._values,
                     field_name
