@@ -1,0 +1,2 @@
+prune *
+recursive-include motorengine *.py *.html *.css *.js *.png *.jpg *.jpeg *.gif *.conf
