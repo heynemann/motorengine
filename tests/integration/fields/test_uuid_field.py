@@ -40,3 +40,13 @@ class TestUUIDField(BaseIntegrationTest):
 
         expect(result.id).to_equal(motor_document._id)
         expect(result.uuid).to_equal(motor_document.uuid)
+
+    @gen_test
+    def test_can_filter_properly(self):
+        yield MotorDocument.objects.create(uuid=uuid4())
+        yield MotorDocument.objects.create(uuid=uuid4())
+        motor_document = yield MotorDocument.objects.create(uuid=uuid4())
+
+        results = yield MotorDocument.objects.filter(uuid=motor_document.uuid).find_all()
+        expect(results).to_length(1)
+        expect(results[0]._id).to_equal(motor_document._id)
