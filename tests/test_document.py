@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import sys
+from uuid import uuid4
 
 from preggy import expect
 
 from motorengine import (
     Document, StringField, BooleanField, ListField,
     EmbeddedDocumentField, ReferenceField, DESCENDING,
-    URLField, DateTimeField
+    URLField, DateTimeField, UUIDField
 )
 from motorengine.errors import InvalidDocumentError, LoadReferencesRequiredError
 from tests import AsyncTestCase
@@ -370,3 +371,22 @@ class TestDocument(AsyncTestCase):
         expect(loaded_post.comments[0].user.email).to_equal("heynemann@gmail.com")
         expect(loaded_post.comments[0].user.first_name).to_equal("Bernardo")
         expect(loaded_post.comments[0].user.last_name).to_equal("Heynemann")
+
+    def test_saving_a_loaded_post_updates_the_post(self):
+        class LoadedPost(Document):
+            uuid = UUIDField()
+
+        uuid = uuid4()
+
+        LoadedPost.objects.create(uuid=uuid, callback=self.stop)
+        post = self.wait()
+
+        post.save(callback=self.stop)
+        saved_post = self.wait()
+
+        LoadedPost.objects.filter(uuid=uuid).find_all(callback=self.stop)
+        posts = self.wait()
+
+        expect(posts).to_length(1)
+        expect(posts[0]._id).to_equal(post._id)
+        expect(posts[0]._id).to_equal(saved_post._id)

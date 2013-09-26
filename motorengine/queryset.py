@@ -41,6 +41,15 @@ class QuerySet(object):
 
         return handle
 
+    def handle_update(self, document, callback):
+        def handle(*arguments, **kw):
+            if len(arguments) > 1 and arguments[1]:
+                raise arguments[1]
+
+            callback(document)
+
+        return handle
+
     def save(self, document, callback, alias=None):
         if not isinstance(document, self.__klass__):
             raise ValueError("This queryset for class '%s' can't save an instance of type '%s'." % (
@@ -50,7 +59,10 @@ class QuerySet(object):
 
         if document.validate():
             doc = document.to_son()
-            self.coll(alias).insert(doc, callback=self.handle_save(document, callback))
+            if document._id is not None:
+                self.coll(alias).update({'_id': document._id}, doc, callback=self.handle_update(document, callback))
+            else:
+                self.coll(alias).insert(doc, callback=self.handle_save(document, callback))
 
     def handle_auto_load_references(self, doc, callback):
         def handle(*args, **kw):
