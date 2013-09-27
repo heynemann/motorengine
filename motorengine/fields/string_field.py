@@ -24,6 +24,9 @@ class StringField(BaseField):
         self.max_length = max_length
 
     def validate(self, value):
+        if value is None:
+            return True
+
         is_string = isinstance(value, six.string_types)
 
         if not is_string:

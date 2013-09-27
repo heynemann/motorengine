@@ -29,3 +29,8 @@ class TestStringField(AsyncTestCase):
         expect(field.is_empty(None)).to_be_true()
         expect(field.is_empty("")).to_be_true()
         expect(field.is_empty("123")).to_be_false()
+
+    def test_validate_only_if_not_none(self):
+        field = StringField(required=False)
+
+        expect(field.validate(None)).to_be_true()
