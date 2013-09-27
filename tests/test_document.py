@@ -399,3 +399,18 @@ class TestDocument(AsyncTestCase):
         post = self.wait()
 
         expect(post.uuid).not_to_be_null()
+
+    def test_getting_by_field(self):
+        class LoadedPost(Document):
+            uuid = UUIDField(default=uuid4)
+
+        uuid = uuid4()
+
+        LoadedPost.objects.create(uuid=uuid, callback=self.stop)
+        post = self.wait()
+
+        LoadedPost.objects.get(uuid=uuid, callback=self.stop)
+        loaded_post = self.wait()
+
+        expect(loaded_post).not_to_be_null()
+        expect(loaded_post._id).to_equal(post._id)

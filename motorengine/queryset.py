@@ -90,7 +90,7 @@ class QuerySet(object):
         return handle
 
     @return_future
-    def get(self, id, callback, alias=None):
+    def get(self, id=None, callback=None, alias=None, **kwargs):
         '''
         Gets a single item of the current queryset collection using it's id.
 
@@ -105,9 +105,17 @@ class QuerySet(object):
                 # instance is None if user not found
                 pass
         '''
-        self.coll(alias).find_one({
-            "_id": id
-        }, callback=self.handle_get(callback))
+        if id is None and not kwargs:
+            raise RuntimeError("Either an id or a filter must be provided to get")
+
+        if id is not None:
+            filters = {
+                "_id": id
+            }
+        else:
+            filters = kwargs
+
+        self.coll(alias).find_one(filters, callback=self.handle_get(callback))
 
     def filter(self, **kwargs):
         '''
