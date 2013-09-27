@@ -374,7 +374,7 @@ class TestDocument(AsyncTestCase):
 
     def test_saving_a_loaded_post_updates_the_post(self):
         class LoadedPost(Document):
-            uuid = UUIDField()
+            uuid = UUIDField(default=uuid4)
 
         uuid = uuid4()
 
@@ -390,3 +390,12 @@ class TestDocument(AsyncTestCase):
         expect(posts).to_length(1)
         expect(posts[0]._id).to_equal(post._id)
         expect(posts[0]._id).to_equal(saved_post._id)
+
+    def test_saving_uses_default(self):
+        class LoadedPost(Document):
+            uuid = UUIDField(default=uuid4)
+
+        LoadedPost.objects.create(callback=self.stop)
+        post = self.wait()
+
+        expect(post.uuid).not_to_be_null()
