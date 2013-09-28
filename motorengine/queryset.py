@@ -95,15 +95,6 @@ class QuerySet(object):
         Gets a single item of the current queryset collection using it's id.
 
         In order to query a different database, please specify the `alias` of the database to query.
-
-        Usage::
-
-            User.objects.get(user_id, callback=handle_get_user)
-
-            def handle_get_user(instance):
-                # do something with instance
-                # instance is None if user not found
-                pass
         '''
         if id is None and not kwargs:
             raise RuntimeError("Either an id or a filter must be provided to get")
@@ -223,14 +214,5 @@ class QuerySet(object):
     def count(self, callback, alias=None):
         '''
         Returns the number of documents in the collection that match the specified filters (if any).
-
-        Usage::
-
-            User.objects.count(callback=handle_count)
-
-            def handle_count(result):
-                # do something with result
-                # result is 0 if no users found
-                pass
         '''
         self._get_find_cursor(alias=alias).count(callback=self.handle_count(callback))

@@ -77,15 +77,7 @@ class BaseDocument(object):
     @return_future
     def save(self, callback, alias=None):
         '''
-        Saves a new instance of this document.
-
-        Usage::
-
-            doc = MyDocument(some_property="value")
-            doc.save(callback)
-
-            def callback(instance):
-                # do something with instance
+        Creates or updates the current instance of this document.
         '''
         self.objects.save(self, callback=callback, alias=alias)
 

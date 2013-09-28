@@ -2,6 +2,10 @@ test:
 	@coverage run --branch `which nosetests` -vv --rednose -s tests/
 	@echo
 	@coverage report -m --fail-under=80
+	@$(MAKE) doctest
+
+doctest:
+	@cd docs && $(MAKE) doctest
 
 ci_test: mongo_test test
 
@@ -14,8 +18,11 @@ tox3:
 toxpypy:
 	@PATH=$$PATH:~/.pythonbrew/pythons/Python-2.6.*/bin/:~/.pythonbrew/pythons/Python-2.7.*/bin/:~/.pythonbrew/pythons/Python-3.0.*/bin/:~/.pythonbrew/pythons/Python-3.1.*/bin/:~/.pythonbrew/pythons/Python-3.2.3/bin/:~/.pythonbrew/pythons/Python-3.3.0/bin/ tox -e pypy
 
+clean-doc:
+	@cd docs && make clean
+
 doc:
-	@cd docs && make html
+	@cd docs && make doctest && make html
 
 open-doc:
 	@cd docs && open build/html/index.html
