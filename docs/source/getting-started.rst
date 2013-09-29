@@ -47,7 +47,6 @@ Modeling a Document
         last_name = StringField(required=True)
 
     class Employee(User):
-        __collection__ = "DocStringEmployee"
         employee_id = IntField(required=True)
 
 Creating a new instance

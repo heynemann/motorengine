@@ -11,22 +11,38 @@ MotorEngine supports connecting to the database using a myriad of options via th
 .. autofunction:: motorengine.connection.connect(db, host="localhost", port=4445, io_loop=io_loop)
   :noindex:
 
-.. code-block:: python
+.. testsetup:: connecting_connecting
+
+    import tornado.ioloop
+
+.. testcode:: connecting_connecting
 
     from motorengine import connect
 
-    def main():
-        # instantiate tornado server and apps so we get io_loop instance
+    # instantiate tornado server and apps so we get io_loop instance
 
-        io_loop = tornado.ioloop.IOLoop.instance()
-        connect("test", host="localhost", port=4445, io_loop=io_loop)  # you only need to keep track of the
-                                                                       # DB instance if you connect to multiple databases.
+    io_loop = tornado.ioloop.IOLoop.instance()
+    connect("connecting-test", host="localhost", port=4445, io_loop=io_loop)  # you only need to keep track of the
+                                                                              # DB instance if you connect to multiple databases.
 
 Replica Sets
 ------------
 
 .. autofunction:: motorengine.connection.connect(db, host="localhost:27017,localhost:27018", replicaSet="myRs", io_loop=self.io_loop)
   :noindex:
+
+.. testsetup:: connecting_replica_set
+
+    import tornado.ioloop
+
+.. testcode:: connecting_replica_set
+
+    from motorengine import connect
+
+    # instantiate tornado server and apps so we get io_loop instance
+
+    io_loop = tornado.ioloop.IOLoop.instance()
+    connect("connecting-test", host="localhost:27017,localhost:27018", replicaSet="myRs", io_loop=io_loop)
 
 The major difference here is that instead of passing a single `host`, you need to pass all the `host:port` entries, comma-separated in the `host` parameter.
 
@@ -42,15 +58,26 @@ Connecting to multiple databases is as simple as specifying a different alias to
 
 Let's say you need to connect to an users and a posts databases:
 
-.. code-block:: python
+.. testsetup:: connecting_multiple
+
+    import tornado.ioloop
+
+    from motorengine import Document, StringField
+
+    class User(Document):
+        first_name = StringField(required=True)
+        last_name = StringField(required=True)
+
+.. testcode:: connecting_multiple
 
     from motorengine import connect
 
-    connect("posts", host="mongodb.acme.com", port=4445, io_loop=io_loop)  # the posts database is the default
-    connect("users", alias="users",  host="mongodb.acme.com", port=4445, io_loop=io_loop)  # the users database uses an alias
+    # instantiate tornado server and apps so we get io_loop instance
 
-Now when querying for users we'll just specify the alias we want to use:
+    io_loop = tornado.ioloop.IOLoop.instance()
 
-.. code-block:: python
+    connect("posts", host="localhost", port=4445, io_loop=io_loop)                 # the posts database is the default
+    connect("users", alias="users", host="localhost", port=4445, io_loop=io_loop)  # the users database uses an alias
 
-    User.objects.find_all(alias="users")  # will query the users database
+    # now when querying for users we'll just specify the alias we want to use
+    User.objects.find_all(alias="users")
