@@ -28,6 +28,35 @@ class QuerySet(object):
 
     @return_future
     def create(self, callback, alias=None, **kwargs):
+        '''
+        Creates and saved a new instance of the document.
+
+        .. testsetup:: saving_create
+
+            import tornado.ioloop
+            from motorengine import *
+
+            class User(Document):
+                __collection__ = "UserCreatingInstances"
+                name = StringField()
+
+            io_loop = tornado.ioloop.IOLoop.instance()
+            connect("test", host="localhost", port=4445, io_loop=io_loop)
+
+        .. testcode:: saving_create
+
+            def handle_user_created(user):
+                try:
+                    assert user.name == "Bernardo"
+                finally:
+                    io_loop.stop()
+
+            def create_user():
+                User.objects.create(name="Bernardo", callback=handle_user_created)
+
+            io_loop.add_timeout(1, create_user)
+            io_loop.start()
+        '''
         document = self.__klass__(**kwargs)
         self.save(document=document, callback=callback, alias=alias)
 
@@ -68,6 +97,36 @@ class QuerySet(object):
     def delete(self, callback=None, alias=None):
         '''
         Removes all instance of this document that match the specified filters (if any).
+
+        .. testsetup:: saving_delete
+
+            import tornado.ioloop
+            from motorengine import *
+
+            class User(Document):
+                __collection__ = "UserDeletingInstances"
+                name = StringField()
+
+            io_loop = tornado.ioloop.IOLoop.instance()
+            connect("test", host="localhost", port=4445, io_loop=io_loop)
+
+        .. testcode:: saving_delete
+
+            def handle_user_created(user):
+                User.objects.filter(name="Bernardo").delete(callback=handle_users_deleted)
+
+            def handle_users_deleted(number_of_deleted_items):
+                try:
+                    assert number_of_deleted_items == 1
+                finally:
+                    io_loop.stop()
+
+            def create_user():
+                user = User(name="Bernardo")
+                user.save(callback=handle_user_created)
+
+            io_loop.add_timeout(1, create_user)
+            io_loop.start()
         '''
 
         self.remove(callback=callback, alias=alias)

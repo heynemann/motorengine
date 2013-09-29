@@ -85,6 +85,36 @@ class BaseDocument(object):
     def delete(self, callback, alias=None):
         '''
         Deletes the current instance of this Document.
+
+        .. testsetup:: saving_delete_one
+
+            import tornado.ioloop
+            from motorengine import *
+
+            class User(Document):
+                __collection__ = "UserDeletingInstance"
+                name = StringField()
+
+            io_loop = tornado.ioloop.IOLoop.instance()
+            connect("test", host="localhost", port=4445, io_loop=io_loop)
+
+        .. testcode:: saving_delete_one
+
+            def handle_user_created(user):
+                user.delete(callback=handle_user_deleted)
+
+            def handle_user_deleted(number_of_deleted_items):
+                try:
+                    assert number_of_deleted_items == 1
+                finally:
+                    io_loop.stop()
+
+            def create_user():
+                user = User(name="Bernardo")
+                user.save(callback=handle_user_created)
+
+            io_loop.add_timeout(1, create_user)
+            io_loop.start()
         '''
         self.objects.remove(instance=self, callback=callback, alias=alias)
 
