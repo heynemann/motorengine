@@ -64,6 +64,33 @@ class QuerySet(object):
             else:
                 self.coll(alias).insert(doc, callback=self.handle_save(document, callback))
 
+    @return_future
+    def delete(self, callback=None, alias=None):
+        '''
+        Removes all instance of this document that match the specified filters (if any).
+        '''
+
+        self.remove(callback=callback, alias=alias)
+
+    def handle_remove(self, callback):
+        def handle(*args, **kw):
+            callback(args[0]['n'])
+
+        return handle
+
+    def remove(self, instance=None, callback=None, alias=None):
+        if callback is None:
+            raise RuntimeError("The callback argument is required")
+
+        if instance is not None:
+            if hasattr(instance, '_id') and instance._id:
+                self.coll(alias).remove(instance._id, callback=self.handle_remove(callback))
+        else:
+            if self._filters:
+                self.coll(alias).remove(self._filters, callback=self.handle_remove(callback))
+            else:
+                self.coll(alias).remove(callback=self.handle_remove(callback))
+
     def handle_auto_load_references(self, doc, callback):
         def handle(*args, **kw):
             if len(args) > 0:

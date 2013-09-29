@@ -22,8 +22,9 @@ MotorEngine supports connecting to the database using a myriad of options via th
     # instantiate tornado server and apps so we get io_loop instance
 
     io_loop = tornado.ioloop.IOLoop.instance()
-    connect("connecting-test", host="localhost", port=4445, io_loop=io_loop)  # you only need to keep track of the
-                                                                              # DB instance if you connect to multiple databases.
+
+    # you only need to keep track of the DB instance if you connect to multiple databases.
+    connect("connecting-test", host="localhost", port=4445, io_loop=io_loop)
 
 Replica Sets
 ------------

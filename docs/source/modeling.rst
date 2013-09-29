@@ -24,28 +24,76 @@ MotorEngine uses the concept of models to interact with MongoDB. To create a mod
 
 Let's say we need an article model with title, description and published_date:
 
-.. code-block:: python
+.. testsetup:: modeling_1
+
+    import tornado.ioloop
+    from motorengine import connect
+
+    io_loop = tornado.ioloop.IOLoop.instance()
+
+    # you only need to keep track of the DB instance if you connect to multiple databases.
+    connect("connecting-test", host="localhost", port=4445, io_loop=io_loop)
+
+.. testcode:: modeling_1
 
     from motorengine import Document, StringField, DateTimeField
 
     class Article(Document):
         title = StringField(required=True)
         description = StringField(required=True)
-        published_date = DateTimeField(auto_now=True)
+        published_date = DateTimeField(auto_now_on_insert=True)
 
 That allows us to create, update, query and remove articles with extreme ease:
 
-.. code-block:: python
+.. testsetup:: modeling_2
 
-    article = yield Article.objects.create(title="Some Article", description="This is an article that really matters.")
+    from uuid import uuid4
+    import tornado.ioloop
+    from motorengine import connect, Document, StringField, DateTimeField
 
-    article.title = "Better Title"
-    yield article.save()
+    io_loop = tornado.ioloop.IOLoop.instance()
 
-    articles = yield Article.objects.filter(title="Better Title").find_all()
-    # articles[0] is article
+    # you only need to keep track of the DB instance if you connect to multiple databases.
+    connect("connecting-test", host="localhost", port=4445, io_loop=io_loop)
 
-    yield article.delete()
+    class Article(Document):
+        __collection__ = "ModelingArticles2"
+        title = StringField(required=True)
+        description = StringField(required=True)
+        published_date = DateTimeField(auto_now_on_insert=True)
+
+.. testcode:: modeling_2
+
+    new_title = "Better Title %s" % uuid4()
+
+    def create_article():
+        Article.objects.create(
+            title="Some Article",
+            description="This is an article that really matters.",
+            callback=handle_article_created
+        )
+
+    def handle_article_created(article):
+        article.title = new_title
+        article.save(callback=handle_article_updated)
+
+    def handle_article_updated(article):
+        Article.objects.filter(title=new_title).find_all(callback=handle_articles_loaded)
+
+    def handle_articles_loaded(articles):
+        assert len(articles) == 1
+        assert articles[0].title == new_title
+
+        articles[0].delete(callback=handle_article_deleted)
+
+    def handle_article_deleted(number_of_deleted_items):
+        try:
+            assert number_of_deleted_items == 1
+        finally:
+            io_loop.stop()
+
+    io_loop.add_timeout(1, create_article)
+    io_loop.start()
 
 Base Field
 ----------

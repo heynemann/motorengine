@@ -81,6 +81,13 @@ class BaseDocument(object):
         '''
         self.objects.save(self, callback=callback, alias=alias)
 
+    @return_future
+    def delete(self, callback, alias=None):
+        '''
+        Deletes the current instance of this Document.
+        '''
+        self.objects.remove(instance=self, callback=callback, alias=alias)
+
     def handle_load_reference(self, callback, references, reference_count, values_collection, field_name):
         def handle(*args, **kw):
             values_collection[field_name] = args[0]

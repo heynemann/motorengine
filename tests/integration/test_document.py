@@ -86,3 +86,46 @@ class TestDocument(BaseIntegrationTest):
 
         expect(result._id).to_equal(mongo_doc.id)
         expect(result.embed.string).to_equal("test@test.com")
+
+    @gen_test
+    def test_can_delete_items(self):
+        class MotorDoc(motorengine.Document):
+            __collection__ = 'IntegrationCanDeleteOneItem'
+            string = motorengine.StringField()
+
+        yield MotorDoc.objects.delete()
+
+        item = yield MotorDoc.objects.create(string="test1")
+        item2 = yield MotorDoc.objects.create(string="test2")
+        item3 = yield MotorDoc.objects.create(string="test3")
+        item4 = yield MotorDoc.objects.create(string="test4")
+
+        all_items = yield MotorDoc.objects.find_all()
+
+        expect(all_items).to_length(4)
+
+        deleted = yield item.delete()
+        expect(deleted).to_equal(1)
+
+        all_items = yield MotorDoc.objects.find_all()
+
+        expect(all_items).to_length(3)
+        expect(all_items[0]._id).to_equal(item2._id)
+        expect(all_items[1]._id).to_equal(item3._id)
+        expect(all_items[2]._id).to_equal(item4._id)
+
+        deleted = yield MotorDoc.objects.filter(string="test4").delete()
+        expect(deleted).to_equal(1)
+
+        all_items = yield MotorDoc.objects.find_all()
+
+        expect(all_items).to_length(2)
+        expect(all_items[0]._id).to_equal(item2._id)
+        expect(all_items[1]._id).to_equal(item3._id)
+
+        deleted = yield MotorDoc.objects.delete()
+        expect(deleted).to_equal(2)
+
+        cnt = yield MotorDoc.objects.count()
+
+        expect(cnt).to_equal(0)
