@@ -8,10 +8,11 @@ class ListField(BaseField):
     '''
     Field responsible for storing :py:class:`list`.
 
-    Usage::
+    Usage:
+
+    .. testcode:: modeling_fields
 
         posts = ListField(StringField())
-
 
     Available arguments (apart from those in `BaseField`):
 

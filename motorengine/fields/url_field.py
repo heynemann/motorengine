@@ -10,7 +10,9 @@ class URLField(BaseField):
     '''
     Field responsible for storing URLs.
 
-    Usage::
+    Usage:
+
+    .. testcode:: modeling_fields
 
         name = URLField(required=True)
 

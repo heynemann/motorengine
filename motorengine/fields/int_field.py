@@ -8,7 +8,9 @@ class IntField(BaseField):
     '''
     Field responsible for storing integer values (:py:func:`int`).
 
-    Usage::
+    Usage:
+
+    .. testcode:: modeling_fields
 
         name = IntField(required=True, min_value=0, max_value=255)
 

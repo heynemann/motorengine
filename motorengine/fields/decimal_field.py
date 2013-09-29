@@ -12,7 +12,11 @@ class DecimalField(BaseField):
     '''
     Field responsible for storing fixed-point decimal numbers (:py:class:`decimal.Decimal`).
 
-    Usage::
+    Usage:
+
+    .. testcode:: modeling_fields
+
+        import decimal
 
         name = DecimalField(required=True, min_value=None, max_value=None, precision=2, rounding=decimal.ROUND_HALF_UP)
 

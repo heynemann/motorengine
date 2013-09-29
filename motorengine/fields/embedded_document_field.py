@@ -8,6 +8,23 @@ from motorengine.fields.base_field import BaseField
 
 
 class EmbeddedDocumentField(BaseField):
+    '''
+    Field responsible for storing an embedded document.
+
+    Usage:
+
+    .. testcode:: modeling_fields
+
+        class Comment(Document):
+            text = StringField(required=True)
+
+        comment = EmbeddedDocumentField(embedded_document_type=Comment)
+
+    Available arguments (apart from those in `BaseField`):
+
+    * `embedded_document_type` - The type of document that this field accepts as an embedded document.
+    '''
+
     def __init__(self, embedded_document_type=None, *args, **kw):
         super(EmbeddedDocumentField, self).__init__(*args, **kw)
 

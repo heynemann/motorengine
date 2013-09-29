@@ -8,7 +8,9 @@ class FloatField(BaseField):
     '''
     Field responsible for storing floating-point values (:py:func:`float`).
 
-    Usage::
+    Usage:
+
+    .. testcode:: modeling_fields
 
         name = FloatField(required=True, min_value=0.1, max_value=255.6)
 

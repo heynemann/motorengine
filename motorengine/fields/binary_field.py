@@ -10,7 +10,9 @@ class BinaryField(BaseField):
     '''
     Field responsible for storing binary values.
 
-    Usage::
+    Usage:
+
+    .. testcode:: modeling_fields
 
         name = BinaryField(required=True)
 

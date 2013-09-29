@@ -10,7 +10,9 @@ class StringField(BaseField):
     '''
     Field responsible for storing text.
 
-    Usage::
+    Usage:
+
+    .. testcode:: modeling_fields
 
         name = StringField(required=True, max_length=255)
 

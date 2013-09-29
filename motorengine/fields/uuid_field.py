@@ -12,7 +12,9 @@ class UUIDField(BaseField):
     '''
     Field responsible for storing :py:class:`uuid.UUID`.
 
-    Usage::
+    Usage:
+
+    .. testcode:: modeling_fields
 
         name = UUIDField(required=True)
     '''

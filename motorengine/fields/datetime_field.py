@@ -14,7 +14,9 @@ class DateTimeField(BaseField):
     '''
     Field responsible for storing dates.
 
-    Usage::
+    Usage:
+
+    .. testcode:: modeling_fields
 
         date = DateTimeField(required=True, auto_now_on_insert=True, auto_now_on_update=True)
 

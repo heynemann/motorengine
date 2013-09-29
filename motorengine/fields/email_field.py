@@ -11,7 +11,9 @@ class EmailField(BaseField):
     '''
     Field responsible for storing e-mail addresses.
 
-    Usage::
+    Usage:
+
+    .. testcode:: modeling_fields
 
         name = EmailField(required=True)
 

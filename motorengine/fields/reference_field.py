@@ -8,6 +8,24 @@ from motorengine.utils import get_class
 
 
 class ReferenceField(BaseField):
+    '''
+    Field responsible for creating a reference to another document.
+
+    Usage:
+
+    .. testcode:: modeling_fields
+
+        class User(Document):
+            name = StringField(required=True)
+            email = EmailField(required=True)
+
+        owner = ReferenceField(reference_document_type=User)
+
+    Available arguments (apart from those in `BaseField`):
+
+    * `reference_document_type` - The type of document that this field accepts as a referenced document.
+    '''
+
     def __init__(self, reference_document_type=None, *args, **kw):
         super(ReferenceField, self).__init__(*args, **kw)
 

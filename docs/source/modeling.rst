@@ -95,6 +95,11 @@ That allows us to create, update, query and remove articles with extreme ease:
     io_loop.add_timeout(1, create_article)
     io_loop.start()
 
+
+.. testsetup:: modeling_fields
+
+    from motorengine import *
+
 Base Field
 ----------
 
@@ -130,6 +135,10 @@ Multiple Value Fields
 
 Embedding vs Referencing
 ------------------------
+
+Embedding is very useful to improve the retrieval of data from MongoDB. When you have sub-documents that will always be used when retrieving a document (i.e.: comments in a post), it's useful to have them be embedded in the parent document.
+
+On the other hand, if you need a connection to the current document that won't be used in the main use cases for that document, it's a good practice to use a Reference Field. MotorEngine will only load the referenced field if you explicitly ask it to, or if you set `__lazy__` to `False`.
 
 .. autoclass:: motorengine.fields.embedded_document_field.EmbeddedDocumentField
 

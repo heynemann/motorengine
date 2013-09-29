@@ -26,7 +26,9 @@ class JsonField(BaseField):
     '''
     Field responsible for storing json objects.
 
-    Usage::
+    Usage:
+
+    .. testcode:: modeling_fields
 
         name = JsonField(required=True)
 
