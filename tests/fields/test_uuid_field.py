@@ -30,3 +30,11 @@ class TestUUIDField(AsyncTestCase):
         expect(field.is_empty(uuid)).to_be_false()
         expect(field.is_empty("")).to_be_true()
         expect(field.is_empty(None)).to_be_true()
+
+    def to_son(self):
+        field = UUIDField()
+
+        uuid = uuid4()
+
+        expect(field.to_son(uuid)).to_equal(uuid)
+        expect(field.to_son(str(uuid))).to_equal(uuid)

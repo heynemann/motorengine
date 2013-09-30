@@ -36,3 +36,9 @@ class UUIDField(BaseField):
 
     def is_empty(self, value):
         return value is None or str(value) == ""
+
+    def to_son(self, value):
+        if isinstance(value, six.string_types):
+            return UUID(value)
+
+        return value
