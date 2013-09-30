@@ -47,7 +47,7 @@ class DateTimeField(BaseField):
         return value
 
     def from_son(self, value):
-        if isinstance(value, datetime):
+        if value is None or isinstance(value, datetime):
             return value
 
         return datetime.strptime(value, FORMAT)
