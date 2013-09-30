@@ -134,8 +134,11 @@ class BaseDocument(object):
         return handle
 
     @return_future
-    def load_references(self, callback, alias=None):
-        references = self.find_references(self)
+    def load_references(self, fields=None, callback=None, alias=None):
+        if callback is None:
+            raise ValueError("Callback can't be None")
+
+        references = self.find_references(self, fields=fields)
         reference_count = len(references)
 
         for dereference_function, document_id, values_collection, field_name in references:
@@ -150,8 +153,17 @@ class BaseDocument(object):
                 )
             )
 
-    def find_references(self, document, results=[]):
-        for field_name, field in document._fields.items():
+    def find_references(self, document, fields=None, results=[]):
+        if fields:
+            fields = [
+                (field_name, document._fields[field_name])
+                for field_name in fields
+                if field_name in fields
+            ]
+        else:
+            fields = document._fields.items()
+
+        for field_name, field in fields:
             self.find_reference_field(document, results, field_name, field)
             self.find_list_field(document, results, field_name, field)
             self.find_embed_field(document, results, field_name, field)
@@ -160,7 +172,8 @@ class BaseDocument(object):
 
     def find_reference_field(self, document, results, field_name, field):
         if self.is_reference_field(field):
-            value = self.get_field_value(field_name)
+            value = document._values.get(field_name, None)
+
             if value is not None:
                 results.append([
                     field.reference_type.objects.get,

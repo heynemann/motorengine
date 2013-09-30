@@ -314,6 +314,38 @@ class TestDocument(AsyncTestCase):
 
         expect(result['loaded_reference_count']).to_equal(1)
 
+    def test_can_save_and_get_specific_reference_with_lazy(self):
+        User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
+        user = self.wait()
+
+        class ReferenceFieldClass(Document):
+            ref1 = ReferenceField(User)
+            ref2 = ReferenceField(User)
+            ref3 = ReferenceField(User)
+
+        ReferenceFieldClass.objects.create(ref1=user, ref2=user, ref3=user, callback=self.stop)
+        ref = self.wait()
+
+        ReferenceFieldClass.objects.get(ref._id, callback=self.stop)
+        loaded_ref = self.wait()
+
+        loaded_ref.load_references(fields=['ref1'], callback=self.stop)
+        result = self.wait()
+
+        expect(result['loaded_reference_count']).to_equal(1)
+        expect(loaded_ref.ref1._id).to_equal(user._id)
+
+        try:
+            assert loaded_ref.ref2._id
+        except LoadReferencesRequiredError:
+            err = sys.exc_info()[1]
+            expect(err).to_have_an_error_message_of(
+                "The property 'ref2' can't be accessed before calling 'load_references' on its instance first "
+                "(ReferenceFieldClass) or setting __lazy__ to False in the ReferenceFieldClass class."
+            )
+        else:
+            assert False, "Should not have gotten this far"
+
     def test_can_save_and_get_reference_without_lazy(self):
         User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
         user = self.wait()
