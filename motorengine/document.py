@@ -66,7 +66,8 @@ class BaseDocument(object):
 
     def validate_fields(self):
         for name, field in self._fields.items():
-            value = getattr(self, field.db_field)
+            value = field.get_value(self._values.get(name, None))
+
             if field.required and field.is_empty(value):
                 raise InvalidDocumentError("Field '%s' is required." % name)
             if not field.validate(value):
