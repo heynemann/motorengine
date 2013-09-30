@@ -190,9 +190,19 @@ class QuerySet(object):
                 "_id": id
             }
         else:
-            filters = kwargs
+            filters = self.to_filters(**kwargs)
 
         self.coll(alias).find_one(filters, callback=self.handle_get(callback))
+
+    def to_filters(self, **kwargs):
+        filters = {}
+        for field_name, value in kwargs.items():
+            if field_name not in self.__klass__._fields:
+                raise ValueError("Invalid filter '%s': Field not found in '%s'." % (field_name, self.__klass__.__name__))
+            field = self.__klass__._fields[field_name]
+            filters[field.db_field] = field.to_son(value)
+
+        return filters
 
     def filter(self, **kwargs):
         '''
@@ -206,11 +216,8 @@ class QuerySet(object):
 
         The available filter options are the same as used in MongoEngine.
         '''
-        for field_name, value in kwargs.items():
-            if field_name not in self.__klass__._fields:
-                raise ValueError("Invalid filter '%s': Field not found in '%s'." % (field_name, self.__klass__.__name__))
-            field = self.__klass__._fields[field_name]
-            self._filters[field.db_field] = field.to_son(value)
+        filters = self.to_filters(**kwargs)
+        self._filters.update(filters)
         return self
 
     def limit(self, limit):

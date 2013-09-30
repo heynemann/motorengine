@@ -355,7 +355,8 @@ class TestDocument(AsyncTestCase):
             loaded_post.comments[0].user
         except LoadReferencesRequiredError:
             err = sys.exc_info()[1]
-            expected = "The property 'user' can't be accessed before calling 'load_references' on its instance first (Comment) or setting __lazy__ to False in the Comment class."
+            expected = "The property 'user' can't be accessed before calling 'load_references' " + \
+                "on its instance first (Comment) or setting __lazy__ to False in the Comment class."
             expect(err).to_have_an_error_message_of(expected)
         else:
             assert False, "Should not have gotten this far"
@@ -409,7 +410,7 @@ class TestDocument(AsyncTestCase):
         LoadedPost.objects.create(uuid=uuid, callback=self.stop)
         post = self.wait()
 
-        LoadedPost.objects.get(uuid=uuid, callback=self.stop)
+        LoadedPost.objects.get(uuid=str(uuid), callback=self.stop)
         loaded_post = self.wait()
 
         expect(loaded_post).not_to_be_null()
