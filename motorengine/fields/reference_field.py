@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import six
+from bson.objectid import ObjectId
 
 from motorengine.fields.base_field import BaseField
 from motorengine.utils import get_class
@@ -47,16 +48,23 @@ class ReferenceField(BaseField):
         from motorengine import Document
 
         if not isinstance(self.reference_type, type) or not issubclass(self.reference_type, Document):
-            raise ValueError("The field 'reference_document_type' argument must be a subclass of Document, not '%s'." % str(self.reference_type))
+            raise ValueError(
+                "The field 'reference_document_type' argument must be a subclass of Document, not '%s'." % (
+                    str(self.reference_type)
+                )
+            )
 
-        if value is not None and not isinstance(value, self.reference_type):
+        if value is not None and not isinstance(value, (self.reference_type, ObjectId)):
             return False
 
-        return value is None or value._id is not None
+        return value is None or isinstance(value, ObjectId) or (hasattr(value, '_id') and value._id is not None)
 
     def to_son(self, value):
         if value is None:
             return None
+
+        if isinstance(value, ObjectId):
+            return value
 
         return value._id
 

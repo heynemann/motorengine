@@ -56,7 +56,7 @@ class BaseDocument(object):
         data = dict()
 
         for name, field in self._fields.items():
-            value = getattr(self, field.db_field)
+            value = self.get_field_value(name)
             data[name] = field.to_son(value)
 
         return data
@@ -66,7 +66,8 @@ class BaseDocument(object):
 
     def validate_fields(self):
         for name, field in self._fields.items():
-            value = field.get_value(self._values.get(name, None))
+
+            value = self.get_field_value(name)
 
             if field.required and field.is_empty(value):
                 raise InvalidDocumentError("Field '%s' is required." % name)
@@ -159,7 +160,7 @@ class BaseDocument(object):
 
     def find_reference_field(self, document, results, field_name, field):
         if self.is_reference_field(field):
-            value = document._values.get(field_name, None)
+            value = self.get_field_value(field_name)
             if value is not None:
                 results.append([
                     field.reference_type.objects.get,
@@ -179,6 +180,18 @@ class BaseDocument(object):
             value = document._values.get(field_name, None)
             if value:
                 self.find_references(value, results)
+
+    def get_field_value(self, name):
+        if not name in self._fields:
+            raise ValueError("Field %s not found in instance of %s." % (
+                name,
+                self.__class__.__name__
+            ))
+
+        field = self._fields[name]
+        value = field.get_value(self._values.get(name, None))
+
+        return value
 
     def __getattribute__(self, name):
         # required for the next test
