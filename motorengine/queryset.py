@@ -5,6 +5,7 @@ from tornado.concurrent import return_future
 
 from motorengine import ASCENDING
 from motorengine.connection import get_connection
+from motorengine.fields.embedded_document_field import EmbeddedDocumentField
 from motorengine.query.lesser_than import LesserThanQueryOperator
 from motorengine.query.greater_than import GreaterThanQueryOperator
 from motorengine.query.lesser_than_or_equal import LesserThanOrEqualQueryOperator
@@ -208,22 +209,71 @@ class QuerySet(object):
         self.coll(alias).find_one(filters, callback=self.handle_get(callback))
 
     def to_filters(self, **kwargs):
+        from motorengine import Document  # to avoid circular dependency
+
         filters = {}
         for field_name, value in kwargs.items():
+            original_field_name = field_name
+            field_db_name = None
+            field_value = None
+
             operator = ""
             if '__' in field_name:
-                field_name, operator = field_name.split('__')
+                filter_values = field_name.split('__')
+                operator = filter_values[-1]
+                field_name = ".".join(filter_values[:-1])
 
             if operator and operator not in self.available_query_operators:
-                raise ValueError("Invalid filter '%s__%s': Operator not found '%s'." % (field_name, operator, operator))
+                raise ValueError("Invalid filter '%s': Operator not found '%s'." % (original_field_name, operator))
 
-            if field_name not in self.__klass__._fields:
-                raise ValueError("Invalid filter '%s': Field not found in '%s'." % (field_name, self.__klass__.__name__))
+            if '.' in field_name:
+                values = field_name.split('.')
+                obj = self.__klass__
+                fields = []
 
-            field = self.__klass__._fields[field_name]
-            filters[field.db_field] = {
+                for field_index, partial_field_name in enumerate(values):
+                    if not partial_field_name in obj._fields:
+                        raise ValueError("Invalid filter '%s': Field '%s' not found in '%s'." % (
+                            original_field_name,
+                            partial_field_name,
+                            obj.__name__
+                        ))
+
+                    if issubclass(obj, Document):
+                        field = obj._fields[partial_field_name]
+                    else:
+                        field = obj
+
+                    fields.append(field.db_field)
+
+                    obj = getattr(obj, partial_field_name)
+
+                    is_last = field_index == len(values) - 1
+                    if is_last:
+                        field_value = field.to_son(value)
+                        field_db_name = ".".join(fields)
+                        continue
+
+                    if not isinstance(obj, EmbeddedDocumentField):
+                        raise ValueError(
+                            ("Invalid filter '%s': Sub-property filters can only be "
+                                "used in embedded document fields.") % (
+                                original_field_name
+                            )
+                        )
+
+                    obj = obj.embedded_type
+            else:
+                if field_name not in self.__klass__._fields:
+                    raise ValueError("Invalid filter '%s': Field not found in '%s'." % (field_name, self.__klass__.__name__))
+
+                field = self.__klass__._fields[field_name]
+                field_db_name = field.db_field
+                field_value = field.to_son(value)
+
+            filters[field_db_name] = {
                 "operator": operator,
-                "value": field.to_son(value)
+                "value": field_value
             }
 
         return filters
@@ -307,7 +357,8 @@ class QuerySet(object):
         if self._order_fields:
             find_arguments['sort'] = self._order_fields
 
-        return self.coll(alias).find(self.get_query_from_filters(self._filters), **find_arguments)
+        query_filters = self.get_query_from_filters(self._filters)
+        return self.coll(alias).find(query_filters, **find_arguments)
 
     @return_future
     def find_all(self, callback, alias=None):
