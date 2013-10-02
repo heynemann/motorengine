@@ -29,6 +29,10 @@ class BaseDocument(object):
                 ))
             self._values[key] = value
 
+    @property
+    def is_lazy(self):
+        return self.__class__.__lazy__
+
     def is_list_field(self, field):
         from motorengine.fields.list_field import ListField
         return isinstance(field, ListField) or (isinstance(field, type) and issubclass(field, ListField))

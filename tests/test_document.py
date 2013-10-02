@@ -346,6 +346,26 @@ class TestDocument(AsyncTestCase):
         else:
             assert False, "Should not have gotten this far"
 
+    def test_can_save_and_get_reference_with_find_all(self):
+        User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
+        user = self.wait()
+
+        class ReferenceFieldClass(Document):
+            __collection__ = "TestFindAllReferenceField"
+            ref1 = ReferenceField(User)
+
+        ReferenceFieldClass.objects.delete(callback=self.stop)
+        self.wait()
+
+        ReferenceFieldClass.objects.create(ref1=user, callback=self.stop)
+        self.wait()
+
+        ReferenceFieldClass.objects.find_all(lazy=False, callback=self.stop)
+        result = self.wait()
+
+        expect(result).to_length(1)
+        expect(result[0].ref1._id).to_equal(user._id)
+
     def test_can_save_and_get_reference_without_lazy(self):
         User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
         user = self.wait()
@@ -359,6 +379,12 @@ class TestDocument(AsyncTestCase):
 
         expect(loaded_comment).not_to_be_null()
         expect(loaded_comment.user._id).to_equal(user._id)
+
+        CommentNotLazy.objects.find_all(callback=self.stop)
+        loaded_comments = self.wait()
+
+        expect(loaded_comments).to_length(1)
+        expect(loaded_comments[0].user._id).to_equal(user._id)
 
     def test_can_save_and_retrieve_blog_post(self):
         User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)

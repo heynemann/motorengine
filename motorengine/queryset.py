@@ -342,16 +342,35 @@ class QuerySet(object):
         self._order_fields.append((field.db_field, direction))
         return self
 
-    def handle_find_all(self, callback):
+    def handle_find_all_auto_load_references(self, callback, results):
+        def handle(*arguments, **kwargs):
+            self.current_count += 1
+            if self.current_count == self.result_size:
+                self.current_count = None
+                self.result_size = None
+                callback(results)
+
+        return handle
+
+    def handle_find_all(self, callback, lazy=None):
         def handle(*arguments, **kwargs):
             if arguments and len(arguments) > 1 and arguments[1]:
                 raise arguments[1]
 
             result = []
-            for doc in arguments[0]:
-                result.append(self.__klass__.from_son(doc))
+            self.current_count = 0
+            self.result_size = len(arguments[0])
 
-            callback(result)
+            for doc in arguments[0]:
+                obj = self.__klass__.from_son(doc)
+
+                result.append(obj)
+
+            for doc in result:
+                if (lazy is not None and not lazy) or not doc.is_lazy:
+                    doc.load_references(callback=self.handle_find_all_auto_load_references(callback, result))
+                else:
+                    self.handle_find_all_auto_load_references(callback, result)()
 
         return handle
 
@@ -365,7 +384,7 @@ class QuerySet(object):
         return self.coll(alias).find(query_filters, **find_arguments)
 
     @return_future
-    def find_all(self, callback, alias=None):
+    def find_all(self, callback, lazy=None, alias=None):
         '''
         Returns a list of items in the current queryset collection that match specified filters (if any).
 
@@ -380,7 +399,7 @@ class QuerySet(object):
                 # result is None if no users found
                 pass
         '''
-        to_list_arguments = dict(callback=self.handle_find_all(callback))
+        to_list_arguments = dict(callback=self.handle_find_all(callback, lazy=lazy))
 
         if self._limit is not None:
             to_list_arguments['length'] = self._limit
