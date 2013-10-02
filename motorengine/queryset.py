@@ -5,6 +5,7 @@ from tornado.concurrent import return_future
 
 from motorengine import ASCENDING
 from motorengine.connection import get_connection
+from motorengine.query.lower_than import LowerThanQueryOperator
 
 
 class QuerySet(object):
@@ -13,6 +14,10 @@ class QuerySet(object):
         self._filters = {}
         self._limit = 300
         self._order_fields = []
+
+        self.available_query_operators = {
+            'lt': LowerThanQueryOperator
+        }
 
     @property
     def is_lazy(self):
@@ -146,7 +151,8 @@ class QuerySet(object):
                 self.coll(alias).remove(instance._id, callback=self.handle_remove(callback))
         else:
             if self._filters:
-                self.coll(alias).remove(self._filters, callback=self.handle_remove(callback))
+                remove_filters = self.get_query_from_filters(self._filters)
+                self.coll(alias).remove(remove_filters, callback=self.handle_remove(callback))
             else:
                 self.coll(alias).remove(callback=self.handle_remove(callback))
 
@@ -191,18 +197,43 @@ class QuerySet(object):
             }
         else:
             filters = self.to_filters(**kwargs)
+            filters = self.get_query_from_filters(filters)
 
         self.coll(alias).find_one(filters, callback=self.handle_get(callback))
 
     def to_filters(self, **kwargs):
         filters = {}
         for field_name, value in kwargs.items():
+            operator = ""
+            if '__' in field_name:
+                field_name, operator = field_name.split('__')
+
+            if operator and operator not in self.available_query_operators:
+                raise ValueError("Invalid filter '%s__%s': Operator not found '%s'." % (field_name, operator, operator))
+
             if field_name not in self.__klass__._fields:
                 raise ValueError("Invalid filter '%s': Field not found in '%s'." % (field_name, self.__klass__.__name__))
+
             field = self.__klass__._fields[field_name]
-            filters[field.db_field] = field.to_son(value)
+            filters[field.db_field] = {
+                "operator": operator,
+                "value": field.to_son(value)
+            }
 
         return filters
+
+    def get_query_from_filters(self, filters):
+        result = {}
+
+        for filter_name, filter_desc in filters.items():
+            operator, filter_value = filter_desc['operator'], filter_desc['value']
+
+            if not operator:
+                result[filter_name] = filter_value
+            else:
+                result[filter_name] = self.available_query_operators[operator](filter_value).to_query()
+
+        return result
 
     def filter(self, **kwargs):
         '''
@@ -270,7 +301,7 @@ class QuerySet(object):
         if self._order_fields:
             find_arguments['sort'] = self._order_fields
 
-        return self.coll(alias).find(self._filters, **find_arguments)
+        return self.coll(alias).find(self.get_query_from_filters(self._filters), **find_arguments)
 
     @return_future
     def find_all(self, callback, alias=None):

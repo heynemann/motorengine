@@ -9,7 +9,7 @@ from preggy import expect
 from motorengine import (
     Document, StringField, BooleanField, ListField,
     EmbeddedDocumentField, ReferenceField, DESCENDING,
-    URLField, DateTimeField, UUIDField
+    URLField, DateTimeField, UUIDField, IntField
 )
 from motorengine.errors import InvalidDocumentError, LoadReferencesRequiredError
 from tests import AsyncTestCase
@@ -447,3 +447,38 @@ class TestDocument(AsyncTestCase):
 
         expect(loaded_post).not_to_be_null()
         expect(loaded_post._id).to_equal(post._id)
+
+    def test_querying_by_invalid_operator(self):
+        try:
+            User.objects.filter(email__invalid="test")
+        except ValueError:
+            err = sys.exc_info()[1]
+            expect(err).to_have_an_error_message_of("Invalid filter 'email__invalid': Operator not found 'invalid'.")
+        else:
+            assert False, "Should not have gotten this far"
+
+    def test_querying_by_lower_than(self):
+        class Test(Document):
+            __collection__ = "LowerThan"
+            test = IntField()
+
+        Test.objects.delete(callback=self.stop)
+        self.wait()
+
+        Test.objects.create(test=10, callback=self.stop)
+        test = self.wait()
+
+        Test.objects.create(test=15, callback=self.stop)
+        self.wait()
+
+        Test.objects.filter(test__lt=12).find_all(callback=self.stop)
+        loaded_tests = self.wait()
+
+        expect(loaded_tests).to_length(1)
+        expect(loaded_tests[0]._id).to_equal(test._id)
+
+        Test.objects.get(test__lt=12, callback=self.stop)
+        loaded_test = self.wait()
+
+        expect(loaded_test).not_to_be_null()
+        expect(loaded_test._id).to_equal(test._id)
