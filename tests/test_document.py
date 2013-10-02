@@ -353,6 +353,7 @@ class TestDocument(AsyncTestCase):
         class ReferenceFieldClass(Document):
             __collection__ = "TestFindAllReferenceField"
             ref1 = ReferenceField(User)
+            num = IntField(default=10)
 
         ReferenceFieldClass.objects.delete(callback=self.stop)
         self.wait()
@@ -365,6 +366,11 @@ class TestDocument(AsyncTestCase):
 
         expect(result).to_length(1)
         expect(result[0].ref1._id).to_equal(user._id)
+
+        ReferenceFieldClass.objects.filter(num=20).find_all(lazy=False, callback=self.stop)
+        result = self.wait()
+
+        expect(result).to_length(0)
 
     def test_can_save_and_get_reference_without_lazy(self):
         User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
