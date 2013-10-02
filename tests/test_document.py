@@ -482,3 +482,29 @@ class TestDocument(AsyncTestCase):
 
         expect(loaded_test).not_to_be_null()
         expect(loaded_test._id).to_equal(test._id)
+
+    def test_querying_by_greater_than(self):
+        class Test(Document):
+            __collection__ = "GreaterThan"
+            test = IntField()
+
+        Test.objects.delete(callback=self.stop)
+        self.wait()
+
+        Test.objects.create(test=10, callback=self.stop)
+        self.wait()
+
+        Test.objects.create(test=15, callback=self.stop)
+        test = self.wait()
+
+        Test.objects.filter(test__gt=12).find_all(callback=self.stop)
+        loaded_tests = self.wait()
+
+        expect(loaded_tests).to_length(1)
+        expect(loaded_tests[0]._id).to_equal(test._id)
+
+        Test.objects.get(test__gt=12, callback=self.stop)
+        loaded_test = self.wait()
+
+        expect(loaded_test).not_to_be_null()
+        expect(loaded_test._id).to_equal(test._id)
