@@ -5,8 +5,9 @@ from tornado.concurrent import return_future
 
 from motorengine import ASCENDING
 from motorengine.connection import get_connection
-from motorengine.query.lower_than import LowerThanQueryOperator
+from motorengine.query.lesser_than import LesserThanQueryOperator
 from motorengine.query.greater_than import GreaterThanQueryOperator
+from motorengine.query.lesser_than_or_equal import LesserThanOrEqualQueryOperator
 from motorengine.query.greater_than_or_equal import GreaterThanOrEqualQueryOperator
 
 
@@ -18,8 +19,9 @@ class QuerySet(object):
         self._order_fields = []
 
         self.available_query_operators = {
-            'lt': LowerThanQueryOperator,
+            'lt': LesserThanQueryOperator,
             'gt': GreaterThanQueryOperator,
+            'lte': LesserThanOrEqualQueryOperator,
             'gte': GreaterThanOrEqualQueryOperator
         }
 

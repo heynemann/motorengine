@@ -4,6 +4,6 @@
 from motorengine.query.base import QueryOperator
 
 
-class LowerThanQueryOperator(QueryOperator):
+class LesserThanOrEqualQueryOperator(QueryOperator):
     def to_query(self):
-        return {"$lt": self.value}
+        return {"$lte": self.value}
