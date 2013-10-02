@@ -7,6 +7,7 @@ from motorengine import ASCENDING
 from motorengine.connection import get_connection
 from motorengine.query.lower_than import LowerThanQueryOperator
 from motorengine.query.greater_than import GreaterThanQueryOperator
+from motorengine.query.greater_than_or_equal import GreaterThanOrEqualQueryOperator
 
 
 class QuerySet(object):
@@ -18,7 +19,8 @@ class QuerySet(object):
 
         self.available_query_operators = {
             'lt': LowerThanQueryOperator,
-            'gt': GreaterThanQueryOperator
+            'gt': GreaterThanQueryOperator,
+            'gte': GreaterThanOrEqualQueryOperator
         }
 
     @property
