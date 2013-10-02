@@ -385,6 +385,7 @@ class QuerySet(object):
             find_arguments['sort'] = self._order_fields
 
         query_filters = self.get_query_from_filters(self._filters)
+
         return self.coll(alias).find(query_filters, **find_arguments)
 
     @return_future

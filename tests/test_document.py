@@ -309,7 +309,7 @@ class TestDocument(AsyncTestCase):
         Post.objects.get(post._id, callback=self.stop)
         loaded_post = self.wait()
 
-        loaded_post.load_references(callback=self.stop)
+        loaded_post.comments[0].load_references(callback=self.stop)
         result = self.wait()
 
         expect(result['loaded_reference_count']).to_equal(1)
@@ -361,10 +361,16 @@ class TestDocument(AsyncTestCase):
         ReferenceFieldClass.objects.create(ref1=user, callback=self.stop)
         self.wait()
 
+        ReferenceFieldClass.objects.create(ref1=user, callback=self.stop)
+        self.wait()
+
+        ReferenceFieldClass.objects.create(ref1=user, callback=self.stop)
+        self.wait()
+
         ReferenceFieldClass.objects.find_all(lazy=False, callback=self.stop)
         result = self.wait()
 
-        expect(result).to_length(1)
+        expect(result).to_length(3)
         expect(result[0].ref1._id).to_equal(user._id)
 
         ReferenceFieldClass.objects.filter(num=20).find_all(lazy=False, callback=self.stop)
@@ -425,7 +431,7 @@ class TestDocument(AsyncTestCase):
         else:
             assert False, "Should not have gotten this far"
 
-        loaded_post.load_references(callback=self.stop)
+        loaded_post.comments[0].load_references(callback=self.stop)
         result = self.wait()
 
         loaded_reference_count = result['loaded_reference_count']

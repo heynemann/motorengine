@@ -127,7 +127,9 @@ class BaseDocument(object):
     def handle_load_reference(self, callback, references, reference_count, values_collection, field_name):
         def handle(*args, **kw):
             values_collection[field_name] = args[0]
-            references.pop()
+
+            if reference_count > 0:
+                references.pop()
 
             if len(references) == 0:
                 callback({
@@ -145,6 +147,13 @@ class BaseDocument(object):
         references = self.find_references(self, fields=fields)
         reference_count = len(references)
 
+        if not reference_count:
+            callback({
+                'loaded_reference_count': reference_count,
+                'loaded_values': []
+            })
+            return
+
         for dereference_function, document_id, values_collection, field_name in references:
             dereference_function(
                 document_id,
@@ -157,7 +166,10 @@ class BaseDocument(object):
                 )
             )
 
-    def find_references(self, document, fields=None, results=[]):
+    def find_references(self, document, fields=None, results=None):
+        if results is None:
+            results = []
+
         if fields:
             fields = [
                 (field_name, document._fields[field_name])
@@ -165,7 +177,7 @@ class BaseDocument(object):
                 if field_name in fields
             ]
         else:
-            fields = document._fields.items()
+            fields = [field for field in document._fields.items()]
 
         for field_name, field in fields:
             self.find_reference_field(document, results, field_name, field)
