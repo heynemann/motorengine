@@ -224,7 +224,8 @@ class QuerySet(object):
                 field_name = ".".join(filter_values[:-1])
 
             if operator and operator not in self.available_query_operators:
-                raise ValueError("Invalid filter '%s': Operator not found '%s'." % (original_field_name, operator))
+                field_name = "%s.%s" % (field_name, operator)
+                operator = ""
 
             if '.' in field_name:
                 values = field_name.split('.')
@@ -256,9 +257,9 @@ class QuerySet(object):
 
                     if not isinstance(obj, EmbeddedDocumentField):
                         raise ValueError(
-                            ("Invalid filter '%s': Sub-property filters can only be "
-                                "used in embedded document fields.") % (
-                                original_field_name
+                            ("Invalid filter '%s': Invalid operator (if this is a sub-property, then it must be "
+                                "used in embedded document fields).") % (
+                                original_field_name,
                             )
                         )
 
@@ -266,6 +267,9 @@ class QuerySet(object):
             else:
                 if field_name not in self.__klass__._fields:
                     raise ValueError("Invalid filter '%s': Field not found in '%s'." % (field_name, self.__klass__.__name__))
+
+                if operator and operator not in self.available_query_operators:
+                    raise ValueError("Invalid filter '%s': Operator not found '%s'." % (original_field_name, operator))
 
                 field = self.__klass__._fields[field_name]
                 field_db_name = field.db_field

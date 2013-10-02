@@ -453,7 +453,10 @@ class TestDocument(AsyncTestCase):
             User.objects.filter(email__invalid="test")
         except ValueError:
             err = sys.exc_info()[1]
-            expect(err).to_have_an_error_message_of("Invalid filter 'email__invalid': Operator not found 'invalid'.")
+            expect(err).to_have_an_error_message_of(
+                "Invalid filter 'email__invalid': Invalid operator (if this is a sub-property, "
+                "then it must be used in embedded document fields)."
+            )
         else:
             assert False, "Should not have gotten this far"
 
@@ -582,6 +585,12 @@ class TestDocument(AsyncTestCase):
         self.wait()
 
         Test.objects.filter(test__num__lte=12).find_all(callback=self.stop)
+        loaded_tests = self.wait()
+
+        expect(loaded_tests).to_length(1)
+        expect(loaded_tests[0]._id).to_equal(test._id)
+
+        Test.objects.filter(test__num=10).find_all(callback=self.stop)
         loaded_tests = self.wait()
 
         expect(loaded_tests).to_length(1)
