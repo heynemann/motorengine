@@ -11,6 +11,7 @@ from motorengine.query.greater_than import GreaterThanQueryOperator
 from motorengine.query.lesser_than_or_equal import LesserThanOrEqualQueryOperator
 from motorengine.query.greater_than_or_equal import GreaterThanOrEqualQueryOperator
 from motorengine.query.exists import ExistsQueryOperator
+from motorengine.query.is_null import IsNullQueryOperator
 
 
 class QuerySet(object):
@@ -25,7 +26,8 @@ class QuerySet(object):
             'gt': GreaterThanQueryOperator,
             'lte': LesserThanOrEqualQueryOperator,
             'gte': GreaterThanOrEqualQueryOperator,
-            'exists': ExistsQueryOperator
+            'exists': ExistsQueryOperator,
+            'is_null': IsNullQueryOperator
         }
 
     @property

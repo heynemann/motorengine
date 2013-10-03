@@ -630,8 +630,43 @@ class TestDocument(AsyncTestCase):
         Test.objects.filter(test__exists=True).find_all(callback=self.stop)
         loaded_tests = self.wait()
 
-        expect(loaded_tests).to_length(1)
+        expect(loaded_tests).to_length(2)
         expect(loaded_tests[0]._id).to_equal(test._id)
+
+    def test_querying_by_is_null(self):
+        class Child(Document):
+            __collection__ = "EmbeddedIsNullTest"
+            num = IntField()
+
+        class Parent(Document):
+            __collection__ = "EmbeddedIsNullTestParent"
+            child = ReferenceField(Child)
+
+        Parent.objects.delete(callback=self.stop)
+        self.wait()
+        Child.objects.delete(callback=self.stop)
+        self.wait()
+
+        Child.objects.create(num=10, callback=self.stop)
+        child = self.wait()
+
+        Parent.objects.create(child=child, callback=self.stop)
+        parent = self.wait()
+
+        Parent.objects.create(callback=self.stop)
+        parent2 = self.wait()
+
+        Parent.objects.filter(child__is_null=True).find_all(callback=self.stop)
+        loaded_parents = self.wait()
+
+        expect(loaded_parents).to_length(1)
+        expect(loaded_parents[0]._id).to_equal(parent2._id)
+
+        Parent.objects.filter(child__is_null=False).find_all(callback=self.stop)
+        loaded_parents = self.wait()
+
+        expect(loaded_parents).to_length(1)
+        expect(loaded_parents[0]._id).to_equal(parent._id)
 
     def test_querying_in_an_embedded_document(self):
         class TestEmbedded(Document):

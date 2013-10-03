@@ -8,8 +8,7 @@ class ExistsQueryOperator(QueryOperator):
     def to_query(self, field_name, value):
         return {
             field_name: {
-                "$exists": value,
-                "$ne": None
+                "$exists": value
             }
         }
 
