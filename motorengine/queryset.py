@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import collections
+
 from tornado.concurrent import return_future
 
 from motorengine import ASCENDING
@@ -279,28 +281,54 @@ class QuerySet(object):
                 field_db_name = field.db_field
                 field_value = value
 
-            filters[field_db_name] = {
+            if not field_db_name in filters:
+                filters[field_db_name] = []
+
+            filters[field_db_name].append({
                 "operator": operator,
                 "value": field_value,
                 "field": field
-            }
+            })
 
         return filters
 
     def get_query_from_filters(self, filters):
         result = {}
 
-        for filter_name, filter_desc in filters.items():
-            operator, filter_value, field = filter_desc['operator'], filter_desc['value'], filter_desc['field']
+        for filter_name, filter_items in filters.items():
+            for filter_desc in filter_items:
+                operator, filter_value, field = filter_desc['operator'], filter_desc['value'], filter_desc['field']
 
-            if not operator:
-                result[filter_name] = field.to_son(filter_value)
-            else:
-                operator = self.available_query_operators[operator]()
-                value = operator.get_value(field, filter_value)
-                result.update(operator.to_query(filter_name, value))
+                if not operator:
+                    result[filter_name] = field.to_son(filter_value)
+                else:
+                    operator = self.available_query_operators[operator]()
+                    value = operator.get_value(field, filter_value)
+                    query = operator.to_query(filter_name, value)
+
+                    self.update(result, query)
 
         return result
+
+    # from http://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
+    def update(self, d, u):
+        for k, v in u.iteritems():
+            if isinstance(v, collections.Mapping):
+                r = self.update(d.get(k, {}), v)
+                d[k] = r
+            else:
+                d[k] = u[k]
+        return d
+
+    def _get_find_cursor(self, alias):
+        find_arguments = {}
+
+        if self._order_fields:
+            find_arguments['sort'] = self._order_fields
+
+        query_filters = self.get_query_from_filters(self._filters)
+
+        return self.coll(alias).find(query_filters, **find_arguments)
 
     def filter(self, **kwargs):
         '''
@@ -384,16 +412,6 @@ class QuerySet(object):
                     self.handle_find_all_auto_load_references(callback, result)()
 
         return handle
-
-    def _get_find_cursor(self, alias):
-        find_arguments = {}
-
-        if self._order_fields:
-            find_arguments['sort'] = self._order_fields
-
-        query_filters = self.get_query_from_filters(self._filters)
-
-        return self.coll(alias).find(query_filters, **find_arguments)
 
     @return_future
     def find_all(self, callback, lazy=None, alias=None):
