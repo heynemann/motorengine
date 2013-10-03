@@ -312,7 +312,7 @@ class QuerySet(object):
 
     # from http://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
     def update(self, d, u):
-        for k, v in u.iteritems():
+        for k, v in u.items():
             if isinstance(v, collections.Mapping):
                 r = self.update(d.get(k, {}), v)
                 d[k] = r
