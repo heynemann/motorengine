@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = '0.4.3'
+__version__ = '0.4.4'
 
 try:
     from pymongo import ASCENDING, DESCENDING  # NOQA
