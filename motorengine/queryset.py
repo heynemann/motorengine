@@ -10,6 +10,7 @@ from motorengine.query.lesser_than import LesserThanQueryOperator
 from motorengine.query.greater_than import GreaterThanQueryOperator
 from motorengine.query.lesser_than_or_equal import LesserThanOrEqualQueryOperator
 from motorengine.query.greater_than_or_equal import GreaterThanOrEqualQueryOperator
+from motorengine.query.exists import ExistsQueryOperator
 
 
 class QuerySet(object):
@@ -23,7 +24,8 @@ class QuerySet(object):
             'lt': LesserThanQueryOperator,
             'gt': GreaterThanQueryOperator,
             'lte': LesserThanOrEqualQueryOperator,
-            'gte': GreaterThanOrEqualQueryOperator
+            'gte': GreaterThanOrEqualQueryOperator,
+            'exists': ExistsQueryOperator
         }
 
     @property
@@ -251,7 +253,7 @@ class QuerySet(object):
 
                     is_last = field_index == len(values) - 1
                     if is_last:
-                        field_value = field.to_son(value)
+                        field_value = value
                         field_db_name = ".".join(fields)
                         continue
 
@@ -273,11 +275,12 @@ class QuerySet(object):
 
                 field = self.__klass__._fields[field_name]
                 field_db_name = field.db_field
-                field_value = field.to_son(value)
+                field_value = value
 
             filters[field_db_name] = {
                 "operator": operator,
-                "value": field_value
+                "value": field_value,
+                "field": field
             }
 
         return filters
@@ -286,12 +289,14 @@ class QuerySet(object):
         result = {}
 
         for filter_name, filter_desc in filters.items():
-            operator, filter_value = filter_desc['operator'], filter_desc['value']
+            operator, filter_value, field = filter_desc['operator'], filter_desc['value'], filter_desc['field']
 
             if not operator:
-                result[filter_name] = filter_value
+                result[filter_name] = field.to_son(filter_value)
             else:
-                result[filter_name] = self.available_query_operators[operator](filter_value).to_query()
+                operator = self.available_query_operators[operator]()
+                value = operator.get_value(field, filter_value)
+                result.update(operator.to_query(filter_name, value))
 
         return result
 

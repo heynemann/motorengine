@@ -3,8 +3,8 @@
 
 
 class QueryOperator(object):
-    def __init__(self, value):
-        self.value = value
+    def get_value(self, field, raw_value):
+        return field.to_son(raw_value)
 
-    def to_query(self):
+    def to_query(self, value):
         raise NotImplementedError()

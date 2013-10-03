@@ -604,6 +604,35 @@ class TestDocument(AsyncTestCase):
         expect(loaded_tests[0]._id).to_equal(test._id)
         expect(loaded_tests[1]._id).to_equal(test2._id)
 
+    def test_querying_by_exists(self):
+        class Test2(Document):
+            __collection__ = "EmbeddedExistsTest"
+            test = IntField()
+
+        class Test(Document):
+            __collection__ = "EmbeddedExistsTestParent"
+            test = ReferenceField(Test2)
+
+        Test.objects.delete(callback=self.stop)
+        self.wait()
+        Test2.objects.delete(callback=self.stop)
+        self.wait()
+
+        Test2.objects.create(test=10, callback=self.stop)
+        test2 = self.wait()
+
+        Test.objects.create(test=test2, callback=self.stop)
+        test = self.wait()
+
+        Test.objects.create(callback=self.stop)
+        self.wait()
+
+        Test.objects.filter(test__exists=True).find_all(callback=self.stop)
+        loaded_tests = self.wait()
+
+        expect(loaded_tests).to_length(1)
+        expect(loaded_tests[0]._id).to_equal(test._id)
+
     def test_querying_in_an_embedded_document(self):
         class TestEmbedded(Document):
             __collection__ = "TestEmbedded"
