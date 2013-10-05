@@ -3,6 +3,7 @@
 
 import motorengine
 import mongoengine
+import motor
 from tornado.testing import AsyncHTTPTestCase, LogTrapTestCase
 
 
@@ -12,6 +13,7 @@ class BenchmarkTest(AsyncHTTPTestCase, LogTrapTestCase):
 
         self.db = motorengine.connect("test", host="localhost", port=4445, io_loop=self.io_loop)
         mongoengine.connect("test", host="localhost", port=4445)
+        self.motor = motor.MotorClient('localhost', 4445, io_loop=self.io_loop, max_concurrent=500).open_sync()
 
     def tearDown(self):
         motorengine.connection.cleanup()

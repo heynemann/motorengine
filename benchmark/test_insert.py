@@ -6,6 +6,7 @@ import time
 
 import motorengine
 import mongoengine
+import motor
 from tornado import gen
 import tornado.web
 from preggy import expect
@@ -59,6 +60,17 @@ class TestInsert(BenchmarkTest):
     def test_insert(self):
         iterations = 500
 
+        db = self.motor['database']
+        coll = db['MotorInsertCollection']
+
+        start = time.time()
+
+        for i in range(iterations):
+            document = {'field1': 'Whatever', 'field2': 10}
+            yield motor.Op(coll.insert, document)
+
+        motor_db_time = time.time() - start
+
         start = time.time()
 
         for i in range(iterations):
@@ -97,6 +109,7 @@ class TestInsert(BenchmarkTest):
 
         print
         print
+        print("[Motor] %d inserts (via DB) done in %.2fs (%.2f ops/s)" % (iterations, motor_db_time, (float(iterations) / motor_db_time)))
         print("[MotorEngine] %d inserts (via DB) done in %.2fs (%.2f ops/s)" % (iterations, motorengine_db_time, (float(iterations) / motorengine_db_time)))
         print("[MotorEngine] %d inserts (via HTTP) done in %.2fs (%.2f ops/s)" % (iterations, motorengine_time, (float(iterations) / motorengine_time)))
         print("[MongoEngine] %d inserts (via DB) done in %.2fs (%.2f ops/s)" % (iterations, mongoengine_db_time, (float(iterations) / mongoengine_db_time)))
