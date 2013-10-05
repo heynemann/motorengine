@@ -1,0 +1,40 @@
+Inserting one document
+======================
+
+MotorEngine
+-----------
+
+First Run:
+  Requests per second:    765.91 [#/sec] (mean)
+  Time per request:       26.113 [ms] (mean)
+
+Second Run:
+  Requests per second:    849.02 [#/sec] (mean)
+  Time per request:       23.557 [ms] (mean)
+
+Third Run:
+  Requests per second:    845.75 [#/sec] (mean)
+  Time per request:       23.648 [ms] (mean)
+
+Average:
+  Requests per second:    820.22 [#/sec] (mean)
+  Time per request:       24.43  [ms] (mean)
+
+MongoEngine
+-----------
+
+First Run:
+  Requests per second:    1062.77 [#/sec] (mean)
+  Time per request:       18.819 [ms] (mean)
+
+Second Run:
+  Requests per second:    1078.32 [#/sec] (mean)
+  Time per request:       18.547 [ms] (mean)
+
+Third Run:
+  Requests per second:    981.79 [#/sec] (mean)
+  Time per request:       20.371 [ms] (mean)
+
+Average:
+  Requests per second:    1040.96 [#/sec] (mean)
+  Time per request:       19.245 [ms] (mean)
