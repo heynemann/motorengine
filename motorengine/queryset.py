@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
 import collections
 
 from tornado.concurrent import return_future
@@ -98,18 +99,61 @@ class QuerySet(object):
         return handle
 
     def save(self, document, callback, alias=None):
+        if self.validate_document(document):
+            doc = document.to_son()
+            if document._id is not None:
+                self.coll(alias).update({'_id': document._id}, doc, callback=self.handle_update(document, callback))
+            else:
+                self.coll(alias).insert(doc, callback=self.handle_save(document, callback))
+
+    def validate_document(self, document):
         if not isinstance(document, self.__klass__):
             raise ValueError("This queryset for class '%s' can't save an instance of type '%s'." % (
                 self.__klass__.__name__,
                 document.__class__.__name__,
             ))
 
-        if document.validate():
-            doc = document.to_son()
-            if document._id is not None:
-                self.coll(alias).update({'_id': document._id}, doc, callback=self.handle_update(document, callback))
-            else:
-                self.coll(alias).insert(doc, callback=self.handle_save(document, callback))
+        return document.validate()
+
+    def handle_bulk_insert(self, documents, callback):
+        def handle(*arguments, **kw):
+            if len(arguments) > 1 and arguments[1]:
+                raise arguments[1]
+
+            for object_index, object_id in enumerate(arguments[0]):
+                documents[object_index]._id = object_id
+            callback(documents)
+
+        return handle
+
+    @return_future
+    def bulk_insert(self, documents, callback=None, alias=None):
+        '''
+        Inserts all documents passed to this method in one go.
+        '''
+
+        is_valid = True
+        docs_to_insert = []
+
+        for document_index, document in enumerate(documents):
+            try:
+                is_valid = is_valid and self.validate_document(document)
+            except Exception:
+                err = sys.exc_info()[1]
+                raise ValueError("Validation for document %d in the documents you are saving failed with: %s" % (
+                    document_index,
+                    str(err)
+                ))
+
+            if not is_valid:
+                return
+
+            docs_to_insert.append(document.to_son())
+
+        if not is_valid:
+            return
+
+        self.coll(alias).insert(docs_to_insert, callback=self.handle_bulk_insert(documents, callback))
 
     @return_future
     def delete(self, callback=None, alias=None):
