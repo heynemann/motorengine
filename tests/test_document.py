@@ -3,6 +3,7 @@
 
 import sys
 from uuid import uuid4
+from datetime import datetime
 
 from preggy import expect
 
@@ -710,6 +711,34 @@ class TestDocument(AsyncTestCase):
 
         expect(loaded_parents).to_length(1)
         expect(loaded_parents[0]._id).to_equal(child._id)
+
+    def test_querying_by_in(self):
+        dt1 = datetime(2010, 10, 10, 10, 10, 10)
+        dt2 = datetime(2011, 10, 10, 10, 10, 10)
+        dt3 = datetime(2012, 10, 10, 10, 10, 10)
+
+        class Child(Document):
+            __collection__ = "InOperatorTest"
+            dt = DateTimeField()
+
+        Child.objects.delete(callback=self.stop)
+        self.wait()
+
+        Child.objects.create(dt=dt1, callback=self.stop)
+        self.wait()
+
+        Child.objects.create(dt=dt2, callback=self.stop)
+        child = self.wait()
+
+        Child.objects.create(dt=dt3, callback=self.stop)
+        child2 = self.wait()
+
+        Child.objects.filter(dt__in=[dt2, dt3]).find_all(callback=self.stop)
+        loaded_parents = self.wait()
+
+        expect(loaded_parents).to_length(2)
+        expect(loaded_parents[0]._id).to_equal(child._id)
+        expect(loaded_parents[1]._id).to_equal(child2._id)
 
     def test_querying_in_an_embedded_document(self):
         class TestEmbedded(Document):

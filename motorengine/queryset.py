@@ -9,11 +9,12 @@ from tornado.concurrent import return_future
 from motorengine import ASCENDING
 from motorengine.connection import get_connection
 from motorengine.fields.embedded_document_field import EmbeddedDocumentField
-from motorengine.query.lesser_than import LesserThanQueryOperator
-from motorengine.query.greater_than import GreaterThanQueryOperator
-from motorengine.query.lesser_than_or_equal import LesserThanOrEqualQueryOperator
-from motorengine.query.greater_than_or_equal import GreaterThanOrEqualQueryOperator
 from motorengine.query.exists import ExistsQueryOperator
+from motorengine.query.greater_than import GreaterThanQueryOperator
+from motorengine.query.greater_than_or_equal import GreaterThanOrEqualQueryOperator
+from motorengine.query.lesser_than import LesserThanQueryOperator
+from motorengine.query.lesser_than_or_equal import LesserThanOrEqualQueryOperator
+from motorengine.query.in_operator import InQueryOperator
 from motorengine.query.is_null import IsNullQueryOperator
 from motorengine.query.not_operator import NotOperator
 
@@ -26,13 +27,14 @@ class QuerySet(object):
         self._order_fields = []
 
         self.available_query_operators = {
-            'lt': LesserThanQueryOperator,
-            'gt': GreaterThanQueryOperator,
-            'lte': LesserThanOrEqualQueryOperator,
-            'gte': GreaterThanOrEqualQueryOperator,
             'exists': ExistsQueryOperator,
+            'gt': GreaterThanQueryOperator,
+            'gte': GreaterThanOrEqualQueryOperator,
+            'lt': LesserThanQueryOperator,
+            'lte': LesserThanOrEqualQueryOperator,
+            'in': InQueryOperator,
             'is_null': IsNullQueryOperator,
-            'not': NotOperator
+            'not': NotOperator,
         }
 
     @property
