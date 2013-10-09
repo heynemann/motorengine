@@ -9,6 +9,7 @@ from tornado.concurrent import return_future
 from motorengine import ASCENDING
 from motorengine.connection import get_connection
 from motorengine.fields.embedded_document_field import EmbeddedDocumentField
+# query
 from motorengine.query.exists import ExistsQueryOperator
 from motorengine.query.greater_than import GreaterThanQueryOperator
 from motorengine.query.greater_than_or_equal import GreaterThanOrEqualQueryOperator
@@ -17,6 +18,7 @@ from motorengine.query.lesser_than_or_equal import LesserThanOrEqualQueryOperato
 from motorengine.query.in_operator import InQueryOperator
 from motorengine.query.is_null import IsNullQueryOperator
 from motorengine.query.not_operator import NotOperator
+from motorengine.query.not_equal import NotEqualQueryOperator
 
 
 class QuerySet(object):
@@ -34,6 +36,7 @@ class QuerySet(object):
             'lte': LesserThanOrEqualQueryOperator,
             'in': InQueryOperator,
             'is_null': IsNullQueryOperator,
+            'ne': NotEqualQueryOperator,
             'not': NotOperator,
         }
 
@@ -349,7 +352,11 @@ class QuerySet(object):
                 operator, filter_value, field, not_query = filter_desc['operator'], filter_desc['value'], filter_desc['field'], filter_desc['not']
 
                 if not operator:
-                    result[filter_name] = field.to_son(filter_value)
+                    value = field.to_son(filter_value)
+                    if not_query:
+                        result.update(self.available_query_operators['ne']().to_query(filter_name, value))
+                    else:
+                        result[filter_name] = value
                 else:
                     operator = self.available_query_operators[operator]()
                     value = operator.get_value(field, filter_value)
@@ -503,7 +510,11 @@ class QuerySet(object):
         if self._limit is not None:
             to_list_arguments['length'] = self._limit
 
-        self._get_find_cursor(alias=alias).to_list(**to_list_arguments)
+        cursor = self._get_find_cursor(alias=alias)
+
+        self._filters = {}
+
+        cursor.to_list(**to_list_arguments)
 
     def handle_count(self, callback):
         def handle(*arguments, **kwargs):
@@ -518,4 +529,6 @@ class QuerySet(object):
         '''
         Returns the number of documents in the collection that match the specified filters (if any).
         '''
-        self._get_find_cursor(alias=alias).count(callback=self.handle_count(callback))
+        cursor = self._get_find_cursor(alias=alias)
+        self._filters = {}
+        cursor.count(callback=self.handle_count(callback))

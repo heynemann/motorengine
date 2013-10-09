@@ -712,6 +712,12 @@ class TestDocument(AsyncTestCase):
         expect(loaded_parents).to_length(1)
         expect(loaded_parents[0]._id).to_equal(child._id)
 
+        Child.objects.filter_not(num=10).find_all(callback=self.stop)
+        loaded_parents = self.wait()
+
+        expect(loaded_parents).to_length(1)
+        expect(loaded_parents[0]._id).to_equal(child._id)
+
     def test_querying_by_in(self):
         dt1 = datetime(2010, 10, 10, 10, 10, 10)
         dt2 = datetime(2011, 10, 10, 10, 10, 10)
