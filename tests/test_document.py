@@ -725,20 +725,26 @@ class TestDocument(AsyncTestCase):
         self.wait()
 
         Child.objects.create(dt=dt1, callback=self.stop)
-        self.wait()
-
-        Child.objects.create(dt=dt2, callback=self.stop)
         child = self.wait()
 
-        Child.objects.create(dt=dt3, callback=self.stop)
+        Child.objects.create(dt=dt2, callback=self.stop)
         child2 = self.wait()
+
+        Child.objects.create(dt=dt3, callback=self.stop)
+        child3 = self.wait()
 
         Child.objects.filter(dt__in=[dt2, dt3]).find_all(callback=self.stop)
         loaded_parents = self.wait()
 
         expect(loaded_parents).to_length(2)
+        expect(loaded_parents[0]._id).to_equal(child2._id)
+        expect(loaded_parents[1]._id).to_equal(child3._id)
+
+        Child.objects.filter_not(dt__in=[dt2, dt3]).find_all(callback=self.stop)
+        loaded_parents = self.wait()
+
+        expect(loaded_parents).to_length(1)
         expect(loaded_parents[0]._id).to_equal(child._id)
-        expect(loaded_parents[1]._id).to_equal(child2._id)
 
     def test_querying_in_an_embedded_document(self):
         class TestEmbedded(Document):
