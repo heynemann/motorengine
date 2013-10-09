@@ -349,7 +349,8 @@ class QuerySet(object):
 
         for filter_name, filter_items in filters.items():
             for filter_desc in filter_items:
-                operator, filter_value, field, not_query = filter_desc['operator'], filter_desc['value'], filter_desc['field'], filter_desc['not']
+                operator, filter_value = filter_desc['operator'], filter_desc['value']
+                field, not_query = filter_desc['field'], filter_desc['not']
 
                 if not operator:
                     value = field.to_son(filter_value)
