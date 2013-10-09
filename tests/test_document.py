@@ -691,6 +691,26 @@ class TestDocument(AsyncTestCase):
         expect(loaded_parents).to_length(1)
         expect(loaded_parents[0]._id).to_equal(child._id)
 
+    def test_querying_by_not(self):
+        class Child(Document):
+            __collection__ = "NotOperatorTest"
+            num = IntField()
+
+        Child.objects.delete(callback=self.stop)
+        self.wait()
+
+        Child.objects.create(num=10, callback=self.stop)
+        self.wait()
+
+        Child.objects.create(num=7, callback=self.stop)
+        child = self.wait()
+
+        Child.objects.filter_not(num__gt=8).find_all(callback=self.stop)
+        loaded_parents = self.wait()
+
+        expect(loaded_parents).to_length(1)
+        expect(loaded_parents[0]._id).to_equal(child._id)
+
     def test_querying_in_an_embedded_document(self):
         class TestEmbedded(Document):
             __collection__ = "TestEmbedded"

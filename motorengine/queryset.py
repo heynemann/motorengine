@@ -15,6 +15,7 @@ from motorengine.query.lesser_than_or_equal import LesserThanOrEqualQueryOperato
 from motorengine.query.greater_than_or_equal import GreaterThanOrEqualQueryOperator
 from motorengine.query.exists import ExistsQueryOperator
 from motorengine.query.is_null import IsNullQueryOperator
+from motorengine.query.not_operator import NotOperator
 
 
 class QuerySet(object):
@@ -30,7 +31,8 @@ class QuerySet(object):
             'lte': LesserThanOrEqualQueryOperator,
             'gte': GreaterThanOrEqualQueryOperator,
             'exists': ExistsQueryOperator,
-            'is_null': IsNullQueryOperator
+            'is_null': IsNullQueryOperator,
+            'not': NotOperator
         }
 
     @property
@@ -258,7 +260,7 @@ class QuerySet(object):
 
         self.coll(alias).find_one(filters, callback=self.handle_get(callback))
 
-    def to_filters(self, **kwargs):
+    def to_filters(self, not_query=False, **kwargs):
         from motorengine import Document  # to avoid circular dependency
 
         filters = {}
@@ -329,6 +331,7 @@ class QuerySet(object):
                 filters[field_db_name] = []
 
             filters[field_db_name].append({
+                "not": not_query,
                 "operator": operator,
                 "value": field_value,
                 "field": field
@@ -341,14 +344,18 @@ class QuerySet(object):
 
         for filter_name, filter_items in filters.items():
             for filter_desc in filter_items:
-                operator, filter_value, field = filter_desc['operator'], filter_desc['value'], filter_desc['field']
+                operator, filter_value, field, not_query = filter_desc['operator'], filter_desc['value'], filter_desc['field'], filter_desc['not']
 
                 if not operator:
                     result[filter_name] = field.to_son(filter_value)
                 else:
                     operator = self.available_query_operators[operator]()
                     value = operator.get_value(field, filter_value)
-                    query = operator.to_query(filter_name, value)
+
+                    if not_query:
+                        query = self.available_query_operators['not']().to_query(filter_name, operator, value)
+                    else:
+                        query = operator.to_query(filter_name, value)
 
                     self.update(result, query)
 
@@ -387,6 +394,22 @@ class QuerySet(object):
         The available filter options are the same as used in MongoEngine.
         '''
         filters = self.to_filters(**kwargs)
+        self._filters.update(filters)
+        return self
+
+    def filter_not(self, **kwargs):
+        '''
+        Filters a queryset to negate all the filters passed in subsequent queries.
+
+        Usage::
+
+            User.objects.filter_not(first_name="Bernardo").filter_not(last_name="Bernardo").find_all(callback="handle_all")
+            # or
+            User.objects.filter_not(first_name="Bernardo", starting_year__gt=2010).find_all(callback=handle_all)
+
+        The available filter options are the same as used in MongoEngine.
+        '''
+        filters = self.to_filters(not_query=True, **kwargs)
         self._filters.update(filters)
         return self
 
