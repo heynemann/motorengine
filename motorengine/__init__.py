@@ -15,5 +15,8 @@ try:
         EmailField, IntField, FloatField, DecimalField, BinaryField,
         JsonField
     )
+
+    from motorengine.aggregation.base import Aggregation  # NOQA
+
 except ImportError:  # NOQA
     pass  # likely setup.py trying to import version

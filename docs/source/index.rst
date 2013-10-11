@@ -22,6 +22,8 @@ Supported Versions
 
 `MotorEngine`_ is compatible and tested against python 2.7, 3.3 and pypy.
 
+`MotorEngine`_ requires MongoDB 2.2+ due to usage of the `Aggregation Pipeline`_.
+
 The tests of compatibility are always run against the current stable version of `MongoEngine`_.
 
 Why use MotorEngine?
@@ -102,3 +104,4 @@ Contents
 .. _MotorEngine: http://motorengine.readthedocs.org/en/latest/
 .. _MongoEngine: http://docs.mongoengine.org/en/latest/
 .. _Motor: http://motor.readthedocs.org/en/stable/
+.. _Aggregation Pipeline: http://docs.mongodb.org/manual/reference/method/db.collection.aggregate/#db.collection.aggregate

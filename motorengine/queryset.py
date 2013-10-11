@@ -7,6 +7,7 @@ import collections
 from tornado.concurrent import return_future
 
 from motorengine import ASCENDING
+from motorengine.aggregation.base import Aggregation
 from motorengine.connection import get_connection
 from motorengine.fields.embedded_document_field import EmbeddedDocumentField
 # query
@@ -533,3 +534,11 @@ class QuerySet(object):
         cursor = self._get_find_cursor(alias=alias)
         self._filters = {}
         cursor.count(callback=self.handle_count(callback))
+
+    @return_future
+    def aggregate(self, group, callback, alias=None):
+        coll = self.coll(alias)
+
+        agg = Aggregation(self, group)
+
+        coll.aggregate(agg.to_query(), callback=agg.handle_aggregation(callback))
