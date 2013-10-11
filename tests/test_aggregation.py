@@ -46,9 +46,6 @@ class TestAggregation(AsyncTestCase):
         self.wait()
 
     def test_can_aggregate_number_of_documents(self):
-        print "STARTED AGGREGATION"
-        start_time = time()
-
         User.objects.aggregate(
             group_by=[
                 User.email,
@@ -64,4 +61,21 @@ class TestAggregation(AsyncTestCase):
         expect(result[0].email).to_equal('heynemann@gmail.com')
         expect(result[0].number_of_documents).to_be_like(4950.0)
 
-        print "%.6fs" % (time() - start_time)
+    def test_can_aggregate_with_unwind(self):
+        User.objects.aggregate(
+            group_by=[
+                User.email,
+                User.list_items,
+                Aggregation.avg(User.number_of_documents, alias="number_of_documents")
+            ],
+            unwind=User.list_items,
+            callback=self.stop
+        )
+
+        result = self.wait()
+
+        expect(result).not_to_be_null()
+        expect(result).to_length(99)
+        expect(result[0].email).to_equal('heynemann@gmail.com')
+        expect(result[0].list_items).to_be_numeric()
+        expect(result[0].number_of_documents).to_be_numeric()

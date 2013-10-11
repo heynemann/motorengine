@@ -15,15 +15,19 @@ class BaseAggregation(object):
 
 
 class Aggregation(object):
-    def __init__(self, queryset, group):
+    def __init__(self, queryset, group, project=None, unwind=None):
         self.queryset = queryset
         self.group = group
+        self.project = project
+        self.unwind = unwind
         self.ids = []
 
     def fill_ids(self, item):
         for id_index, id_name in enumerate(self.ids):
             if isinstance(item['_id'], (tuple, list, set)):
                 item[id_name] = item['_id'][id_index]
+            elif isinstance(item['_id'], (dict,)):
+                item[id_name] = item['_id'][id_name]
             else:
                 item[id_name] = item['_id']
 
@@ -51,24 +55,44 @@ class Aggregation(object):
 
     def to_query(self):
         query = [
-            {'$group': {'_id': None}}
         ]
 
+        group_obj = {'$group': {'_id': None}}
+
         self.ids = []
+        projections = []
 
         for group in self.group:
             if isinstance(group, BaseAggregation):
-                query[0]['$group'].update(group.to_query(self.queryset))
+                group_obj['$group'].update(group.to_query(self.queryset))
+                projections.append(group.field.db_field)
                 continue
 
             field_name = self.get_field(group).db_field
             self.ids.append(field_name)
+            projections.append(field_name)
 
         # TODO: RAISE IF NO ID
 
         if len(self.ids) == 1:
-            query[0]['$group']['_id'] = "$%s" % self.ids[0]
+            group_obj['$group']['_id'] = "$%s" % self.ids[0]
         else:
-            query[0]['$group']['_id'] = dict([(name, "$%s" % name) for name in self.ids])
+            group_obj['$group']['_id'] = dict([(name, "$%s" % name) for name in self.ids])
+
+        if self.project is None:
+            project_obj = {
+                "$project": dict([(field_name, 1) for field_name in projections])
+            }
+
+            query.append(project_obj)
+
+        if self.unwind is not None:
+            unwind_obj = {
+                "$unwind": "$%s" % self.get_field(self.unwind).db_field
+            }
+
+            query.append(unwind_obj)
+
+        query.append(group_obj)
 
         return query
