@@ -529,16 +529,16 @@ class QuerySet(object):
     @return_future
     def count(self, callback, alias=None):
         '''
-        Returns the number of documents in the collection that match the specified filters (if any).
+        Returns the number of documents in the collection that match the specified filters, if any.
         '''
         cursor = self._get_find_cursor(alias=alias)
         self._filters = {}
         cursor.count(callback=self.handle_count(callback))
 
     @return_future
-    def aggregate(self, group, callback, alias=None):
+    def aggregate(self, group_by, callback, alias=None):
         coll = self.coll(alias)
 
-        agg = Aggregation(self, group)
+        agg = Aggregation(self, group_by)
 
         coll.aggregate(agg.to_query(), callback=agg.handle_aggregation(callback))
