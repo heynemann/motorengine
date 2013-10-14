@@ -535,10 +535,6 @@ class QuerySet(object):
         self._filters = {}
         cursor.count(callback=self.handle_count(callback))
 
-    @return_future
-    def aggregate(self, group_by, project=None, unwind=None, callback=None, alias=None):
-        coll = self.coll(alias)
-
-        agg = Aggregation(self, group=group_by, project=project, unwind=unwind)
-
-        coll.aggregate(agg.to_query(), callback=agg.handle_aggregation(callback))
+    @property
+    def aggregate(self):
+        return Aggregation(self)

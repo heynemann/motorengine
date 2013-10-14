@@ -46,11 +46,10 @@ class TestAggregation(AsyncTestCase):
         self.wait()
 
     def test_can_aggregate_number_of_documents(self):
-        User.objects.aggregate(
-            group_by=[
-                User.email,
-                Aggregation.avg(User.number_of_documents, alias="number_of_documents")
-            ],
+        User.objects.aggregate.group_by(
+            User.email,
+            Aggregation.avg(User.number_of_documents, alias="number_of_documents")
+        ).fetch(
             callback=self.stop
         )
 
@@ -62,15 +61,11 @@ class TestAggregation(AsyncTestCase):
         expect(result[0].number_of_documents).to_be_like(4950.0)
 
     def test_can_aggregate_with_unwind(self):
-        User.objects.aggregate(
-            group_by=[
-                User.email,
-                User.list_items,
-                Aggregation.avg(User.number_of_documents, alias="number_of_documents")
-            ],
-            unwind=User.list_items,
-            callback=self.stop
-        )
+        User.objects.aggregate.unwind(User.list_items).group_by(
+            User.email,
+            User.list_items,
+            Aggregation.avg(User.number_of_documents, alias="number_of_documents")
+        ).fetch(callback=self.stop)
 
         result = self.wait()
 
