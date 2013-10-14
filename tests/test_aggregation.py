@@ -74,3 +74,13 @@ class TestAggregation(AsyncTestCase):
         expect(result[0].email).to_equal('heynemann@gmail.com')
         expect(result[0].list_items).to_be_numeric()
         expect(result[0].number_of_documents).to_be_numeric()
+
+    def test_can_aggregate_with_sorting(self):
+        User.objects.aggregate.order_by(User.number_of_documents, DESCENDING).fetch(callback=self.stop)
+
+        result = self.wait()
+
+        expect(result).not_to_be_null()
+        expect(result).to_length(100)
+        for i in range(100):
+            expect(result[i].number_of_documents).to_equal((99 - i) * 100)

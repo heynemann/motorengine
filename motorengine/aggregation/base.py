@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from bson import ObjectId
 from easydict import EasyDict as edict
 from tornado.concurrent import return_future
+
+from motorengine import ASCENDING
 
 
 class BaseAggregation(object):
@@ -51,6 +54,16 @@ class Unwind(PipelineOperation):
         return {'$unwind': '$%s' % self.field.db_field}
 
 
+class OrderBy(PipelineOperation):
+    def __init__(self, aggregation, field, direction):
+        super(OrderBy, self).__init__(aggregation)
+        self.field = self.aggregation.get_field(field)
+        self.direction = direction
+
+    def to_query(self):
+        return {'$sort': {self.field.db_field: self.direction}}
+
+
 class Aggregation(object):
     def __init__(self, queryset):
         self.queryset = queryset
@@ -68,12 +81,19 @@ class Aggregation(object):
         self.pipeline.append(Unwind(self, field))
         return self
 
+    def order_by(self, field, direction=ASCENDING):
+        self.pipeline.append(OrderBy(self, field, direction))
+        return self
+
     def fill_ids(self, item):
         if not '_id' in item:
             return
 
         for id_name, id_value in item['_id'].items():
             item[id_name] = id_value
+
+    def get_instance(self, item):
+        return self.queryset.__klass__.from_son(item)
 
     def handle_aggregation(self, callback):
         def handle(*arguments, **kw):
@@ -82,8 +102,11 @@ class Aggregation(object):
 
             results = []
             for item in arguments[0]['result']:
-                self.fill_ids(item)
-                results.append(edict(item))
+                if isinstance(item['_id'], ObjectId):
+                    results.append(self.get_instance(item))
+                else:
+                    self.fill_ids(item)
+                    results.append(edict(item))
 
             callback(results)
 
@@ -102,7 +125,7 @@ class Aggregation(object):
     def to_query(self):
         query = []
 
-        for group in self.pipeline:
-            query.append(group.to_query())
+        for pipeline_step in self.pipeline:
+            query.append(pipeline_step.to_query())
 
         return query
