@@ -4,12 +4,12 @@
 from motorengine.aggregation.base import BaseAggregation
 
 
-class AverageAggregation(BaseAggregation):
+class SumAggregation(BaseAggregation):
     def to_query(self, queryset):
         alias = self.alias
         if alias is None:
             alias = self.field.db_field
 
         return {
-            alias: {"$avg": ("$%s" % self.field.db_field)}
+            alias: {"$sum": ("$%s" % self.field.db_field)}
         }

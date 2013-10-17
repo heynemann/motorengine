@@ -266,7 +266,7 @@ class QuerySet(object):
 
         self.coll(alias).find_one(filters, callback=self.handle_get(callback))
 
-    def to_filters(self, not_query=False, **kwargs):
+    def to_filters(self, enforce_fields=True, not_query=False, **kwargs):
         from motorengine import Document  # to avoid circular dependency
 
         filters = {}
@@ -303,7 +303,7 @@ class QuerySet(object):
                     else:
                         field = obj
 
-                    fields.append(field.db_field)
+                    fields.append(partial_field_name)
 
                     obj = getattr(obj, partial_field_name)
 
@@ -323,14 +323,17 @@ class QuerySet(object):
 
                     obj = obj.embedded_type
             else:
-                if field_name not in self.__klass__._fields:
+                if enforce_fields and field_name not in self.__klass__._fields:
                     raise ValueError("Invalid filter '%s': Field not found in '%s'." % (field_name, self.__klass__.__name__))
 
                 if operator and operator not in self.available_query_operators:
                     raise ValueError("Invalid filter '%s': Operator not found '%s'." % (original_field_name, operator))
 
-                field = self.__klass__._fields[field_name]
-                field_db_name = field.db_field
+                field = self.__klass__._fields.get(field_name, None)
+                if field is None:
+                    field_db_name = field_name
+                else:
+                    field_db_name = field.db_field
                 field_value = value
 
             if not field_db_name in filters:

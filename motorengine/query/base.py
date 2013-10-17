@@ -4,6 +4,9 @@
 
 class QueryOperator(object):
     def get_value(self, field, raw_value):
+        if field is None:
+            return raw_value
+
         return field.to_son(raw_value)
 
     def to_query(self, value):

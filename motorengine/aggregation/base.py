@@ -45,6 +45,22 @@ class GroupBy(PipelineOperation):
         return group_obj
 
 
+class Match(PipelineOperation):
+    def __init__(self, aggregation, **filters):
+        super(Match, self).__init__(aggregation)
+        self.filters = filters
+
+    def to_query(self):
+        match_obj = {'$match': {}}
+
+        filters = self.aggregation.queryset.to_filters(enforce_fields=False, **self.filters)
+        query = self.aggregation.queryset.get_query_from_filters(filters)
+
+        match_obj['$match'].update(query)
+
+        return match_obj
+
+
 class Unwind(PipelineOperation):
     def __init__(self, aggregation, field):
         super(Unwind, self).__init__(aggregation)
@@ -75,6 +91,10 @@ class Aggregation(object):
 
     def group_by(self, *args):
         self.pipeline.append(GroupBy(self, *args))
+        return self
+
+    def match(self, **kw):
+        self.pipeline.append(Match(self, **kw))
         return self
 
     def unwind(self, field):
@@ -121,6 +141,11 @@ class Aggregation(object):
     def avg(cls, field, alias=None):
         from motorengine.aggregation.avg import AverageAggregation
         return AverageAggregation(field, alias)
+
+    @classmethod
+    def sum(cls, field, alias=None):
+        from motorengine.aggregation.sum import SumAggregation
+        return SumAggregation(field, alias)
 
     def to_query(self):
         query = []
