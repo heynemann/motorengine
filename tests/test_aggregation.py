@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from random import randint, choice
+from random import randint
 
 from preggy import expect
 
@@ -12,6 +12,7 @@ from motorengine import (
 from tests import AsyncTestCase
 
 AVAILABLE_STATES = ['ny', 'ca', 'wa', 'fl']
+CITIES = ['New York', 'San Francisco', 'Washington', 'Orlando']
 
 
 class City(Document):
@@ -60,9 +61,13 @@ class TestAggregation(AsyncTestCase):
     def add_cities(self):
         cities = []
         for i in range(500):
+            city_index = randint(0, 3)
+            city_name = CITIES[city_index]
+            state_name = AVAILABLE_STATES[city_index]
+
             cities.append(City(
-                city="City %d" % i,
-                state=choice(AVAILABLE_STATES),
+                city=city_name,
+                state=state_name,
                 pop=randint(10000, 50000)
             ))
 
@@ -121,3 +126,25 @@ class TestAggregation(AsyncTestCase):
 
         expect(result).not_to_be_null()
         expect(result).to_length(4)
+
+    def test_can_average_city_population(self):
+        City.objects.aggregate.group_by(
+            City.state,
+            City.city,
+            Aggregation.sum(City.pop, alias="total_pop")
+        ).group_by(
+            City.state,
+            Aggregation.avg("total_pop", alias="avg_pop")
+        ).fetch(callback=self.stop)
+
+        results = self.wait()
+
+        expect(results).not_to_be_null()
+        expect(results).to_length(4)
+
+        states = [result.state for result in results]
+
+        expect(states).to_be_like(['ny', 'ca', 'wa', 'fl'])
+
+        for state in results:
+            expect(state.avg_pop).to_be_greater_than(2000000)

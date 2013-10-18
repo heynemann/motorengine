@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import six
 from bson import ObjectId
 from easydict import EasyDict as edict
 from tornado.concurrent import return_future
@@ -27,8 +28,9 @@ class PipelineOperation(object):
 
 
 class GroupBy(PipelineOperation):
-    def __init__(self, aggregation, *groups):
+    def __init__(self, aggregation, first_group_by, *groups):
         super(GroupBy, self).__init__(aggregation)
+        self.first_group_by = first_group_by
         self.groups = groups
 
     def to_query(self):
@@ -36,11 +38,18 @@ class GroupBy(PipelineOperation):
 
         for group in self.groups:
             if isinstance(group, BaseAggregation):
-                group_obj['$group'].update(group.to_query(self.aggregation.queryset))
+                group_obj['$group'].update(group.to_query(self.aggregation))
                 continue
 
-            field_name = self.aggregation.get_field(group).db_field
-            group_obj['$group']['_id'][field_name] = "$%s" % field_name
+            if isinstance(group, six.string_types):
+                field_name = group
+            else:
+                field_name = self.aggregation.get_field(group).db_field
+
+            if self.first_group_by:
+                group_obj['$group']['_id'][field_name] = "$%s" % field_name
+            else:
+                group_obj['$group']['_id'][field_name] = "$_id.%s" % field_name
 
         return group_obj
 
@@ -82,15 +91,23 @@ class OrderBy(PipelineOperation):
 
 class Aggregation(object):
     def __init__(self, queryset):
+        self.first_group_by = True
         self.queryset = queryset
         self.pipeline = []
         self.ids = []
+
+    def get_field_name(self, field):
+        if isinstance(field, six.string_types):
+            return field
+
+        return field.db_field
 
     def get_field(self, field):
         return field
 
     def group_by(self, *args):
-        self.pipeline.append(GroupBy(self, *args))
+        self.pipeline.append(GroupBy(self, self.first_group_by, *args))
+        self.first_group_by = False
         return self
 
     def match(self, **kw):
@@ -151,6 +168,11 @@ class Aggregation(object):
         query = []
 
         for pipeline_step in self.pipeline:
-            query.append(pipeline_step.to_query())
+            query_steps = pipeline_step.to_query()
+            if isinstance(query_steps, (tuple, set, list)):
+                for step in query_steps:
+                    query.append(step)
+            else:
+                query.append(query_steps)
 
         return query

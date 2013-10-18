@@ -5,11 +5,13 @@ from motorengine.aggregation.base import BaseAggregation
 
 
 class SumAggregation(BaseAggregation):
-    def to_query(self, queryset):
+    def to_query(self, aggregation):
         alias = self.alias
+        field_name = aggregation.get_field_name(self.field)
+
         if alias is None:
-            alias = self.field.db_field
+            alias = field_name
 
         return {
-            alias: {"$sum": ("$%s" % self.field.db_field)}
+            alias: {"$sum": ("$%s" % field_name)}
         }
