@@ -17,6 +17,7 @@ try:
     )
 
     from motorengine.aggregation.base import Aggregation  # NOQA
+    from motorengine.query_builder.node import Q  # NOQA
 
 except ImportError:  # NOQA
     pass  # likely setup.py trying to import version

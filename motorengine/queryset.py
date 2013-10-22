@@ -2,24 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import collections
 
 from tornado.concurrent import return_future
 
 from motorengine import ASCENDING
 from motorengine.aggregation.base import Aggregation
 from motorengine.connection import get_connection
-from motorengine.fields.embedded_document_field import EmbeddedDocumentField
-# query
-from motorengine.query.exists import ExistsQueryOperator
-from motorengine.query.greater_than import GreaterThanQueryOperator
-from motorengine.query.greater_than_or_equal import GreaterThanOrEqualQueryOperator
-from motorengine.query.lesser_than import LesserThanQueryOperator
-from motorengine.query.lesser_than_or_equal import LesserThanOrEqualQueryOperator
-from motorengine.query.in_operator import InQueryOperator
-from motorengine.query.is_null import IsNullQueryOperator
-from motorengine.query.not_operator import NotOperator
-from motorengine.query.not_equal import NotEqualQueryOperator
 
 
 class QuerySet(object):
@@ -28,18 +16,6 @@ class QuerySet(object):
         self._filters = {}
         self._limit = 300
         self._order_fields = []
-
-        self.available_query_operators = {
-            'exists': ExistsQueryOperator,
-            'gt': GreaterThanQueryOperator,
-            'gte': GreaterThanOrEqualQueryOperator,
-            'lt': LesserThanQueryOperator,
-            'lte': LesserThanOrEqualQueryOperator,
-            'in': InQueryOperator,
-            'is_null': IsNullQueryOperator,
-            'ne': NotEqualQueryOperator,
-            'not': NotOperator,
-        }
 
     @property
     def is_lazy(self):
@@ -253,6 +229,9 @@ class QuerySet(object):
 
         In order to query a different database, please specify the `alias` of the database to query.
         '''
+
+        from motorengine import Q
+
         if id is None and not kwargs:
             raise RuntimeError("Either an id or a filter must be provided to get")
 
@@ -261,129 +240,17 @@ class QuerySet(object):
                 "_id": id
             }
         else:
-            filters = self.to_filters(**kwargs)
+            filters = Q(**kwargs)
             filters = self.get_query_from_filters(filters)
 
         self.coll(alias).find_one(filters, callback=self.handle_get(callback))
 
-    def to_filters(self, enforce_fields=True, not_query=False, **kwargs):
-        from motorengine import Document  # to avoid circular dependency
-
-        filters = {}
-        for field_name, value in kwargs.items():
-            original_field_name = field_name
-            field_db_name = None
-            field_value = None
-
-            operator = ""
-            if '__' in field_name:
-                filter_values = field_name.split('__')
-                operator = filter_values[-1]
-                field_name = ".".join(filter_values[:-1])
-
-            if operator and operator not in self.available_query_operators:
-                field_name = "%s.%s" % (field_name, operator)
-                operator = ""
-
-            if '.' in field_name:
-                values = field_name.split('.')
-                obj = self.__klass__
-                fields = []
-
-                for field_index, partial_field_name in enumerate(values):
-                    if not partial_field_name in obj._fields:
-                        raise ValueError("Invalid filter '%s': Field '%s' not found in '%s'." % (
-                            original_field_name,
-                            partial_field_name,
-                            obj.__name__
-                        ))
-
-                    if issubclass(obj, Document):
-                        field = obj._fields[partial_field_name]
-                    else:
-                        field = obj
-
-                    fields.append(partial_field_name)
-
-                    obj = getattr(obj, partial_field_name)
-
-                    is_last = field_index == len(values) - 1
-                    if is_last:
-                        field_value = value
-                        field_db_name = ".".join(fields)
-                        continue
-
-                    if not isinstance(obj, EmbeddedDocumentField):
-                        raise ValueError(
-                            ("Invalid filter '%s': Invalid operator (if this is a sub-property, then it must be "
-                                "used in embedded document fields).") % (
-                                original_field_name,
-                            )
-                        )
-
-                    obj = obj.embedded_type
-            else:
-                if enforce_fields and field_name not in self.__klass__._fields:
-                    raise ValueError("Invalid filter '%s': Field not found in '%s'." % (field_name, self.__klass__.__name__))
-
-                if operator and operator not in self.available_query_operators:
-                    raise ValueError("Invalid filter '%s': Operator not found '%s'." % (original_field_name, operator))
-
-                field = self.__klass__._fields.get(field_name, None)
-                if field is None:
-                    field_db_name = field_name
-                else:
-                    field_db_name = field.db_field
-                field_value = value
-
-            if not field_db_name in filters:
-                filters[field_db_name] = []
-
-            filters[field_db_name].append({
-                "not": not_query,
-                "operator": operator,
-                "value": field_value,
-                "field": field
-            })
-
-        return filters
-
     def get_query_from_filters(self, filters):
-        result = {}
+        if not filters:
+            return {}
 
-        for filter_name, filter_items in filters.items():
-            for filter_desc in filter_items:
-                operator, filter_value = filter_desc['operator'], filter_desc['value']
-                field, not_query = filter_desc['field'], filter_desc['not']
-
-                if not operator:
-                    value = field.to_son(filter_value)
-                    if not_query:
-                        result.update(self.available_query_operators['ne']().to_query(filter_name, value))
-                    else:
-                        result[filter_name] = value
-                else:
-                    operator = self.available_query_operators[operator]()
-                    value = operator.get_value(field, filter_value)
-
-                    if not_query:
-                        query = self.available_query_operators['not']().to_query(filter_name, operator, value)
-                    else:
-                        query = operator.to_query(filter_name, value)
-
-                    self.update(result, query)
-
-        return result
-
-    # from http://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
-    def update(self, d, u):
-        for k, v in u.items():
-            if isinstance(v, collections.Mapping):
-                r = self.update(d.get(k, {}), v)
-                d[k] = r
-            else:
-                d[k] = u[k]
-        return d
+        query = filters.to_query(self.__klass__)
+        return query
 
     def _get_find_cursor(self, alias):
         find_arguments = {}
@@ -395,7 +262,7 @@ class QuerySet(object):
 
         return self.coll(alias).find(query_filters, **find_arguments)
 
-    def filter(self, **kwargs):
+    def filter(self, *arguments, **kwargs):
         '''
         Filters a queryset in order to produce a different set of document from subsequent queries.
 
@@ -407,11 +274,18 @@ class QuerySet(object):
 
         The available filter options are the same as used in MongoEngine.
         '''
-        filters = self.to_filters(**kwargs)
-        self._filters.update(filters)
+        from motorengine.query_builder.node import Q, QCombination
+        from motorengine.query_builder.transform import validate_fields
+
+        if arguments and len(arguments) == 1 and isinstance(arguments[0], (Q, QCombination)):
+            self._filters = arguments[0]
+        else:
+            validate_fields(self.__klass__, kwargs)
+            self._filters = Q(**kwargs)
+
         return self
 
-    def filter_not(self, **kwargs):
+    def filter_not(self, *arguments, **kwargs):
         '''
         Filters a queryset to negate all the filters passed in subsequent queries.
 
@@ -423,8 +297,13 @@ class QuerySet(object):
 
         The available filter options are the same as used in MongoEngine.
         '''
-        filters = self.to_filters(not_query=True, **kwargs)
-        self._filters.update(filters)
+        from motorengine.query_builder.node import Q, QCombination, QNot
+
+        if arguments and len(arguments) == 1 and isinstance(arguments[0], (Q, QCombination)):
+            self._filters = QNot(arguments[0])
+        else:
+            self._filters = QNot(Q(**kwargs))
+
         return self
 
     def limit(self, limit):

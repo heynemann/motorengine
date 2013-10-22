@@ -201,7 +201,10 @@ class TestDocument(AsyncTestCase):
             User.objects.filter(invalid_field=True)
         except ValueError:
             err = sys.exc_info()[1]
-            expect(err).to_have_an_error_message_of("Invalid filter 'invalid_field': Field not found in 'User'.")
+            expect(err).to_have_an_error_message_of(
+                "Invalid filter 'invalid_field': Invalid operator (if this is a sub-property, "
+                "then it must be used in embedded document fields)."
+            )
         else:
             assert False, "Should not have gotten this far"
 

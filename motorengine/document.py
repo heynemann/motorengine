@@ -18,9 +18,9 @@ class BaseDocument(object):
 
         for key, field in self._fields.items():
             if callable(field.default):
-                self._values[key] = field.default()
+                self._values[field.db_field] = field.default()
             else:
-                self._values[key] = field.default
+                self._values[field.db_field] = field.default
 
         for key, value in kw.items():
             if key not in self._db_field_map:
@@ -49,8 +49,9 @@ class BaseDocument(object):
     def from_son(cls, dic):
         field_values = {}
         for name, value in dic.items():
-            if name in cls._fields:
-                field_values[name] = cls._fields[name].from_son(value)
+            field = cls.get_field_by_db_name(name)
+            if field:
+                field_values[field.name] = cls._fields[field.name].from_son(value)
             else:
                 field_values[name] = value
 
@@ -61,7 +62,7 @@ class BaseDocument(object):
 
         for name, field in self._fields.items():
             value = self.get_field_value(name)
-            data[name] = field.to_son(value)
+            data[field.db_field] = field.to_son(value)
 
         return data
 
@@ -253,6 +254,33 @@ class BaseDocument(object):
             return
 
         object.__setattr__(self, name, value)
+
+    @classmethod
+    def get_field_by_db_name(cls, name):
+        for field_name, field in cls._fields.items():
+            if name == field.db_field:
+                return field
+        return None
+
+    @classmethod
+    def get_fields(cls, name, fields=None):
+        from motorengine import EmbeddedDocumentField
+
+        if fields is None:
+            fields = []
+
+        if not '.' in name:
+            fields.append(cls._fields.get(name, None))
+            return fields
+
+        field_values = name.split('.')
+        obj = cls._fields.get(field_values[0], None)
+        fields.append(obj)
+
+        if isinstance(obj, (EmbeddedDocumentField, )):
+            obj.embedded_type.get_fields(".".join(field_values[1:]), fields=fields)
+
+        return fields
 
 
 class Document(six.with_metaclass(DocumentMetaClass, BaseDocument)):

@@ -60,12 +60,13 @@ class Match(PipelineOperation):
         self.filters = filters
 
     def to_query(self):
+        from motorengine import Q
         match_obj = {'$match': {}}
 
-        filters = self.aggregation.queryset.to_filters(enforce_fields=False, **self.filters)
-        query = self.aggregation.queryset.get_query_from_filters(filters)
+        query = self.aggregation.queryset.get_query_from_filters(Q(**self.filters))
+        import ipdb; ipdb.set_trace()
 
-        match_obj['$match'].update(query)
+        match_obj['$match'].update(query.to_query(self.aggregation.queryset.__klass__))
 
         return match_obj
 
