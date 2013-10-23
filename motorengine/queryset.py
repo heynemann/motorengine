@@ -142,7 +142,7 @@ class QuerySet(object):
     @return_future
     def delete(self, callback=None, alias=None):
         '''
-        Removes all instance of this document that match the specified filters (if any).
+        Removes all instances of this document that match the specified filters (if any).
 
         .. testsetup:: saving_delete
 
