@@ -45,5 +45,13 @@ class ListField(BaseField):
     def to_son(self, value):
         return list(map(self._base_field.to_son, value))
 
+    def to_query(self, value):
+        if not isinstance(value, (tuple, set, list)):
+            value = [value]
+
+        return {
+            "$all": value
+        }
+
     def from_son(self, value):
         return list(map(self._base_field.from_son, value))

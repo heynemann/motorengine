@@ -9,7 +9,7 @@ class QueryOperator(object):
         if field is None or not isinstance(field, (BaseField, )):
             return raw_value
 
-        return field.to_son(raw_value)
+        return field.to_query(raw_value)
 
     def to_query(self, value):
         raise NotImplementedError()

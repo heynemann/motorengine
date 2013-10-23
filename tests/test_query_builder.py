@@ -5,7 +5,7 @@ from preggy import expect
 from tornado.testing import gen_test
 
 from motorengine import (
-    Document, StringField, BooleanField,
+    Document, StringField, BooleanField, ListField, IntField,
     URLField, DateTimeField, Q, EmbeddedDocumentField
 )
 from motorengine.query_builder.node import QCombination
@@ -29,6 +29,7 @@ class User(Document):
     website = URLField(default="http://google.com/")
     updated_at = DateTimeField(required=True, auto_now_on_insert=True, auto_now_on_update=True)
     embedded = EmbeddedDocumentField(EmbeddedDocument, db_field="embedded_document")
+    numbers = ListField(IntField())
 
     def __repr__(self):
         return "%s %s <%s>" % (self.first_name, self.last_name, self.email)
@@ -76,6 +77,14 @@ class TestQueryBuilder(AsyncTestCase):
 
         expect(query_result).to_be_like({
             "embedded_document.embedded2.else": {"$lte": "Test"}
+        })
+
+    def test_gets_proper_query_when_list_field(self):
+        query = Q(numbers=[10])
+        query_result = query.to_query(User)
+
+        expect(query_result).to_be_like({
+            "numbers": {"$all": [10]}
         })
 
     def test_gets_proper_query_when_and(self):
@@ -133,6 +142,7 @@ class TestQueryBuilder(AsyncTestCase):
         User.objects.create(
             email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann",
             embedded=EmbeddedDocument(test="test"),
+            numbers=[1, 2, 3],
             callback=self.stop
         )
         self.user = self.wait()
@@ -140,6 +150,7 @@ class TestQueryBuilder(AsyncTestCase):
         User.objects.create(
             email="heynemann@gmail.com", first_name="Someone", last_name="Else",
             embedded=EmbeddedDocument(test="test2"),
+            numbers=[4, 5, 6],
             callback=self.stop
         )
         self.user2 = self.wait()
@@ -147,11 +158,12 @@ class TestQueryBuilder(AsyncTestCase):
         User.objects.create(
             email="heynemann@gmail.com", first_name="John", last_name="Doe",
             embedded=EmbeddedDocument(test="test3"),
+            numbers=[7, 8, 9],
             callback=self.stop
         )
         self.user3 = self.wait()
 
-    #@gen_test
+    @gen_test
     def test_can_query_using_q(self):
         self.create_test_users()
 
@@ -166,3 +178,42 @@ class TestQueryBuilder(AsyncTestCase):
         User.objects.filter(Q(first_name="Bernardo") | Q(first_name="Someone")).find_all(callback=self.stop)
         users = self.wait()
         expect(users).to_length(2)
+
+    @gen_test
+    def test_can_query_using_q_for_list(self):
+        yield User.objects.create(
+            email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann",
+            embedded=EmbeddedDocument(test="test"),
+            numbers=[1, 2, 3],
+        )
+
+        user2 = yield User.objects.create(
+            email="heynemann@gmail.com", first_name="Someone", last_name="Else",
+            embedded=EmbeddedDocument(test="test2"),
+            numbers=[4, 5, 6],
+        )
+
+        yield User.objects.create(
+            email="heynemann@gmail.com", first_name="John", last_name="Doe",
+            embedded=EmbeddedDocument(test="test3"),
+            numbers=[7, 8, 9],
+        )
+
+        users = yield User.objects.filter(Q(numbers=[4])).find_all()
+        expect(users).to_length(1)
+        expect(users[0]._id).to_equal(user2._id)
+
+        users = yield User.objects.filter(Q(numbers=[5])).find_all()
+        expect(users).to_length(1)
+        expect(users[0]._id).to_equal(user2._id)
+
+        users = yield User.objects.filter(Q(numbers=[6])).find_all()
+        expect(users).to_length(1)
+        expect(users[0]._id).to_equal(user2._id)
+
+        users = yield User.objects.filter(Q(numbers=[4, 5, 6])).find_all()
+        expect(users).to_length(1)
+        expect(users[0]._id).to_equal(user2._id)
+
+        users = yield User.objects.filter(Q(numbers=[20])).find_all()
+        expect(users).to_length(0)
