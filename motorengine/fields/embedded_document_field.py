@@ -51,12 +51,18 @@ class EmbeddedDocumentField(BaseField):
                 str(self.embedded_type)
             )
 
+        if value is None:
+            return True
+
         if value is not None and not isinstance(value, self.embedded_type):
             return False
 
-        return self.embedded_type.validate(value)
+        return value.validate()
 
     def to_son(self, value):
+        if value is None:
+            return None
+
         base = dict()
 
         base.update(value.to_son())
@@ -64,4 +70,7 @@ class EmbeddedDocumentField(BaseField):
         return base
 
     def from_son(self, value):
+        if value is None:
+            return None
+
         return self.embedded_type.from_son(value)

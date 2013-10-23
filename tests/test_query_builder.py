@@ -12,8 +12,13 @@ from motorengine.query_builder.node import QCombination
 from tests import AsyncTestCase
 
 
+class EmbeddedDocument2(Document):
+    test = StringField(db_field="else", required=False)
+
+
 class EmbeddedDocument(Document):
     test = StringField(db_field="other", required=True)
+    embedded2 = EmbeddedDocumentField(EmbeddedDocument2)
 
 
 class User(Document):
@@ -63,6 +68,14 @@ class TestQueryBuilder(AsyncTestCase):
 
         expect(query_result).to_be_like({
             "embedded_document.other": {"$lte": "Test"}
+        })
+
+    def test_gets_proper_query_when_embedded_document_in_many_levels(self):
+        query = Q(embedded__embedded2__test__lte="Test")
+        query_result = query.to_query(User)
+
+        expect(query_result).to_be_like({
+            "embedded_document.embedded2.else": {"$lte": "Test"}
         })
 
     def test_gets_proper_query_when_and(self):
