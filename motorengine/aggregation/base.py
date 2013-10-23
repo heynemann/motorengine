@@ -7,6 +7,7 @@ from easydict import EasyDict as edict
 from tornado.concurrent import return_future
 
 from motorengine import ASCENDING
+from motorengine.query_builder.transform import update
 
 
 class BaseAggregation(object):
@@ -64,9 +65,8 @@ class Match(PipelineOperation):
         match_obj = {'$match': {}}
 
         query = self.aggregation.queryset.get_query_from_filters(Q(**self.filters))
-        import ipdb; ipdb.set_trace()
 
-        match_obj['$match'].update(query.to_query(self.aggregation.queryset.__klass__))
+        update(match_obj['$match'], query)
 
         return match_obj
 

@@ -270,11 +270,11 @@ class BaseDocument(object):
             fields = []
 
         if not '.' in name:
-            fields.append(cls._fields.get(name, None))
+            fields.append(cls._fields.get(name, name))
             return fields
 
         field_values = name.split('.')
-        obj = cls._fields.get(field_values[0], None)
+        obj = cls._fields.get(field_values[0], field_values[0])
         fields.append(obj)
 
         if isinstance(obj, (EmbeddedDocumentField, )):

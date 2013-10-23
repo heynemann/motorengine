@@ -64,7 +64,10 @@ def transform_query(document, **query):
 
             fields = document.get_fields(field_reference_name)
 
-            field_name = ".".join([field.db_field for field in fields])
+            field_name = ".".join([
+                hasattr(field, 'db_field') and field.db_field or field
+                for field in fields
+            ])
             operator = OPERATORS.get(operator, DefaultOperator)()
             field_value = operator.get_value(fields[-1], value)
 
