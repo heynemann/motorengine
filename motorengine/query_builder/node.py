@@ -147,8 +147,40 @@ class QCombination(QNode):
 
 
 class Q(QNode):
-    """A simple query object, used in a query tree to build up more complex
-    query structures.
+    """
+    A simple query object, used in a query tree to build up more complex query structures.
+
+    .. testsetup:: querying_with_Q
+
+        import tornado.ioloop
+        from motorengine import *
+
+        class User(Document):
+            __collection__ = "UserQueryingWithQ"
+            name = StringField()
+            age = IntField()
+
+        io_loop = tornado.ioloop.IOLoop.instance()
+        connect("test", host="localhost", port=4445, io_loop=io_loop)
+
+    .. testcode:: querying_with_Q
+
+        def handle_users_found(users):
+            try:
+                assert users[0].name == "Bernardo"
+            finally:
+                io_loop.stop()
+
+        def handle_user_created(user):
+            query = Q(name="Bernardo") | Q(age__gt=30)
+            users = User.objects.filter(query).find_all(callback=handle_users_found)
+
+        def create_user():
+            user = User(name="Bernardo", age=32)
+            user.save(callback=handle_user_created)
+
+        io_loop.add_timeout(1, create_user)
+        io_loop.start()
     """
 
     def __init__(self, **query):

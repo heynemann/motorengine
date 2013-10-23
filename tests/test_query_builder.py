@@ -29,6 +29,7 @@ class User(Document):
     website = URLField(default="http://google.com/")
     updated_at = DateTimeField(required=True, auto_now_on_insert=True, auto_now_on_update=True)
     embedded = EmbeddedDocumentField(EmbeddedDocument, db_field="embedded_document")
+    nullable = EmbeddedDocumentField(EmbeddedDocument, db_field="nullable_embedded_document")
     numbers = ListField(IntField())
 
     def __repr__(self):
@@ -142,6 +143,7 @@ class TestQueryBuilder(AsyncTestCase):
         User.objects.create(
             email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann",
             embedded=EmbeddedDocument(test="test"),
+            nullable=None,
             numbers=[1, 2, 3],
             callback=self.stop
         )
@@ -150,6 +152,7 @@ class TestQueryBuilder(AsyncTestCase):
         User.objects.create(
             email="heynemann@gmail.com", first_name="Someone", last_name="Else",
             embedded=EmbeddedDocument(test="test2"),
+            nullable=EmbeddedDocument(test="test2"),
             numbers=[4, 5, 6],
             callback=self.stop
         )
@@ -158,6 +161,7 @@ class TestQueryBuilder(AsyncTestCase):
         User.objects.create(
             email="heynemann@gmail.com", first_name="John", last_name="Doe",
             embedded=EmbeddedDocument(test="test3"),
+            nullable=EmbeddedDocument(test="test3"),
             numbers=[7, 8, 9],
             callback=self.stop
         )
@@ -217,3 +221,17 @@ class TestQueryBuilder(AsyncTestCase):
 
         users = yield User.objects.filter(Q(numbers=[20])).find_all()
         expect(users).to_length(0)
+
+    def test_can_query_using_q_with_is_null(self):
+        self.create_test_users()
+
+        User.objects.filter(Q(nullable__is_null=True)).find_all(callback=self.stop)
+        users = self.wait()
+        expect(users).to_length(1)
+        expect(users[0]._id).to_equal(self.user._id)
+
+        User.objects.filter(Q(nullable__is_null=False)).find_all(callback=self.stop)
+        users = self.wait()
+        expect(users).to_length(2)
+        expect(users[0]._id).to_equal(self.user2._id)
+        expect(users[1]._id).to_equal(self.user3._id)
