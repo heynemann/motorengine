@@ -1,4 +1,4 @@
-setuptools
+setuptools==1.1
 sphinx
 pymongo==2.5
 tornado
