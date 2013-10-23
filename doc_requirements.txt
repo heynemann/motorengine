@@ -1,0 +1,6 @@
+sphinx
+pymongo==2.5
+tornado
+motor
+six
+easydict
