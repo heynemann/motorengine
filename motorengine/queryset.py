@@ -312,8 +312,8 @@ class QuerySet(object):
 
         Usage::
 
-            User.objects.limit(10).find_all(callback="handle_all")  # even if there are 100s of users,
-                                                                    # only first 10 will be returned
+            User.objects.limit(10).find_all(callback=handle_all)  # even if there are 100s of users,
+                                                                  # only first 10 will be returned
         '''
 
         self._limit = limit
@@ -327,7 +327,7 @@ class QuerySet(object):
 
             from motorengine import DESCENDING  # or ASCENDING
 
-            User.objects.order_by('first_name', direction=DESCENDING).find_all(callback="handle_all")
+            User.objects.order_by('first_name', direction=DESCENDING).find_all(callback=handle_all)
         '''
 
         if field_name not in self.__klass__._fields:

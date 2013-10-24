@@ -29,7 +29,7 @@ class NotEqualQueryOperator(QueryOperator):
 
         query_result = query.to_query(User)
 
-        print query_result
+        print(query_result)
 
     The resulting query is:
 
