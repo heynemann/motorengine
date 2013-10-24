@@ -268,7 +268,7 @@ class QuerySet(object):
 
         Usage::
 
-            User.objects.filter(first_name="Bernardo").filter(last_name="Bernardo").find_all(callback="handle_all")
+            User.objects.filter(first_name="Bernardo").filter(last_name="Bernardo").find_all(callback=handle_all)
             # or
             User.objects.filter(first_name="Bernardo", starting_year__gt=2010).find_all(callback=handle_all)
 
@@ -291,7 +291,7 @@ class QuerySet(object):
 
         Usage::
 
-            User.objects.filter_not(first_name="Bernardo").filter_not(last_name="Bernardo").find_all(callback="handle_all")
+            User.objects.filter_not(first_name="Bernardo").filter_not(last_name="Bernardo").find_all(callback=handle_all)
             # or
             User.objects.filter_not(first_name="Bernardo", starting_year__gt=2010).find_all(callback=handle_all)
 
