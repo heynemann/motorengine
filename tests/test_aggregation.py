@@ -148,3 +148,33 @@ class TestAggregation(AsyncTestCase):
 
         for state in results:
             expect(state.avg_pop).to_be_greater_than(2000000)
+
+    def test_can_average_city_population_by_raw_query(self):
+        City.objects.aggregate.raw([
+            {
+                '$group': {
+                    '_id': {'state': '$state', 'city': '$city'},
+                    'pop': {'$sum': '$pop'}
+                }
+            },
+            {
+                '$group': {
+                    '_id': '$_id.state',
+                    'avgCityPop': {
+                        '$avg': '$pop'
+                    }
+                }
+            }
+        ]).fetch(callback=self.stop)
+
+        results = self.wait()
+
+        expect(results).not_to_be_null()
+        expect(results).to_length(4)
+
+        states = [result._id for result in results]
+
+        expect(states).to_be_like(['ny', 'ca', 'wa', 'fl'])
+
+        for state in results:
+            expect(state.avgCityPop).to_be_greater_than(2000000)

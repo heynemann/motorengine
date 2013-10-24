@@ -96,6 +96,7 @@ class Aggregation(object):
         self.queryset = queryset
         self.pipeline = []
         self.ids = []
+        self.raw_query = None
 
     def get_field_name(self, field):
         if isinstance(field, six.string_types):
@@ -105,6 +106,10 @@ class Aggregation(object):
 
     def get_field(self, field):
         return field
+
+    def raw(self, steps):
+        self.raw_query = steps
+        return self
 
     def group_by(self, *args):
         self.pipeline.append(GroupBy(self, self.first_group_by, *args))
@@ -127,8 +132,9 @@ class Aggregation(object):
         if not '_id' in item:
             return
 
-        for id_name, id_value in item['_id'].items():
-            item[id_name] = id_value
+        if isinstance(item['_id'], (dict,)):
+            for id_name, id_value in list(item['_id'].items()):
+                item[id_name] = id_value
 
     def get_instance(self, item):
         return self.queryset.__klass__.from_son(item)
@@ -140,7 +146,7 @@ class Aggregation(object):
 
             results = []
             for item in arguments[0]['result']:
-                if isinstance(item['_id'], ObjectId):
+                if '_id' in item and isinstance(item['_id'], ObjectId):
                     results.append(self.get_instance(item))
                 else:
                     self.fill_ids(item)
@@ -166,6 +172,9 @@ class Aggregation(object):
         return SumAggregation(field, alias)
 
     def to_query(self):
+        if self.raw_query is not None:
+            return self.raw_query
+
         query = []
 
         for pipeline_step in self.pipeline:
