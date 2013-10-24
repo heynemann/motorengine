@@ -123,7 +123,9 @@ class TestQueryBuilder(AsyncTestCase):
         })
 
     def test_gets_proper_query_when_many_operators_with_and_first(self):
-        query = Q(last_name="Whatever") & ((Q(embedded__test__lte="Test") & Q(first_name="Someone")) | Q(first_name="Else"))
+        query = Q(last_name="Whatever") & (
+            (Q(embedded__test__lte="Test") & Q(first_name="Someone")) | Q(first_name="Else")
+        )
         query_result = query.to_query(User)
 
         expect(query_result).to_be_like({

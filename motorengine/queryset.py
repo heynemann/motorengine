@@ -330,6 +330,11 @@ class QuerySet(object):
             User.objects.order_by('first_name', direction=DESCENDING).find_all(callback=handle_all)
         '''
 
+        from motorengine.fields.base_field import BaseField
+
+        if isinstance(field_name, (BaseField, )):
+            field_name = field_name.name
+
         if field_name not in self.__klass__._fields:
             raise ValueError("Invalid order by field '%s': Field not found in '%s'." % (field_name, self.__klass__.__name__))
 
