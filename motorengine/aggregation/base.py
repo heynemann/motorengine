@@ -146,11 +146,11 @@ class Aggregation(object):
 
             results = []
             for item in arguments[0]['result']:
-                if '_id' in item and isinstance(item['_id'], ObjectId):
-                    results.append(self.get_instance(item))
-                else:
-                    self.fill_ids(item)
-                    results.append(edict(item))
+                #if '_id' in item and isinstance(item['_id'], ObjectId):
+                    #results.append(self.get_instance(item))
+                #else:
+                self.fill_ids(item)
+                results.append(edict(item))
 
             callback(results)
 
