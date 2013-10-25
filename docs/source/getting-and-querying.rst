@@ -44,7 +44,7 @@ Let's look at an example of querying for a more specific document. Say we want t
 
     .. testoutput:: querying_with_Q_and_or
 
-      {'$or': [{'last_update': None}, {'is_active': 1, 'last_update': {'$lt': datetime.datetime(2010, 1, 1, 0, 0)}}]}
+      {'$or': [{'last_update': None}, {'is_active': True, 'last_update': {'$lt': datetime.datetime(2010, 1, 1, 0, 0)}}]}
 
 Query Operators
 ---------------

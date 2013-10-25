@@ -9,9 +9,7 @@ class BooleanField(BaseField):
         super(BooleanField, self).__init__(*args, **kw)
 
     def to_son(self, value):
-        if bool(value):
-            return 1
-        return 0
+        return bool(value)
 
     def from_son(self, value):
-        return value == 1
+        return value
