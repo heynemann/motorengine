@@ -4,6 +4,7 @@
 import sys
 
 from tornado.concurrent import return_future
+from easydict import EasyDict as edict
 
 from motorengine import ASCENDING
 from motorengine.aggregation.base import Aggregation
@@ -138,6 +139,50 @@ class QuerySet(object):
             return
 
         self.coll(alias).insert(docs_to_insert, callback=self.handle_bulk_insert(documents, callback))
+
+    def handle_update_documents(self, callback):
+        def handle(*arguments, **kwargs):
+            if len(arguments) > 1 and arguments[1]:
+                raise arguments[1]
+
+            callback(edict({
+                "count": int(arguments[0]['n']),
+                "updated_existing": arguments[0]['updatedExisting']
+            }))
+
+        return handle
+
+    def transform_definition(self, definition):
+        from motorengine.fields.base_field import BaseField
+
+        result = {}
+
+        for key, value in definition.items():
+            if isinstance(key, (BaseField, )):
+                result[key.db_field] = value
+            else:
+                result[key] = value
+
+        return result
+
+    @return_future
+    def update(self, definition, callback=None, alias=None):
+        if callback is None:
+            raise RuntimeError("The callback argument is required")
+
+        definition = self.transform_definition(definition)
+
+        update_filters = {}
+        if self._filters:
+            update_filters = self.get_query_from_filters(self._filters)
+
+        update_arguments = dict(
+            spec=update_filters,
+            document={'$set': definition},
+            multi=True,
+            callback=self.handle_update_documents(callback)
+        )
+        self.coll(alias).update(**update_arguments)
 
     @return_future
     def delete(self, callback=None, alias=None):

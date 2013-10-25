@@ -214,6 +214,27 @@ class TestDocument(AsyncTestCase):
         expect(first_user.last_name).to_equal('Else')
         expect(first_user.email).to_equal("someone@gmail.com")
 
+    def test_can_find_with_multiple_filters(self):
+        User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
+        user = self.wait()
+
+        User.objects.create(email="someone@gmail.com", first_name="Someone", last_name="Else", callback=self.stop)
+        self.wait()
+
+        User.objects.create(email="someone@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
+        self.wait()
+
+        User.objects.filter(first_name="Bernardo").filter_not(email="someone@gmail.com").find_all(callback=self.stop)
+        users = self.wait()
+
+        expect(users).to_be_instance_of(list)
+        expect(users).to_length(1)
+
+        first_user = users[0]
+        expect(first_user.first_name).to_equal(user.first_name)
+        expect(first_user.last_name).to_equal(user.last_name)
+        expect(first_user.email).to_equal(user.email)
+
     def test_can_limit_number_of_documents(self):
         User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
         self.wait()
@@ -790,3 +811,40 @@ class TestDocument(AsyncTestCase):
 
         expect(loaded_tests).to_length(1)
         expect(loaded_tests[0]._id).to_equal(test._id)
+
+    def test_can_update_multiple_documents(self):
+        User.objects.create(email="email@gmail.com", first_name="First", last_name="Last2", callback=self.stop)
+        self.wait()
+
+        User.objects.create(email="email2@gmail.com", first_name="First2", last_name="Last2", callback=self.stop)
+        self.wait()
+        User.objects.create(email="email3@gmail.com", first_name="First3", last_name="Last3", callback=self.stop)
+        self.wait()
+        User.objects.create(email="email4@gmail.com", first_name="First4", last_name="Last4", callback=self.stop)
+        self.wait()
+
+        User.objects.filter(first_name__in=["First2", "First3"]).update({
+            User.first_name: "Second"
+        }, callback=self.stop)
+        result = self.wait()
+
+        expect(result.count).to_equal(2)
+        expect(result.updated_existing).to_be_true()
+
+        User.objects.filter(first_name="Second").count(callback=self.stop)
+        count = self.wait()
+
+        expect(count).to_equal(2)
+
+        User.objects.update({
+            User.last_name: "NewLast"
+        }, callback=self.stop)
+        result = self.wait()
+
+        expect(result.count).to_equal(4)
+        expect(result.updated_existing).to_be_true()
+
+        User.objects.filter(last_name="NewLast").count(callback=self.stop)
+        count = self.wait()
+
+        expect(count).to_equal(4)
