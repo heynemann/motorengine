@@ -417,7 +417,7 @@ class QuerySet(object):
 
             for doc in result:
                 if (lazy is not None and not lazy) or not doc.is_lazy:
-                    doc.load_references(callback=self.handle_find_all_auto_load_references(callback, result))
+                    doc.load_references(doc._fields, callback=self.handle_find_all_auto_load_references(callback, result))
                 else:
                     self.handle_find_all_auto_load_references(callback, result)()
 

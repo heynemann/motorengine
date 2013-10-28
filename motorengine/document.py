@@ -145,7 +145,7 @@ class BaseDocument(object):
         if callback is None:
             raise ValueError("Callback can't be None")
 
-        references = self.find_references(self, fields=fields)
+        references = self.find_references(document=self, fields=fields)
         reference_count = len(references)
 
         if not reference_count:
@@ -203,13 +203,13 @@ class BaseDocument(object):
         if self.is_list_field(field):
             for value in document._values.get(field_name):
                 if value:
-                    self.find_references(value, results)
+                    self.find_references(document=value, results=results)
 
     def find_embed_field(self, document, results, field_name, field):
         if self.is_embedded_field(field):
             value = document._values.get(field_name, None)
             if value:
-                self.find_references(value, results)
+                self.find_references(document=value, results=results)
 
     def get_field_value(self, name):
         if not name in self._fields:
