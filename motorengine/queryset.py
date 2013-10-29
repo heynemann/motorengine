@@ -84,8 +84,14 @@ class QuerySet(object):
 
         return handle
 
+    def update_field_on_save_values(self, document, creating):
+        for field_name, field in self.__klass__._fields.items():
+            if field.on_save is not None:
+                setattr(document, field_name, field.on_save(document, creating))
+
     def save(self, document, callback, alias=None):
         if self.validate_document(document):
+            self.update_field_on_save_values(document, document._id is not None)
             doc = document.to_son()
             if document._id is not None:
                 self.coll(alias).update({'_id': document._id}, doc, callback=self.handle_update(document, callback))

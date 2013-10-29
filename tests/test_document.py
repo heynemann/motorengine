@@ -864,3 +864,24 @@ class TestDocument(AsyncTestCase):
 
         expect(users).to_length(1)
 
+    def test_on_save_field(self):
+        class SizeDocument(Document):
+            items = ListField(IntField())
+            item_size = IntField(default=0, on_save=lambda doc, creating: len(doc.items))
+
+        SizeDocument.objects.create(items=[1, 2, 3], callback=self.stop)
+        doc = self.wait()
+
+        SizeDocument.objects.get(doc._id, callback=self.stop)
+        loaded = self.wait()
+
+        expect(loaded.item_size).to_equal(3)
+
+        loaded.items = [1, 2, 3, 4, 5]
+        loaded.save(callback=self.stop)
+        self.wait()
+
+        SizeDocument.objects.get(doc._id, callback=self.stop)
+        loaded = self.wait()
+
+        expect(loaded.item_size).to_equal(5)
