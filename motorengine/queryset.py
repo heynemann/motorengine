@@ -397,6 +397,10 @@ class QuerySet(object):
         '''
 
         from motorengine.fields.base_field import BaseField
+        from motorengine.fields.list_field import ListField
+
+        if isinstance(field_name, (ListField, )):
+            raise ValueError("Can't order by a list field. If you meant to order by the size of the list, please use either an Aggregation Pipeline query (look for Document.objects.aggregate) or create an IntField with the size of the list field in your Document.")
 
         if isinstance(field_name, (BaseField, )):
             field_name = field_name.name
