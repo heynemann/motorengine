@@ -15,7 +15,8 @@ class QuerySet(object):
     def __init__(self, klass):
         self.__klass__ = klass
         self._filters = {}
-        self._limit = 300
+        self._limit = None
+        self._skip = None
         self._order_fields = []
 
     @property
@@ -303,6 +304,12 @@ class QuerySet(object):
         if self._order_fields:
             find_arguments['sort'] = self._order_fields
 
+        if self._limit:
+            find_arguments['limit'] = self._limit
+
+        if self._skip:
+            find_arguments['skip'] = self._limit
+
         query_filters = self.get_query_from_filters(self._filters)
 
         return self.coll(alias).find(query_filters, **find_arguments)
@@ -350,6 +357,20 @@ class QuerySet(object):
             self._filters = QNot(Q(**kwargs))
 
         return self
+
+    def skip(self, skip):
+        '''
+        Skips N documents before returning in subsequent queries.
+
+        Usage::
+
+            User.objects.skip(20).limit(10).find_all(callback=handle_all)  # even if there are 100s of users,
+                                                                           # only users 20-30 will be returned
+        '''
+
+        self._skip = skip
+        return self
+
 
     def limit(self, limit):
         '''

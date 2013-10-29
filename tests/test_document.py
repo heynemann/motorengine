@@ -848,3 +848,19 @@ class TestDocument(AsyncTestCase):
         count = self.wait()
 
         expect(count).to_equal(4)
+
+    def test_skip(self):
+        User.objects.create(email="email@gmail.com", first_name="First", last_name="Last", callback=self.stop)
+        self.wait()
+        User.objects.create(email="email2@gmail.com", first_name="First2", last_name="Last2", callback=self.stop)
+        self.wait()
+        User.objects.create(email="email3@gmail.com", first_name="First3", last_name="Last3", callback=self.stop)
+        self.wait()
+        User.objects.create(email="email4@gmail.com", first_name="First4", last_name="Last4", callback=self.stop)
+        self.wait()
+
+        User.objects.order_by(User.email).skip(2).limit(1).find_all(callback=self.stop)
+        users = self.wait()
+
+        expect(users).to_length(1)
+
