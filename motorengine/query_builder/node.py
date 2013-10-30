@@ -89,11 +89,11 @@ class QNode(object):
     OR = 1
 
     def to_query(self, document):
-        query = self.accept(SimplificationVisitor())
-        query = query.accept(QueryCompilerVisitor(document))
+        query = self.accept(SimplificationVisitor(), document)
+        query = query.accept(QueryCompilerVisitor(document), document)
         return query
 
-    def accept(self, visitor):
+    def accept(self, visitor, document):
         raise NotImplementedError
 
     def _combine(self, other, operation):
@@ -137,10 +137,10 @@ class QCombination(QNode):
             else:
                 self.children.append(node)
 
-    def accept(self, visitor):
+    def accept(self, visitor, document):
         for i in range(len(self.children)):
             if isinstance(self.children[i], QNode):
-                self.children[i] = self.children[i].accept(visitor)
+                self.children[i] = self.children[i].accept(visitor, document)
 
         return visitor.visit_combination(self)
 
@@ -189,7 +189,7 @@ class Q(QNode):
     def __init__(self, **query):
         self.query = query
 
-    def accept(self, visitor):
+    def accept(self, visitor, document):
         return visitor.visit_query(self)
 
     @property
@@ -200,6 +200,9 @@ class Q(QNode):
 class QNot(QNode):
     def __init__(self, query):
         self.query = query
+
+    def accept(self, visitor, document):
+        return self.to_query(document)
 
     def to_query(self, document):
         query = self.query.to_query(document)

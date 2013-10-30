@@ -251,7 +251,7 @@ class TestQueryBuilder(AsyncTestCase):
 
         names = ["Someone", "John"]
 
-        query = ~Q(first_name__in=names)
+        query = ~Q(first_name__in=names) & Q(last_name="Heynemann")
 
         User.objects.filter(query).find_all(callback=self.stop)
         users = self.wait()
