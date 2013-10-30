@@ -245,3 +245,16 @@ class TestQueryBuilder(AsyncTestCase):
         query_result = query.to_query(User)
 
         expect(query_result).to_be_like({'whatever': {'$not': {'$in': ['Someone', 'John']}}})
+
+    def test_can_query_using_not_in_with_real_users(self):
+        self.create_test_users()
+
+        names = ["Someone", "John"]
+
+        query = ~Q(first_name__in=names)
+
+        User.objects.filter(query).find_all(callback=self.stop)
+        users = self.wait()
+
+        expect(users).to_length(1)
+        expect(users[0].first_name).to_equal("Bernardo")

@@ -332,10 +332,10 @@ class QuerySet(object):
 
         The available filter options are the same as used in MongoEngine.
         '''
-        from motorengine.query_builder.node import Q, QCombination
+        from motorengine.query_builder.node import Q, QCombination, QNot
         from motorengine.query_builder.transform import validate_fields
 
-        if arguments and len(arguments) == 1 and isinstance(arguments[0], (Q, QCombination)):
+        if arguments and len(arguments) == 1 and isinstance(arguments[0], (Q, QNot, QCombination)):
             self._filters = arguments[0]
         else:
             validate_fields(self.__klass__, kwargs)
