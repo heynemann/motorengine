@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = '0.7.1'
+__version__ = '0.7.2'
 
 try:
     from pymongo import ASCENDING, DESCENDING  # NOQA
@@ -17,7 +17,7 @@ try:
     )
 
     from motorengine.aggregation.base import Aggregation  # NOQA
-    from motorengine.query_builder.node import Q  # NOQA
+    from motorengine.query_builder.node import Q, QNot  # NOQA
 
 except ImportError:  # NOQA
     pass  # likely setup.py trying to import version
