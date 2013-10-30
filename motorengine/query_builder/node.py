@@ -117,6 +117,9 @@ class QNode(object):
     def __and__(self, other):
         return self._combine(other, self.AND)
 
+    def __invert__(self):
+        return QNot(self)
+
 
 class QCombination(QNode):
     """Represents the combination of several conditions by a given logical
