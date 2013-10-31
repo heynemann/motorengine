@@ -12,7 +12,7 @@ from motorengine import (
     EmbeddedDocumentField, ReferenceField, DESCENDING,
     URLField, DateTimeField, UUIDField, IntField
 )
-from motorengine.errors import InvalidDocumentError, LoadReferencesRequiredError
+from motorengine.errors import InvalidDocumentError, LoadReferencesRequiredError, UniqueKeyViolationError
 from tests import AsyncTestCase
 
 
@@ -885,3 +885,25 @@ class TestDocument(AsyncTestCase):
         loaded = self.wait()
 
         expect(loaded.item_size).to_equal(5)
+
+    def test_unique_field(self):
+        class UniqueFieldDocument(Document):
+            name = StringField(unique=True)
+
+        UniqueFieldDocument.objects.delete(callback=self.stop)
+        self.wait()
+
+        UniqueFieldDocument.ensure_index(callback=self.stop)
+        self.wait()
+
+        UniqueFieldDocument.objects.create(name="test", callback=self.stop)
+        self.wait()
+
+        try:
+            UniqueFieldDocument.objects.create(name="test", callback=self.stop)
+            self.wait()
+        except UniqueKeyViolationError:
+            err = sys.exc_info()[1]
+            expect(err).to_have_an_error_message_of('The index "test.UniqueFieldDocument.$name_1" was violated when trying to save this "UniqueFieldDocument" (error code: E11000).')
+        else:
+            assert False, "Should not have gotten this far."

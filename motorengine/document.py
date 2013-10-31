@@ -29,6 +29,11 @@ class BaseDocument(object):
                 ))
             self._values[key] = value
 
+    @classmethod
+    @return_future
+    def ensure_index(cls, callback=None):
+        cls.objects.ensure_index(callback=callback)
+
     @property
     def is_lazy(self):
         return self.__class__.__lazy__

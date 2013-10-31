@@ -67,6 +67,9 @@ class DocumentMetaClass(type):
         if not '__lazy__' in attrs:
             new_class.__lazy__ = True
 
+        if not '__alias__' in attrs:
+            new_class.__alias__ = None
+
         setattr(new_class, 'objects', classproperty(lambda *args, **kw: QuerySet(new_class)))
 
         return new_class

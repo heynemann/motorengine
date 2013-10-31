@@ -3,12 +3,14 @@
 
 import sys
 
+from pymongo.errors import DuplicateKeyError
 from tornado.concurrent import return_future
 from easydict import EasyDict as edict
 
 from motorengine import ASCENDING
 from motorengine.aggregation.base import Aggregation
 from motorengine.connection import get_connection
+from motorengine.errors import UniqueKeyViolationError
 
 
 class QuerySet(object):
@@ -23,9 +25,11 @@ class QuerySet(object):
     def is_lazy(self):
         return self.__klass__.__lazy__
 
-    def coll(self, alias):
+    def coll(self, alias=None):
         if alias is not None:
             conn = get_connection(alias=alias)
+        elif self.__klass__.__alias__ is not None:
+            conn = get_connection(alias=self.__klass__.__alias__)
         else:
             conn = get_connection()
 
@@ -68,7 +72,10 @@ class QuerySet(object):
     def handle_save(self, document, callback):
         def handle(*arguments, **kw):
             if len(arguments) > 1 and arguments[1]:
-                raise arguments[1]
+                if isinstance(arguments[1], (DuplicateKeyError, )):
+                    raise UniqueKeyViolationError.from_pymongo(arguments[1].message, self.__klass__)
+                else:
+                    raise arguments[1]
 
             document._id = arguments[0]
             callback(document)
@@ -501,3 +508,36 @@ class QuerySet(object):
     @property
     def aggregate(self):
         return Aggregation(self)
+
+    def handle_ensure_index(self, callback, created_indexes, total_indexes):
+        def handle(*arguments, **kw):
+            if len(arguments) > 1 and arguments[1]:
+                raise arguments[1]
+
+            created_indexes.append(arguments[0])
+
+            if len(created_indexes) < total_indexes:
+                return
+
+            callback(total_indexes)
+
+        return handle
+
+    @return_future
+    def ensure_index(self, callback):
+        indexes = []
+        for field_name, field in self.__klass__._fields.items():
+            if field.unique:
+                indexes.append(field.db_field)
+
+        created_indexes = []
+        for index in indexes:
+            self.coll().ensure_index(
+                index,
+                unique=True,
+                callback=self.handle_ensure_index(
+                    callback,
+                    created_indexes,
+                    len(indexes)
+                )
+            )
