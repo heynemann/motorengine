@@ -10,7 +10,7 @@ from preggy import expect
 from motorengine import (
     Document, StringField, BooleanField, ListField,
     EmbeddedDocumentField, ReferenceField, DESCENDING,
-    URLField, DateTimeField, UUIDField, IntField
+    URLField, DateTimeField, UUIDField, IntField, JsonField
 )
 from motorengine.errors import InvalidDocumentError, LoadReferencesRequiredError, UniqueKeyViolationError
 from tests import AsyncTestCase
@@ -907,3 +907,23 @@ class TestDocument(AsyncTestCase):
             expect(err).to_have_an_error_message_of('The index "test.UniqueFieldDocument.$name_1" was violated when trying to save this "UniqueFieldDocument" (error code: E11000).')
         else:
             assert False, "Should not have gotten this far."
+
+    def test_json_field_with_document(self):
+        class JSONFieldDocument(Document):
+            field = JsonField()
+
+        obj = [
+            {"a": 1},
+            {"b": 2}
+        ]
+
+        JSONFieldDocument.objects.create(field=obj, callback=self.stop)
+        doc = self.wait()
+
+        JSONFieldDocument.objects.get(doc._id, callback=self.stop)
+        loaded = self.wait()
+
+        expect(loaded.field).to_be_like([
+            {"a": 1},
+            {"b": 2}
+        ])
