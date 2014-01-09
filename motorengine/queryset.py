@@ -303,7 +303,7 @@ class QuerySet(object):
             raise RuntimeError("Either an id or a filter must be provided to get")
 
         if id is not None:
-            if isinstance(id, str):
+            if isinstance(id, str) or isinstance(id, unicode):
                 id = ObjectId(id)
             filters = {
                 "_id": id
