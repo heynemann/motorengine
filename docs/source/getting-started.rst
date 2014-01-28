@@ -255,12 +255,11 @@ Counting documents in collections
 .. testcode:: counting_instances
 
     def get_employees():
-      # return the first 10 employees ordered by last_name that joined after 2010
       Employee.objects.count(callback=handle_count)
 
     def handle_count(number_of_employees):
         try:
-            assert number_of_employees > 0
+            assert number_of_employees == 0
         finally:
             io_loop.stop()
 
