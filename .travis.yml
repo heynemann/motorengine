@@ -3,8 +3,11 @@ language: python
 python:
   - "2.7"
   - "3.3"
+  - "pypy"
+
+matrix:
   allow_failures:
-    - "pypy"
+    python: pypy
 
 install:
   - pushd .
