@@ -246,7 +246,7 @@ Counting documents in collections
         last_name = StringField(required=True)
 
     class Employee(User):
-        __collection__ = "DocStringEmployee"
+        __collection__ = "DocStringCountInstancesEmployee"
         employee_id = IntField(required=True)
 
     io_loop = tornado.ioloop.IOLoop.instance()
