@@ -12,6 +12,7 @@ from motorengine.aggregation.base import Aggregation
 from motorengine.connection import get_connection
 from motorengine.errors import UniqueKeyViolationError
 
+DEFAULT_LIMIT = 1000
 
 class QuerySet(object):
     def __init__(self, klass):
@@ -488,6 +489,8 @@ class QuerySet(object):
 
         if self._limit is not None:
             to_list_arguments['length'] = self._limit
+        else:
+            to_list_arguments['length'] = DEFAULT_LIMIT
 
         cursor = self._get_find_cursor(alias=alias)
 
