@@ -164,7 +164,7 @@ class Q(QNode):
             age = IntField()
 
         io_loop = tornado.ioloop.IOLoop.instance()
-        connect("test", host="localhost", port=4445, io_loop=io_loop)
+        connect("test", host="localhost", port=27017, io_loop=io_loop)
 
     .. testcode:: querying_with_Q
 

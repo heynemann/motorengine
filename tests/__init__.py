@@ -12,7 +12,7 @@ class AsyncTestCase(TornadoAsyncTestCase):
     def setUp(self, auto_connect=True):
         super(AsyncTestCase, self).setUp()
         if auto_connect:
-            self.db = connect("test", host="localhost", port=4445, io_loop=self.io_loop)
+            self.db = connect("test", host="localhost", port=27017, io_loop=self.io_loop)
 
     def tearDown(self):
         motorengine.connection.cleanup()

@@ -27,7 +27,7 @@ Connecting to a Database
     # instantiate tornado server and apps so we get io_loop instance
 
     io_loop = tornado.ioloop.IOLoop.instance()
-    connect("test", host="localhost", port=4445, io_loop=io_loop)  # you only need to keep track of the
+    connect("test", host="localhost", port=27017, io_loop=io_loop)  # you only need to keep track of the
                                                                    # DB instance if you connect to multiple databases.
 
 Modeling a Document
@@ -70,7 +70,7 @@ Due to the asynchronous nature of MotorEngine, you are required to handle saving
         employee_id = IntField(required=True)
 
     io_loop = tornado.ioloop.IOLoop.instance()
-    connect("test", host="localhost", port=4445, io_loop=io_loop)
+    connect("test", host="localhost", port=27017, io_loop=io_loop)
 
 .. testcode:: creating_new_instance
 
@@ -109,7 +109,7 @@ Updating an instance is as easy as changing a property and calling save again:
         employee_id = IntField(required=True)
 
     io_loop = tornado.ioloop.IOLoop.instance()
-    connect("test", host="localhost", port=4445, io_loop=io_loop)
+    connect("test", host="localhost", port=27017, io_loop=io_loop)
 
 .. testcode:: updating_instance
 
@@ -152,7 +152,7 @@ To get an object by id, you must specify the ObjectId that the instance got crea
         employee_id = IntField(required=True)
 
     io_loop = tornado.ioloop.IOLoop.instance()
-    connect("test", host="localhost", port=4445, io_loop=io_loop)
+    connect("test", host="localhost", port=27017, io_loop=io_loop)
 
 .. testcode:: getting_instance
 
@@ -209,11 +209,15 @@ All of these options can be combined to really tune how to get items:
         employee_id = IntField(required=True)
 
     io_loop = tornado.ioloop.IOLoop.instance()
-    connect("test", host="localhost", port=4445, io_loop=io_loop)
+    connect("test", host="localhost", port=27017, io_loop=io_loop)
 
 .. testcode:: filtering_instances
 
-    def get_employees():
+    def create_employee():
+        emp = Employee(first_name="Bernardo", last_name="Heynemann", employee_id=1538)
+        emp.save(handle_employee_saved)
+
+    def handle_employee_saved(emp):
       # return the first 10 employees ordered by last_name that joined after 2010
       Employee.objects \
               .limit(10) \
@@ -228,7 +232,7 @@ All of these options can be combined to really tune how to get items:
         finally:
             io_loop.stop()
 
-    io_loop.add_timeout(1, get_employees)
+    io_loop.add_timeout(1, create_employee)
     io_loop.start()
 
 Counting documents in collections
@@ -250,7 +254,7 @@ Counting documents in collections
         employee_id = IntField(required=True)
 
     io_loop = tornado.ioloop.IOLoop.instance()
-    connect("test", host="localhost", port=4445, io_loop=io_loop)
+    connect("test", host="localhost", port=27017, io_loop=io_loop)
 
 .. testcode:: counting_instances
 

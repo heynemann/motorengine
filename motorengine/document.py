@@ -108,7 +108,7 @@ class BaseDocument(object):
                 name = StringField()
 
             io_loop = tornado.ioloop.IOLoop.instance()
-            connect("test", host="localhost", port=4445, io_loop=io_loop)
+            connect("test", host="localhost", port=27017, io_loop=io_loop)
 
         .. testcode:: saving_delete_one
 

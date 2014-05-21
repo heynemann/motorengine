@@ -20,7 +20,7 @@ The easiest way of creating a new instance of a document is using `Document.obje
             name = StringField()
 
         io_loop = tornado.ioloop.IOLoop.instance()
-        connect("test", host="localhost", port=4445, io_loop=io_loop)
+        connect("test", host="localhost", port=27017, io_loop=io_loop)
 
     .. testcode:: saving_save
 
@@ -54,7 +54,7 @@ To update an instance, just make the needed changes to an instance and then call
             name = StringField()
 
         io_loop = tornado.ioloop.IOLoop.instance()
-        connect("test", host="localhost", port=4445, io_loop=io_loop)
+        connect("test", host="localhost", port=27017, io_loop=io_loop)
 
     .. testcode:: saving_update
 
@@ -103,7 +103,7 @@ MotorEngine supports bulk insertion of documents by calling the `bulk_insert` me
         name = StringField()
 
     io_loop = tornado.ioloop.IOLoop.instance()
-    connect("test", host="localhost", port=4445, io_loop=io_loop)
+    connect("test", host="localhost", port=27017, io_loop=io_loop)
 
 .. testcode:: saving_bulk
 

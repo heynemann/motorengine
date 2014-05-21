@@ -23,8 +23,7 @@ class MotorDocument(motorengine.Document):
     byte = motorengine.BinaryField()
 
 
-class TestStringField(BaseIntegrationTest):
-    @gen_test
+class TestBinaryField(BaseIntegrationTest):
     def test_can_integrate(self):
         mongo_document = MongoDocument(byte=six.b("some_string")).save()
 

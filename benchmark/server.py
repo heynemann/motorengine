@@ -55,7 +55,7 @@ if __name__ == "__main__":
     application.listen(8888)
     io_loop = tornado.ioloop.IOLoop.instance()
 
-    motorengine.connect("test", host="localhost", port=4445, io_loop=io_loop)
-    mongoengine.connect("test", host="localhost", port=4445)
+    motorengine.connect("test", host="localhost", port=27017, io_loop=io_loop)
+    mongoengine.connect("test", host="localhost", port=27017)
 
     io_loop.start()

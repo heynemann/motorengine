@@ -32,7 +32,7 @@ Let's say we need an article model with title, description and published_date:
     io_loop = tornado.ioloop.IOLoop.instance()
 
     # you only need to keep track of the DB instance if you connect to multiple databases.
-    connect("connecting-test", host="localhost", port=4445, io_loop=io_loop)
+    connect("connecting-test", host="localhost", port=27017, io_loop=io_loop)
 
 .. testcode:: modeling_1
 
@@ -54,7 +54,7 @@ That allows us to create, update, query and remove articles with extreme ease:
     io_loop = tornado.ioloop.IOLoop.instance()
 
     # you only need to keep track of the DB instance if you connect to multiple databases.
-    connect("connecting-test", host="localhost", port=4445, io_loop=io_loop)
+    connect("connecting-test", host="localhost", port=27017, io_loop=io_loop)
 
     class Article(Document):
         __collection__ = "ModelingArticles2"

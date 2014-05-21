@@ -904,7 +904,7 @@ class TestDocument(AsyncTestCase):
             self.wait()
         except UniqueKeyViolationError:
             err = sys.exc_info()[1]
-            expect(err).to_have_an_error_message_of('The index "test.UniqueFieldDocument.$name_1" was violated when trying to save this "UniqueFieldDocument" (error code: E11000).')
+            expect(err).to_have_an_error_message_of('The index "caused" was violated when trying to save this "UniqueFieldDocument" (error code: insertDocument).')
         else:
             assert False, "Should not have gotten this far."
 

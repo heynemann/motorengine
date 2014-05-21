@@ -8,7 +8,7 @@ Simple Connection
 
 MotorEngine supports connecting to the database using a myriad of options via the `connect` method.
 
-.. autofunction:: motorengine.connection.connect(db, host="localhost", port=4445, io_loop=io_loop)
+.. autofunction:: motorengine.connection.connect(db, host="localhost", port=27017, io_loop=io_loop)
   :noindex:
 
 .. testsetup:: connecting_connecting
@@ -24,7 +24,7 @@ MotorEngine supports connecting to the database using a myriad of options via th
     io_loop = tornado.ioloop.IOLoop.instance()
 
     # you only need to keep track of the DB instance if you connect to multiple databases.
-    connect("connecting-test", host="localhost", port=4445, io_loop=io_loop)
+    connect("connecting-test", host="localhost", port=27017, io_loop=io_loop)
 
 Replica Sets
 ------------
@@ -52,7 +52,7 @@ You also need to specify the name of the Replica Set in the `replicaSet` paramet
 Multiple Databases
 ------------------
 
-.. autofunction:: motorengine.connection.connect(db, alias="db1", host="localhost", port=4445, io_loop=io_loop)
+.. autofunction:: motorengine.connection.connect(db, alias="db1", host="localhost", port=27017, io_loop=io_loop)
   :noindex:
 
 Connecting to multiple databases is as simple as specifying a different alias to each connection.
@@ -77,8 +77,8 @@ Let's say you need to connect to an users and a posts databases:
 
     io_loop = tornado.ioloop.IOLoop.instance()
 
-    connect("posts", host="localhost", port=4445, io_loop=io_loop)                 # the posts database is the default
-    connect("users", alias="users", host="localhost", port=4445, io_loop=io_loop)  # the users database uses an alias
+    connect("posts", host="localhost", port=27017, io_loop=io_loop)                 # the posts database is the default
+    connect("users", alias="users", host="localhost", port=27017, io_loop=io_loop)  # the users database uses an alias
 
     # now when querying for users we'll just specify the alias we want to use
     User.objects.find_all(alias="users")
