@@ -2,24 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from motorengine.fields.base_field import BaseField
-
-try:
-    from ujson import loads, dumps
-
-    def serialize(value):
-        return dumps(value)
-
-    def deserialize(value):
-        return loads(value)
-except ImportError:
-    from json import loads, dumps
-    from bson import json_util
-
-    def serialize(value):
-        return dumps(value, default=json_util.default)
-
-    def deserialize(value):
-        return loads(value, object_hook=json_util.object_hook)
+from motorengine.utils import serialize, deserialize
 
 
 class JsonField(BaseField):

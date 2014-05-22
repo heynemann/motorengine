@@ -13,6 +13,8 @@ AUTHORIZED_FIELDS = ['_id', '_values']
 
 class BaseDocument(object):
     def __init__(self, *args, **kw):
+        from motorengine.fields.dynamic_field import DynamicField
+
         self._id = kw.pop('_id', None)
         self._values = {}
 
@@ -24,9 +26,7 @@ class BaseDocument(object):
 
         for key, value in kw.items():
             if key not in self._db_field_map:
-                raise ValueError("Error creating document %s: Invalid property '%s'." % (
-                    self.__class__.__name__, key
-                ))
+                self._fields[key] = DynamicField(db_field="dynamic_field_%s" % key)
             self._values[key] = value
 
     @classmethod

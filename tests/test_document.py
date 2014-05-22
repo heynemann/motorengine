@@ -63,24 +63,6 @@ class TestDocument(AsyncTestCase):
     def test_has_proper_collection(self):
         assert User.__collection__ == 'User'
 
-    def test_setting_invalid_property_raises(self):
-        try:
-            User(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", wrong_property="value")
-        except ValueError:
-            err = sys.exc_info()
-            expect(err[1]).to_have_an_error_message_of("Error creating document User: Invalid property 'wrong_property'.")
-        else:
-            assert False, "Should not have gotten this far"
-
-        user = User(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann")
-        try:
-            user.invalid_property = "a"
-        except ValueError:
-            err = sys.exc_info()
-            expect(err[1]).to_have_an_error_message_of("Error updating property: Invalid property 'invalid_property'.")
-        else:
-            assert False, "Should not have gotten this far"
-
     def test_can_create_new_instance(self):
         user = User(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann")
         user.save(callback=self.stop)
@@ -927,3 +909,25 @@ class TestDocument(AsyncTestCase):
             {"a": 1},
             {"b": 2}
         ])
+
+    def test_dynamic_fields(self):
+        class DynamicFieldDocument(Document):
+            pass
+
+        obj = {
+            "a": 1,
+            "b": 2
+        }
+
+        DynamicFieldDocument.objects.create(callback=self.stop, **obj)
+        doc = self.wait()
+
+        expect(doc._id).not_to_be_null()
+        expect(doc.a).to_equal(1)
+        expect(doc.b).to_equal(2)
+
+        DynamicFieldDocument.objects.get(doc._id, self.stop)
+        loaded_document = self.wait()
+
+        expect(loaded_document.a).to_equal(1)
+        expect(loaded_document.b).to_equal(2)

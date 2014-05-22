@@ -4,6 +4,25 @@
 import sys
 
 
+try:
+    from ujson import loads, dumps
+
+    def serialize(value):
+        return dumps(value)
+
+    def deserialize(value):
+        return loads(value)
+except ImportError:
+    from json import loads, dumps
+    from bson import json_util
+
+    def serialize(value):
+        return dumps(value, default=json_util.default)
+
+    def deserialize(value):
+        return loads(value, object_hook=json_util.object_hook)
+
+
 def get_class(module_name, klass=None):
     if '.' not in module_name and klass is None:
         raise ImportError("Can't find class %s." % module_name)
