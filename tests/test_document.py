@@ -912,7 +912,9 @@ class TestDocument(AsyncTestCase):
 
     def test_dynamic_fields(self):
         class DynamicFieldDocument(Document):
-            pass
+            __collection__ = "TestDynamicFieldDocument"
+
+        self.drop_coll(DynamicFieldDocument.__collection__)
 
         obj = {
             "a": 1,
@@ -931,3 +933,63 @@ class TestDocument(AsyncTestCase):
 
         expect(loaded_document.a).to_equal(1)
         expect(loaded_document.b).to_equal(2)
+
+    def test_dynamic_fields_when_saving(self):
+        class DynamicFieldDocument(Document):
+            __collection__ = "TestDynamicFieldDocumentWhenSaving"
+
+        self.drop_coll(DynamicFieldDocument.__collection__)
+
+        doc = DynamicFieldDocument()
+        doc.a = 1
+        doc.b = 2
+        doc.save(callback=self.stop)
+        doc = self.wait()
+
+        expect(doc._id).not_to_be_null()
+        expect(doc.a).to_equal(1)
+        expect(doc.b).to_equal(2)
+
+        DynamicFieldDocument.objects.get(doc._id, self.stop)
+        loaded_document = self.wait()
+
+        expect(loaded_document.a).to_equal(1)
+        expect(loaded_document.b).to_equal(2)
+
+    def test_dynamic_fields_multiple_value(self):
+        class DynamicFieldDocument(Document):
+            __collection__ = "TestDynamicFieldDocumentMultipleValue"
+
+        self.drop_coll(DynamicFieldDocument.__collection__)
+
+        doc = DynamicFieldDocument()
+        doc.a = [1, 2, 3, 4]
+        doc.save(callback=self.stop)
+        doc = self.wait()
+
+        expect(doc._id).not_to_be_null()
+        expect(doc.a).to_be_like([1, 2, 3, 4])
+
+        DynamicFieldDocument.objects.get(a=[1, 2, 3, 4], callback=self.stop)
+        loaded_document = self.wait()
+
+        expect(loaded_document._id).to_equal(doc._id)
+
+        DynamicFieldDocument.objects.get(a=1, callback=self.stop)
+        loaded_document = self.wait()
+
+        expect(loaded_document._id).to_equal(doc._id)
+
+    def test_can_query_by_elem_match(self):
+        class ElemMatchDocument(Document):
+            items = ListField(IntField())
+
+        self.drop_coll(ElemMatchDocument.__collection__)
+
+        ElemMatchDocument.objects.create(items=[1, 2, 3, 4], callback=self.stop)
+        doc = self.wait()
+
+        ElemMatchDocument.objects.get(items=1, callback=self.stop)
+        loaded_document = self.wait()
+
+        expect(loaded_document._id).to_equal(doc._id)

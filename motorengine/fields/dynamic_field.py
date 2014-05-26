@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from motorengine.fields.base_field import BaseField
-from motorengine.utils import serialize, deserialize
 
 
 class DynamicField(BaseField):
@@ -12,10 +11,12 @@ class DynamicField(BaseField):
 
     @property
     def name(self):
-        return self.db_field.replace('dynamic_field_', '')
+        return self.db_field.lstrip('_')
 
-    def from_son(self, value):
-        return deserialize(value)
+    def to_query(self, value):
+        if isinstance(value, (tuple, set, list)):
+            return {
+                "$all": value
+            }
 
-    def to_son(self, value):
-        return serialize(value)
+        return value

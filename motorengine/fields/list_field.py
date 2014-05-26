@@ -47,7 +47,7 @@ class ListField(BaseField):
 
     def to_query(self, value):
         if not isinstance(value, (tuple, set, list)):
-            value = [value]
+            return value
 
         return {
             "$all": value

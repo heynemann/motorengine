@@ -26,7 +26,7 @@ class BaseDocument(object):
 
         for key, value in kw.items():
             if key not in self._db_field_map:
-                self._fields[key] = DynamicField(db_field="dynamic_field_%s" % key)
+                self._fields[key] = DynamicField(db_field="_%s" % key)
             self._values[key] = value
 
     @classmethod
@@ -251,8 +251,10 @@ class BaseDocument(object):
         return object.__getattribute__(self, name)
 
     def __setattr__(self, name, value):
+        from motorengine.fields.dynamic_field import DynamicField
+
         if name not in AUTHORIZED_FIELDS and name not in self._fields:
-            raise ValueError("Error updating property: Invalid property '%s'." % name)
+            self._fields[name] = DynamicField(db_field="_%s" % name)
 
         if name in self._fields:
             self._values[name] = value
