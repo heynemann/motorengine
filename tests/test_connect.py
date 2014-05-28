@@ -36,3 +36,11 @@ class TestConnect(AsyncTestCase):
             expect(str(exc_info)).to_include('the replicaSet keyword parameter is required')
         else:
             assert False, "Should not have gotten this far"
+
+    def test_can_connect_via_uri(self):
+        db = connect('mongodb://localhost:27017/test', io_loop=self.io_loop)
+
+        args, kwargs = self.exec_async(db.ping)
+        ping_result = args[0]['ok']
+        expect(ping_result).to_equal(1.0)
+ 

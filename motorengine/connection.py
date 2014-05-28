@@ -115,8 +115,18 @@ def connect(db, alias=DEFAULT_CONNECTION_NAME, **kwargs):
     Extra keyword-arguments are passed to Motor when connecting to the database.
     """
     global _connections
+
+    # allows first arg to be a uri
+    # (does not support replica sets for this)
+    name = db.split('/')[-1]
+    if name != db:
+        kwargs['host'] = db
+        db = name
+        
     if alias not in _connections:
         kwargs['name'] = db
         register_connection(db, alias, **kwargs)
 
     return get_connection(alias, db=db)
+
+    
