@@ -351,10 +351,16 @@ class QuerySet(object):
         from motorengine.query_builder.transform import validate_fields
 
         if arguments and len(arguments) == 1 and isinstance(arguments[0], (Q, QNot, QCombination)):
-            self._filters = arguments[0]
+            if self._filters:
+                self._filters = self._filters & arguments[0]
+            else:
+                self._filters = arguments[0]
         else:
             validate_fields(self.__klass__, kwargs)
-            self._filters = Q(**kwargs)
+            if self._filters:
+                self._filters = self._filters & Q(**kwargs)
+            else:
+                self._filters = Q(**kwargs)
 
         return self
 

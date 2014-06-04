@@ -206,16 +206,26 @@ class TestDocument(AsyncTestCase):
         User.objects.create(email="someone@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
         self.wait()
 
+        User.objects.create(email="other@gmail.com", first_name="Bernardo", last_name="Silva", callback=self.stop)
+        last_user = self.wait()
+
         User.objects.filter(first_name="Bernardo").filter_not(email="someone@gmail.com").find_all(callback=self.stop)
         users = self.wait()
 
         expect(users).to_be_instance_of(list)
-        expect(users).to_length(1)
+        expect(users).to_length(2)
 
         first_user = users[0]
         expect(first_user.first_name).to_equal(user.first_name)
         expect(first_user.last_name).to_equal(user.last_name)
         expect(first_user.email).to_equal(user.email)
+
+        User.objects.filter(last_name="Silva").filter(first_name="Bernardo").find_all(callback=self.stop)
+        users = self.wait()
+
+        expect(users).to_be_instance_of(list)
+        expect(users).to_length(1)
+        expect(users[0]._id).to_equal(last_user._id)
 
     def test_can_limit_number_of_documents(self):
         User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
