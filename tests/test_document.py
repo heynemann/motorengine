@@ -980,6 +980,28 @@ class TestDocument(AsyncTestCase):
 
         expect(loaded_document._id).to_equal(doc._id)
 
+    def test_dynamic_fields_query(self):
+        class DynamicFieldDocument(Document):
+            __collection__ = "TestDynamicFieldDocumentQuery"
+
+        self.drop_coll(DynamicFieldDocument.__collection__)
+
+        obj = {
+            "a": 1,
+            "b": 2
+        }
+
+        DynamicFieldDocument.objects.create(callback=self.stop, **obj)
+        doc = self.wait()
+
+        expect(doc._id).not_to_be_null()
+        expect(doc.a).to_equal(1)
+
+        DynamicFieldDocument.objects.filter(**obj).count(callback=self.stop)
+        document_count = self.wait()
+
+        expect(document_count).to_equal(1)
+
     def test_can_query_by_elem_match(self):
         class ElemMatchDocument(Document):
             items = ListField(IntField())

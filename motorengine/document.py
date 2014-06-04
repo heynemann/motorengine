@@ -272,16 +272,19 @@ class BaseDocument(object):
     @classmethod
     def get_fields(cls, name, fields=None):
         from motorengine import EmbeddedDocumentField
+        from motorengine.fields.dynamic_field import DynamicField
 
         if fields is None:
             fields = []
 
         if not '.' in name:
-            fields.append(cls._fields.get(name, name))
+            dyn_field = DynamicField(db_field="_%s" % name)
+            fields.append(cls._fields.get(name, dyn_field))
             return fields
 
         field_values = name.split('.')
-        obj = cls._fields.get(field_values[0], field_values[0])
+        dyn_field = DynamicField(db_field="_%s" % field_values[0])
+        obj = cls._fields.get(field_values[0], dyn_field)
         fields.append(obj)
 
         if isinstance(obj, (EmbeddedDocumentField, )):

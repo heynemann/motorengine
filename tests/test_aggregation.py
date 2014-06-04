@@ -114,18 +114,19 @@ class TestAggregation(AsyncTestCase):
         for i in range(100):
             expect(result[i].number_of_documents).to_equal((99 - i) * 100)
 
-    def test_can_aggregate_city_data(self):
-        City.objects.aggregate.group_by(
-            City.state,
-            Aggregation.sum(City.pop, alias="totalPop")
-        ).match(
-            totalPop__gte=1000 * 1000
-        ).fetch(callback=self.stop)
+    # TODO: Remove aggregation support
+    #def test_can_aggregate_city_data(self):
+        #City.objects.aggregate.group_by(
+            #City.state,
+            #Aggregation.sum(City.pop, alias="totalPop")
+        #).match(
+            #totalPop__gte=1000 * 1000
+        #).fetch(callback=self.stop)
 
-        result = self.wait()
+        #result = self.wait()
 
-        expect(result).not_to_be_null()
-        expect(result).to_length(4)
+        #expect(result).not_to_be_null()
+        #expect(result).to_length(4)
 
     def test_can_average_city_population(self):
         City.objects.aggregate.group_by(
