@@ -132,7 +132,12 @@ class BaseDocument(object):
 
     def handle_load_reference(self, callback, references, reference_count, values_collection, field_name):
         def handle(*args, **kw):
-            values_collection[field_name] = args[0]
+
+            if isinstance(values_collection, tuple) :
+                real_collection, idx = values_collection
+                real_collection[field_name][idx] = args[0]
+            else:
+                values_collection[field_name] = args[0]
 
             if reference_count > 0:
                 references.pop()
@@ -140,7 +145,7 @@ class BaseDocument(object):
             if len(references) == 0:
                 callback({
                     'loaded_reference_count': reference_count,
-                    'loaded_values': values_collection
+                    'loaded_values': values_collection[0] if isinstance(values_collection, tuple) else values_collection
                 })
 
         return handle
@@ -206,9 +211,21 @@ class BaseDocument(object):
 
     def find_list_field(self, document, results, field_name, field):
         if self.is_list_field(field):
-            for value in document._values.get(field_name):
-                if value:
-                    self.find_references(document=value, results=results)
+            # check ListField's `base_field`
+            if self.is_reference_field(field._base_field) :
+                idx = 0
+                for value in document._values.get(field_name):
+                    results.append([
+                        field._base_field.reference_type.objects.get,
+                        value,
+                        (document._values, idx),
+                        field_name
+                    ])
+                    idx += 1
+            else:
+                for value in document._values.get(field_name):
+                    if isinstance(value, Document):
+                        self.find_references(document=value, results=results)
 
     def find_embed_field(self, document, results, field_name, field):
         if self.is_embedded_field(field):
