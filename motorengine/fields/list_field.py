@@ -32,6 +32,11 @@ class ListField(BaseField):
         self._base_field = base_field
 
     def validate(self, value):
+        if value is None:
+            if self.required:
+                return False
+            return True
+
         for item in value:
             if not self._base_field.validate(item):
                 return False
