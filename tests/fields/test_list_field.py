@@ -42,3 +42,10 @@ class TestListField(AsyncTestCase):
 
         expect(field.validate(["1", "2", "3"])).to_be_true()
         expect(field.validate(["1", 2, "3"])).to_be_false()
+
+    def test_validate_none(self):
+        field = ListField(StringField())
+        expect(field.validate(None)).to_be_true()
+
+        field = ListField(StringField(), required=True)
+        expect(field.validate(None)).to_be_false()
