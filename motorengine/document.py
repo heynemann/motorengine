@@ -27,7 +27,7 @@ class BaseDocument(object):
         for key, value in kw.items():
             if key not in self._db_field_map:
                 self._fields[key] = DynamicField(db_field="_%s" % key)
-            self._values[key] = value
+            self._values[self._db_field_map[key]] = value
 
     @classmethod
     @return_future
@@ -241,7 +241,7 @@ class BaseDocument(object):
             ))
 
         field = self._fields[name]
-        value = field.get_value(self._values.get(name, None))
+        value = field.get_value(self._values.get(field.db_field, None))
 
         return value
 
@@ -253,7 +253,7 @@ class BaseDocument(object):
         if name in self._fields:
             field = self._fields[name]
             is_reference_field = self.is_reference_field(field)
-            value = field.get_value(self._values.get(name, None))
+            value = field.get_value(self._values.get(field.db_field, None))
 
             if is_reference_field and value is not None and not isinstance(value, field.reference_type):
                 message = "The property '%s' can't be accessed before calling 'load_references'" + \
@@ -274,7 +274,8 @@ class BaseDocument(object):
             self._fields[name] = DynamicField(db_field="_%s" % name)
 
         if name in self._fields:
-            self._values[name] = value
+            field = self._fields[name]
+            self._values[field.db_field] = value
             return
 
         object.__setattr__(self, name, value)
