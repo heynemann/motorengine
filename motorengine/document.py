@@ -130,14 +130,14 @@ class BaseDocument(object):
         '''
         self.objects.remove(instance=self, callback=callback, alias=alias)
 
-    def handle_load_reference(self, callback, references, reference_count, values_collection, field_name):
+    def handle_load_reference(self, callback, references, reference_count, values_collection, field):
         def handle(*args, **kw):
 
             if isinstance(values_collection, tuple) :
                 real_collection, idx = values_collection
-                real_collection[field_name][idx] = args[0]
+                real_collection[field.db_field][idx] = args[0]
             else:
-                values_collection[field_name] = args[0]
+                values_collection[field.db_field] = args[0]
 
             if reference_count > 0:
                 references.pop()
@@ -165,7 +165,7 @@ class BaseDocument(object):
             })
             return
 
-        for dereference_function, document_id, values_collection, field_name in references:
+        for dereference_function, document_id, values_collection, field in references:
             dereference_function(
                 document_id,
                 callback=self.handle_load_reference(
@@ -173,7 +173,7 @@ class BaseDocument(object):
                     references=references,
                     reference_count=reference_count,
                     values_collection=values_collection,
-                    field_name=field_name
+                    field=field
                 )
             )
 
@@ -194,7 +194,6 @@ class BaseDocument(object):
             self.find_reference_field(document, results, field_name, field)
             self.find_list_field(document, results, field_name, field)
             self.find_embed_field(document, results, field_name, field)
-
         return results
 
     def find_reference_field(self, document, results, field_name, field):
@@ -206,7 +205,7 @@ class BaseDocument(object):
                     field.reference_type.objects.get,
                     value,
                     document._values,
-                    field_name
+                    field
                 ])
 
     def find_list_field(self, document, results, field_name, field):
@@ -214,12 +213,12 @@ class BaseDocument(object):
             # check ListField's `base_field`
             if self.is_reference_field(field._base_field) :
                 idx = 0
-                for value in document._values.get(field_name):
+                for value in document._values.get(field.db_field, []):
                     results.append([
                         field._base_field.reference_type.objects.get,
                         value,
                         (document._values, idx),
-                        field_name
+                        field
                     ])
                     idx += 1
             else:
