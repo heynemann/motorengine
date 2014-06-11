@@ -26,7 +26,7 @@ class BaseDocument(object):
 
         for key, value in kw.items():
             if key not in self._db_field_map:
-                self._fields[key] = DynamicField(db_field="_%s" % key)
+                self._fields[key] = DynamicField(db_field="_%s" % key.lstrip('_'))
             self._values[key] = value
 
     @classmethod
