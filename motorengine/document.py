@@ -35,6 +35,10 @@ class BaseDocument(object):
         cls.objects.ensure_index(callback=callback)
 
     @property
+    def id(self):
+        return self._id
+
+    @property
     def is_lazy(self):
         return self.__class__.__lazy__
 
