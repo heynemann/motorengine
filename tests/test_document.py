@@ -891,14 +891,10 @@ class TestDocument(AsyncTestCase):
         UniqueFieldDocument.objects.create(name="test", callback=self.stop)
         self.wait()
 
-        try:
+        msg = 'The index "test.UniqueFieldDocument.$name_1" was violated when trying to save this "UniqueFieldDocument" (error code: E11000).'
+        with expect.error_to_happen(UniqueKeyViolationError, message="msg"):
             UniqueFieldDocument.objects.create(name="test", callback=self.stop)
             self.wait()
-        except UniqueKeyViolationError:
-            err = sys.exc_info()[1]
-            expect(err).to_have_an_error_message_of('The index "caused" was violated when trying to save this "UniqueFieldDocument" (error code: insertDocument).')
-        else:
-            assert False, "Should not have gotten this far."
 
     def test_json_field_with_document(self):
         class JSONFieldDocument(Document):
