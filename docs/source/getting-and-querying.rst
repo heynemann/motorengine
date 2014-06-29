@@ -38,13 +38,16 @@ Let's look at an example of querying for a more specific document. Say we want t
 
         query_result = query.to_query(User)
 
-        print(query_result)
+        # the resulting query should be similar to:
+        # {'$or': [{'last_update': None}, {'is_active': True, 'last_update': {'$lt': datetime.datetime(2010, 1, 1, 0, 0)}}]}
 
-    The resulting query is:
+        assert '$or' in query_result
 
-    .. testoutput:: querying_with_Q_and_or
-
-      {'$or': [{'last_update': None}, {'is_active': True, 'last_update': {'$lt': datetime.datetime(2010, 1, 1, 0, 0)}}]}
+        or_query = query_result['$or']
+        assert len(or_query) == 2
+        assert 'last_update' in or_query[0]
+        assert 'is_active' in or_query[1]
+        assert 'last_update' in or_query[1]
 
 Query Operators
 ---------------

@@ -13,6 +13,8 @@ tests_require = [
     'ipdb',
     'coveralls',
     'mongoengine',
+    'docutils',
+    'jinja2',
     'sphinx',
 ]
 

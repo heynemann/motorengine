@@ -33,15 +33,13 @@ class IsNullQueryOperator(QueryOperator):
 
         query_result = query.to_query(User)
 
-        print(query_result)
+        # query results should be like:
+        # {'email': {'$ne': None, '$exists': True}}
 
-    The resulting query is:
-
-    .. testoutput:: isnull_query_operator
-
-        {'email': {'$ne': None, '$exists': True}}
-
-    '''
+        assert 'email' in query_result
+        assert '$ne' in query_result['email']
+        assert '$exists' in query_result['email']
+r   '''
 
     def to_query(self, field_name, value):
         if value:
