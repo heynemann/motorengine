@@ -360,7 +360,10 @@ class QuerySet(object):
             if self._filters:
                 self._filters = self._filters & Q(**kwargs)
             else:
-                self._filters = Q(**kwargs)
+                if arguments and len(arguments) == 1 and isinstance(arguments[0], dict):
+                    self._filters = Q(arguments[0])
+                else:
+                    self._filters = Q(**kwargs)
 
         return self
 

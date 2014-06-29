@@ -70,3 +70,54 @@ MotorEngine supports the following query operators:
 .. autoclass:: motorengine.query.is_null.IsNullQueryOperator
 
 .. autoclass:: motorengine.query.not_equal.NotEqualQueryOperator
+
+Querying with Raw Queries
+-------------------------
+
+Even though motorengine strives to provide an interface for queries that makes naming fields and documents transparent, using mongodb raw queries is still supported, both in the filter method and the Q class.
+
+In order to use raw queries, just pass the same object you would use in mongodb:
+
+    .. testsetup:: querying_with_raw_queries
+
+        from time import time
+        import tornado.ioloop
+
+        from motorengine import *
+
+        io_loop = tornado.ioloop.IOLoop.instance()
+        connect("test", host="localhost", port=27017, io_loop=io_loop)
+
+    .. testcode:: querying_with_raw_queries
+
+        import tornado.ioloop
+
+        class Address(Document):
+            __collection__ = "QueryingWithRawQueryAddress"
+            street = StringField()
+
+        class User(Document):
+            __collection__ = "QueryingWithRawQueryUser"
+            addresses = ListField(EmbeddedDocumentField(Address))
+            name = StringField()
+
+        def create_user():
+            user = User(name="Bernardo", addresses=[Address(street="Infinite Loop")])
+            user.save(callback=handle_user_created)
+
+        def handle_user_created(user):
+            User.objects.filter({
+                "addresses": {
+                    "street": "Infinite Loop"
+                }
+            }).find_all(callback=handle_find_user)
+
+        def handle_find_user(users):
+            try:
+                assert users[0].name == "Bernardo", users
+                assert users[0].addresses[0].street == "Infinite Loop", users
+            finally:
+                io_loop.stop()
+
+        io_loop.add_timeout(1, create_user)
+        io_loop.start()

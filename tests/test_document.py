@@ -1021,3 +1021,24 @@ class TestDocument(AsyncTestCase):
         loaded_document = self.wait()
 
         expect(loaded_document._id).to_equal(doc._id)
+
+    def test_raw_query(self):
+        class RawQueryEmbeddedDocument(Document):
+            name = StringField()
+
+        class RawQueryDocument(Document):
+            items = ListField(EmbeddedDocumentField(RawQueryEmbeddedDocument))
+
+        self.drop_coll(RawQueryEmbeddedDocument.__collection__)
+        self.drop_coll(RawQueryDocument.__collection__)
+
+        RawQueryDocument.objects.create(items=[RawQueryEmbeddedDocument(name='a'), RawQueryEmbeddedDocument(name='b')], callback=self.stop)
+        doc = self.wait()
+
+        RawQueryDocument.objects.create(items=[RawQueryEmbeddedDocument(name='c'), RawQueryEmbeddedDocument(name='d')], callback=self.stop)
+        doc2 = self.wait()
+
+        RawQueryDocument.objects.filter({"items.name":"a"}).find_all(callback=self.stop)
+        items = self.wait()
+
+        expect(items).to_length(1)

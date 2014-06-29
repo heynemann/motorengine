@@ -50,6 +50,10 @@ def transform_query(document, **query):
     mongo_query = {}
 
     for key, value in sorted(query.items()):
+        if key == 'raw':
+            update(mongo_query, value)
+            continue
+
         if '__' not in key:
             field = document.get_fields(key)[0]
             field_name = field.db_field

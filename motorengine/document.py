@@ -12,7 +12,7 @@ AUTHORIZED_FIELDS = ['_id', '_values']
 
 
 class BaseDocument(object):
-    def __init__(self, *args, **kw):
+    def __init__(self, **kw):
         from motorengine.fields.dynamic_field import DynamicField
 
         self._id = kw.pop('_id', None)
