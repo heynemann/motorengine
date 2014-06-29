@@ -1022,6 +1022,27 @@ class TestDocument(AsyncTestCase):
 
         expect(loaded_document._id).to_equal(doc._id)
 
+    def test_can_query_by_elem_match_when_list_of_embedded(self):
+        class ElemMatchEmbeddedDocument(Document):
+            name = StringField()
+
+        class ElemMatchEmbeddedParentDocument(Document):
+            items = ListField(EmbeddedDocumentField(ElemMatchEmbeddedDocument))
+
+        self.drop_coll(ElemMatchEmbeddedDocument.__collection__)
+        self.drop_coll(ElemMatchEmbeddedParentDocument.__collection__)
+
+        ElemMatchEmbeddedParentDocument.objects.create(items=[ElemMatchEmbeddedDocument(name="a"), ElemMatchEmbeddedDocument(name="b")], callback=self.stop)
+        doc = self.wait()
+
+        ElemMatchEmbeddedParentDocument.objects.create(items=[ElemMatchEmbeddedDocument(name="c"), ElemMatchEmbeddedDocument(name="d")], callback=self.stop)
+        doc2 = self.wait()
+
+        ElemMatchEmbeddedParentDocument.objects.filter(items__name="b").find_all(callback=self.stop)
+        loaded_document = self.wait()
+
+        expect(loaded_document).to_length(1)
+
     def test_raw_query(self):
         class RawQueryEmbeddedDocument(Document):
             name = StringField()

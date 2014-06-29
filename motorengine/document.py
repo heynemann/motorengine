@@ -271,7 +271,7 @@ class BaseDocument(object):
 
     @classmethod
     def get_fields(cls, name, fields=None):
-        from motorengine import EmbeddedDocumentField
+        from motorengine import EmbeddedDocumentField, ListField
         from motorengine.fields.dynamic_field import DynamicField
 
         if fields is None:
@@ -289,6 +289,9 @@ class BaseDocument(object):
 
         if isinstance(obj, (EmbeddedDocumentField, )):
             obj.embedded_type.get_fields(".".join(field_values[1:]), fields=fields)
+
+        if isinstance(obj, (ListField, )):
+            obj.item_type.get_fields(".".join(field_values[1:]), fields=fields)
 
         return fields
 

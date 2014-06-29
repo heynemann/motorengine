@@ -60,3 +60,13 @@ class ListField(BaseField):
 
     def from_son(self, value):
         return list(map(self._base_field.from_son, value))
+
+    @property
+    def item_type(self):
+        if hasattr(self._base_field, 'embedded_type'):
+            return self._base_field.embedded_type
+
+        if hasattr(self._base_field, 'reference_type'):
+            return self._base_field.reference_type
+
+        return self._base_field
