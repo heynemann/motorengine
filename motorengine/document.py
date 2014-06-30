@@ -27,12 +27,16 @@ class BaseDocument(object):
         for key, value in kw.items():
             if key not in self._db_field_map:
                 self._fields[key] = DynamicField(db_field="_%s" % key.lstrip('_'))
-            self._values[key] = value
+            self._values[self._db_field_map[key]] = value
 
     @classmethod
     @return_future
     def ensure_index(cls, callback=None):
         cls.objects.ensure_index(callback=callback)
+
+    @property
+    def id(self):
+        return self._id
 
     @property
     def is_lazy(self):
@@ -130,9 +134,14 @@ class BaseDocument(object):
         '''
         self.objects.remove(instance=self, callback=callback, alias=alias)
 
-    def handle_load_reference(self, callback, references, reference_count, values_collection, field_name):
+    def handle_load_reference(self, callback, references, reference_count, values_collection, field):
         def handle(*args, **kw):
-            values_collection[field_name] = args[0]
+
+            if isinstance(values_collection, tuple) :
+                real_collection, idx = values_collection
+                real_collection[field.db_field][idx] = args[0]
+            else:
+                values_collection[field.db_field] = args[0]
 
             if reference_count > 0:
                 references.pop()
@@ -140,7 +149,7 @@ class BaseDocument(object):
             if len(references) == 0:
                 callback({
                     'loaded_reference_count': reference_count,
-                    'loaded_values': values_collection
+                    'loaded_values': values_collection[0] if isinstance(values_collection, tuple) else values_collection
                 })
 
         return handle
@@ -160,7 +169,7 @@ class BaseDocument(object):
             })
             return
 
-        for dereference_function, document_id, values_collection, field_name in references:
+        for dereference_function, document_id, values_collection, field in references:
             dereference_function(
                 document_id,
                 callback=self.handle_load_reference(
@@ -168,7 +177,7 @@ class BaseDocument(object):
                     references=references,
                     reference_count=reference_count,
                     values_collection=values_collection,
-                    field_name=field_name
+                    field=field
                 )
             )
 
@@ -189,7 +198,6 @@ class BaseDocument(object):
             self.find_reference_field(document, results, field_name, field)
             self.find_list_field(document, results, field_name, field)
             self.find_embed_field(document, results, field_name, field)
-
         return results
 
     def find_reference_field(self, document, results, field_name, field):
@@ -201,14 +209,26 @@ class BaseDocument(object):
                     field.reference_type.objects.get,
                     value,
                     document._values,
-                    field_name
+                    field
                 ])
 
     def find_list_field(self, document, results, field_name, field):
         if self.is_list_field(field):
-            for value in document._values.get(field_name):
-                if value:
-                    self.find_references(document=value, results=results)
+            # check ListField's `base_field`
+            if self.is_reference_field(field._base_field) :
+                idx = 0
+                for value in document._values.get(field.db_field, []):
+                    results.append([
+                        field._base_field.reference_type.objects.get,
+                        value,
+                        (document._values, idx),
+                        field
+                    ])
+                    idx += 1
+            else:
+                for value in document._values.get(field_name):
+                    if isinstance(value, Document):
+                        self.find_references(document=value, results=results)
 
     def find_embed_field(self, document, results, field_name, field):
         if self.is_embedded_field(field):
@@ -224,7 +244,7 @@ class BaseDocument(object):
             ))
 
         field = self._fields[name]
-        value = field.get_value(self._values.get(name, None))
+        value = field.get_value(self._values.get(field.db_field, None))
 
         return value
 
@@ -236,7 +256,7 @@ class BaseDocument(object):
         if name in self._fields:
             field = self._fields[name]
             is_reference_field = self.is_reference_field(field)
-            value = field.get_value(self._values.get(name, None))
+            value = field.get_value(self._values.get(field.db_field, None))
 
             if is_reference_field and value is not None and not isinstance(value, field.reference_type):
                 message = "The property '%s' can't be accessed before calling 'load_references'" + \
@@ -257,7 +277,8 @@ class BaseDocument(object):
             self._fields[name] = DynamicField(db_field="_%s" % name)
 
         if name in self._fields:
-            self._values[name] = value
+            field = self._fields[name]
+            self._values[field.db_field] = value
             return
 
         object.__setattr__(self, name, value)
