@@ -50,6 +50,10 @@ def transform_query(document, **query):
     mongo_query = {}
 
     for key, value in sorted(query.items()):
+        if key == 'raw':
+            update(mongo_query, value)
+            continue
+
         if '__' not in key:
             field = document.get_fields(key)[0]
             field_name = field.db_field
@@ -78,6 +82,7 @@ def transform_query(document, **query):
 
 def validate_fields(document, query):
     from motorengine.fields.embedded_document_field import EmbeddedDocumentField
+    from motorengine.fields.list_field import ListField
 
     for key, query in sorted(query.items()):
         if '__' not in key:
@@ -93,7 +98,10 @@ def validate_fields(document, query):
             fields = document.get_fields(field_reference_name)
 
         is_none = (not fields) or (not all(fields))
-        if is_none or (not isinstance(fields[0], (EmbeddedDocumentField,)) and operator == ''):
+        is_embedded = isinstance(fields[0], (EmbeddedDocumentField,))
+        is_list = isinstance(fields[0], (ListField,))
+
+        if is_none or (not is_embedded and not is_list and operator == ''):
             raise ValueError(
                 "Invalid filter '%s': Invalid operator (if this is a sub-property, "
                 "then it must be used in embedded document fields)." % key)

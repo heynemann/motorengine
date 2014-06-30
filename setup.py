@@ -13,6 +13,8 @@ tests_require = [
     'ipdb',
     'coveralls',
     'mongoengine',
+    'docutils',
+    'jinja2',
     'sphinx',
 ]
 
@@ -44,7 +46,7 @@ MotorEngine is a port of the amazing MongoEngine Mapper. Instead of using pymong
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'pymongo',
+        'pymongo==2.7',
         'tornado',
         'motor==0.2',
         'six',

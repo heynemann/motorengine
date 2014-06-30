@@ -186,8 +186,11 @@ class Q(QNode):
         io_loop.start()
     """
 
-    def __init__(self, **query):
-        self.query = query
+    def __init__(self, *arguments, **query):
+        if arguments and len(arguments) == 1 and isinstance(arguments[0], dict):
+            self.query = {"raw": arguments[0]}
+        else:
+            self.query = query
 
     def accept(self, visitor, document):
         return visitor.visit_query(self)

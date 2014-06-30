@@ -12,7 +12,7 @@ AUTHORIZED_FIELDS = ['_id', '_values']
 
 
 class BaseDocument(object):
-    def __init__(self, *args, **kw):
+    def __init__(self, **kw):
         from motorengine.fields.dynamic_field import DynamicField
 
         self._id = kw.pop('_id', None)
@@ -26,7 +26,7 @@ class BaseDocument(object):
 
         for key, value in kw.items():
             if key not in self._db_field_map:
-                self._fields[key] = DynamicField(db_field="_%s" % key)
+                self._fields[key] = DynamicField(db_field="_%s" % key.lstrip('_'))
             self._values[self._db_field_map[key]] = value
 
     @classmethod
@@ -292,7 +292,7 @@ class BaseDocument(object):
 
     @classmethod
     def get_fields(cls, name, fields=None):
-        from motorengine import EmbeddedDocumentField
+        from motorengine import EmbeddedDocumentField, ListField
         from motorengine.fields.dynamic_field import DynamicField
 
         if fields is None:
@@ -310,6 +310,9 @@ class BaseDocument(object):
 
         if isinstance(obj, (EmbeddedDocumentField, )):
             obj.embedded_type.get_fields(".".join(field_values[1:]), fields=fields)
+
+        if isinstance(obj, (ListField, )):
+            obj.item_type.get_fields(".".join(field_values[1:]), fields=fields)
 
         return fields
 

@@ -891,14 +891,10 @@ class TestDocument(AsyncTestCase):
         UniqueFieldDocument.objects.create(name="test", callback=self.stop)
         self.wait()
 
-        try:
+        msg = 'The index "test.UniqueFieldDocument.$name_1" was violated when trying to save this "UniqueFieldDocument" (error code: E11000).'
+        with expect.error_to_happen(UniqueKeyViolationError, message="msg"):
             UniqueFieldDocument.objects.create(name="test", callback=self.stop)
             self.wait()
-        except UniqueKeyViolationError:
-            err = sys.exc_info()[1]
-            expect(err).to_have_an_error_message_of('The index "caused" was violated when trying to save this "UniqueFieldDocument" (error code: insertDocument).')
-        else:
-            assert False, "Should not have gotten this far."
 
     def test_json_field_with_document(self):
         class JSONFieldDocument(Document):
@@ -1025,3 +1021,45 @@ class TestDocument(AsyncTestCase):
         loaded_document = self.wait()
 
         expect(loaded_document._id).to_equal(doc._id)
+
+    def test_can_query_by_elem_match_when_list_of_embedded(self):
+        class ElemMatchEmbeddedDocument(Document):
+            name = StringField()
+
+        class ElemMatchEmbeddedParentDocument(Document):
+            items = ListField(EmbeddedDocumentField(ElemMatchEmbeddedDocument))
+
+        self.drop_coll(ElemMatchEmbeddedDocument.__collection__)
+        self.drop_coll(ElemMatchEmbeddedParentDocument.__collection__)
+
+        ElemMatchEmbeddedParentDocument.objects.create(items=[ElemMatchEmbeddedDocument(name="a"), ElemMatchEmbeddedDocument(name="b")], callback=self.stop)
+        doc = self.wait()
+
+        ElemMatchEmbeddedParentDocument.objects.create(items=[ElemMatchEmbeddedDocument(name="c"), ElemMatchEmbeddedDocument(name="d")], callback=self.stop)
+        doc2 = self.wait()
+
+        ElemMatchEmbeddedParentDocument.objects.filter(items__name="b").find_all(callback=self.stop)
+        loaded_document = self.wait()
+
+        expect(loaded_document).to_length(1)
+
+    def test_raw_query(self):
+        class RawQueryEmbeddedDocument(Document):
+            name = StringField()
+
+        class RawQueryDocument(Document):
+            items = ListField(EmbeddedDocumentField(RawQueryEmbeddedDocument))
+
+        self.drop_coll(RawQueryEmbeddedDocument.__collection__)
+        self.drop_coll(RawQueryDocument.__collection__)
+
+        RawQueryDocument.objects.create(items=[RawQueryEmbeddedDocument(name='a'), RawQueryEmbeddedDocument(name='b')], callback=self.stop)
+        doc = self.wait()
+
+        RawQueryDocument.objects.create(items=[RawQueryEmbeddedDocument(name='c'), RawQueryEmbeddedDocument(name='d')], callback=self.stop)
+        doc2 = self.wait()
+
+        RawQueryDocument.objects.filter({"items.name":"a"}).find_all(callback=self.stop)
+        items = self.wait()
+
+        expect(items).to_length(1)
