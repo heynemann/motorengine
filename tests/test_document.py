@@ -1068,10 +1068,15 @@ class TestDocument(AsyncTestCase):
     @gen_test
     def test_list_field_with_reference_field(self):
         class Ref(Document):
+            __collection__ = 'ref'
             val = StringField()
 
         class Base(Document):
+            __collection__ = 'base'
             list_val = ListField(ReferenceField(reference_document_type=Ref))
+
+        yield Ref.objects.delete()
+        yield Base.objects.delete()
 
         ref1 = yield Ref.objects.create(val="v1")
         ref2 = yield Ref.objects.create(val="v2")
@@ -1083,5 +1088,31 @@ class TestDocument(AsyncTestCase):
         expect(base).not_to_be_null()
 
         yield base.load_references()
+        expect(base.list_val).to_length(3)
+        expect(base.list_val[0]).to_be_instance_of(Ref)
+
+    @gen_test
+    def test_list_field_with_reference_field_without_lazy(self):
+        class Ref(Document):
+            __collection__ = 'ref'
+            val = StringField()
+
+        class Base(Document):
+            __collection__ = 'base'
+            __lazy__ = False
+            list_val = ListField(ReferenceField(reference_document_type=Ref))
+
+        yield Ref.objects.delete()
+        yield Base.objects.delete()
+
+        ref1 = yield Ref.objects.create(val="v1")
+        ref2 = yield Ref.objects.create(val="v2")
+        ref3 = yield Ref.objects.create(val="v3")
+
+        base = yield Base.objects.create(list_val=[ref1, ref2, ref3])
+
+        base = yield Base.objects.get(base._id)
+        expect(base).not_to_be_null()
+
         expect(base.list_val).to_length(3)
         expect(base.list_val[0]).to_be_instance_of(Ref)
