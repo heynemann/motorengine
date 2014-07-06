@@ -893,7 +893,7 @@ class TestDocument(AsyncTestCase):
         self.wait()
 
         msg = 'The index "test.UniqueFieldDocument.$name_1" was violated when trying to save this "UniqueFieldDocument" (error code: E11000).'
-        with expect.error_to_happen(UniqueKeyViolationError, message="msg"):
+        with expect.error_to_happen(UniqueKeyViolationError, message='E11000 duplicate key error index: test.UniqueFieldDocument.$name_1  dup key: { : "test" }'):
             UniqueFieldDocument.objects.create(name="test", callback=self.stop)
             self.wait()
 
