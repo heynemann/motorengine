@@ -6,6 +6,7 @@ import sys
 from pymongo.errors import DuplicateKeyError
 from tornado.concurrent import return_future
 from easydict import EasyDict as edict
+from bson.objectid import ObjectId
 
 from motorengine import ASCENDING
 from motorengine.aggregation.base import Aggregation
@@ -303,6 +304,9 @@ class QuerySet(object):
             raise RuntimeError("Either an id or a filter must be provided to get")
 
         if id is not None:
+            if not isinstance(id, ObjectId):
+                id = ObjectId(id)
+
             filters = {
                 "_id": id
             }
