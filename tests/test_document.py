@@ -6,6 +6,7 @@ from uuid import uuid4
 from datetime import datetime
 
 from preggy import expect
+from tornado.testing import gen_test
 
 from motorengine import (
     Document, StringField, BooleanField, ListField,
@@ -1063,3 +1064,24 @@ class TestDocument(AsyncTestCase):
         items = self.wait()
 
         expect(items).to_length(1)
+
+    @gen_test
+    def test_list_field_with_reference_field(self):
+        class Ref(Document):
+            val = StringField()
+
+        class Base(Document):
+            list_val = ListField(ReferenceField(reference_document_type=Ref))
+
+        ref1 = yield Ref.objects.create(val="v1")
+        ref2 = yield Ref.objects.create(val="v2")
+        ref3 = yield Ref.objects.create(val="v3")
+
+        base = yield Base.objects.create(list_val=[ref1, ref2, ref3])
+
+        base = yield Base.objects.get(base._id)
+        expect(base).not_to_be_null()
+
+        yield base.load_references()
+        expect(base.list_val).to_length(3)
+        expect(base.list_val[0]).to_be_instance_of(Ref)
