@@ -59,6 +59,8 @@ class ListField(BaseField):
         }
 
     def from_son(self, value):
+        if value is None:
+            return list()
         return list(map(self._base_field.from_son, value))
 
     @property
