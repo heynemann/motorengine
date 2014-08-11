@@ -24,6 +24,7 @@ class MotorDocument(motorengine.Document):
 
 
 class TestBinaryField(BaseIntegrationTest):
+    @gen_test
     def test_can_integrate(self):
         mongo_document = MongoDocument(byte=six.b("some_string")).save()
 

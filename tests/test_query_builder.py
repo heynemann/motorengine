@@ -169,7 +169,6 @@ class TestQueryBuilder(AsyncTestCase):
         )
         self.user3 = self.wait()
 
-    @gen_test
     def test_can_query_using_q(self):
         self.create_test_users()
 
