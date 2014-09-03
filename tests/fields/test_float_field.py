@@ -32,6 +32,12 @@ class TestFloatField(AsyncTestCase):
         expect(field.validate(1.0)).to_be_true()
         expect(field.validate("1.5")).to_be_true()
         expect(field.validate("qwe")).to_be_false()
+        expect(field.validate(None)).to_be_true()
+
+    def test_validate_is_empty(self):
+        field = FloatField()
+
+        expect(field.is_empty(None)).to_be_true()
 
     def test_validate_enforces_min_value(self):
         field = FloatField(min_value=5.4)

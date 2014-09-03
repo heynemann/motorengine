@@ -20,6 +20,8 @@ class UUIDField(BaseField):
     '''
 
     def validate(self, value):
+        if value is None:
+            return True
         if isinstance(value, UUID):
             return True
 

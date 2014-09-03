@@ -32,6 +32,8 @@ class FloatField(BaseField):
         return float(value)
 
     def validate(self, value):
+        if value is None:
+            return True
         try:
             value = float(value)
         except:
