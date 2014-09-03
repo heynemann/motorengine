@@ -32,6 +32,8 @@ class IntField(BaseField):
         return int(value)
 
     def validate(self, value):
+        if value is None:
+            return True
         try:
             value = int(value)
         except:
