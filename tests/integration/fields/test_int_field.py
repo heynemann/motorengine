@@ -40,3 +40,12 @@ class TestIntField(BaseIntegrationTest):
 
         expect(result.id).to_equal(motor_document._id)
         expect(result.number).to_equal(motor_document.number)
+
+    @gen_test
+    def test_empty_field(self):
+        motor_document = yield MotorDocument.objects.create()
+
+        result = yield MotorDocument.objects.get(id=motor_document._id)
+
+        expect(result).not_to_be_null()
+        expect(result.number).to_be_null()
