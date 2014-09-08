@@ -50,3 +50,12 @@ class TestUUIDField(BaseIntegrationTest):
         results = yield MotorDocument.objects.filter(uuid=motor_document.uuid).find_all()
         expect(results).to_length(1)
         expect(results[0]._id).to_equal(motor_document._id)
+
+    @gen_test
+    def test_empty_field(self):
+        motor_document = yield MotorDocument.objects.create()
+
+        result = yield MotorDocument.objects.get(id=motor_document._id)
+
+        expect(result).not_to_be_null()
+        expect(result.uuid).to_be_null()

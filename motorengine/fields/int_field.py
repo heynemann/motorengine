@@ -26,9 +26,13 @@ class IntField(BaseField):
         self.max_value = max_value
 
     def to_son(self, value):
+        if value is None:
+            return None
         return int(value)
 
     def from_son(self, value):
+        if value is None:
+            return None
         return int(value)
 
     def validate(self, value):
