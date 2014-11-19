@@ -100,9 +100,9 @@ class QuerySet(object):
 
     def save(self, document, callback, alias=None):
         if self.validate_document(document):
-            self.ensure_index(callback=self.indexes_saved_before_save(document, callback, alias))
+            self.ensure_index(callback=self.indexes_saved_before_save(document, callback, alias=alias), alias=alias)
 
-    def indexes_saved_before_save(self, document, callback, alias):
+    def indexes_saved_before_save(self, document, callback, alias=None):
         def handle(*args, **kw):
             self.update_field_on_save_values(document, document._id is not None)
             doc = document.to_son()
@@ -547,7 +547,7 @@ class QuerySet(object):
         return handle
 
     @return_future
-    def ensure_index(self, callback):
+    def ensure_index(self, callback, alias=None):
         indexes = []
         for field_name, field in self.__klass__._fields.items():
             if field.unique:
@@ -556,14 +556,15 @@ class QuerySet(object):
         created_indexes = []
 
         for index in indexes:
-            self.coll().ensure_index(
+            self.coll(alias).ensure_index(
                 index,
                 unique=True,
                 callback=self.handle_ensure_index(
                     callback,
                     created_indexes,
                     len(indexes)
-                )
+                ),
+                alias=alias
             )
 
         if not indexes:
