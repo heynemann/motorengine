@@ -20,7 +20,7 @@ MotorEngine MongoDB Async ORM
 Supported Versions
 ------------------
 
-`MotorEngine`_ is compatible and tested against python 2.7, 3.3 and pypy.
+`MotorEngine`_ is compatible and tested against python 2.7, 3.3, 3.4 and pypy.
 
 `MotorEngine`_ requires MongoDB 2.2+ due to usage of the `Aggregation Pipeline`_.
 
