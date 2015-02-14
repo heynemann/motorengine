@@ -333,7 +333,7 @@ class QuerySet(object):
             find_arguments['limit'] = self._limit
 
         if self._skip:
-            find_arguments['skip'] = self._limit
+            find_arguments['skip'] = self._skip
 
         query_filters = self.get_query_from_filters(self._filters)
 
