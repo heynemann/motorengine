@@ -17,7 +17,7 @@ Modeling
 .. py:module:: motorengine.fields.binary_field
 .. py:module:: motorengine.fields.json_field
 
-MotorEngine uses the concept of models to interact with MongoDB. To create a model we inherif from the `Document` class:
+MotorEngine uses the concept of models to interact with MongoDB. To create a model we inherit from the `Document` class:
 
 .. autoclass:: motorengine.document.Document
   :noindex:
@@ -36,7 +36,8 @@ Let's say we need an article model with title, description and published_date:
 
 .. testcode:: modeling_1
 
-    from motorengine import Document, StringField, DateTimeField
+    from motorengine.document import Document
+    from motorengine.fields import StringField, DateTimeField
 
     class Article(Document):
         title = StringField(required=True)
@@ -49,7 +50,9 @@ That allows us to create, update, query and remove articles with extreme ease:
 
     from uuid import uuid4
     import tornado.ioloop
-    from motorengine import connect, Document, StringField, DateTimeField
+    from motorengine import connect
+    from motorengine.document import Document
+    from motorengine.fields import StringField, DateTimeField
 
     io_loop = tornado.ioloop.IOLoop.instance()
 
