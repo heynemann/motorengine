@@ -12,6 +12,7 @@ Modeling
 .. py:module:: motorengine.fields.url_field
 .. py:module:: motorengine.fields.email_field
 .. py:module:: motorengine.fields.int_field
+.. py:module:: motorengine.fields.boolean_field
 .. py:module:: motorengine.fields.float_field
 .. py:module:: motorengine.fields.decimal_field
 .. py:module:: motorengine.fields.binary_field
@@ -122,6 +123,8 @@ Available Fields
 .. autoclass:: motorengine.fields.email_field.EmailField
 
 .. autoclass:: motorengine.fields.int_field.IntField
+
+.. autoclass:: motorengine.fields.int_field.BooleanField
 
 .. autoclass:: motorengine.fields.float_field.FloatField
 
