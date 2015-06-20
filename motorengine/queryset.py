@@ -507,8 +507,6 @@ class QuerySet(object):
 
         cursor = self._get_find_cursor(alias=alias)
 
-        self._filters = {}
-
         cursor.to_list(**to_list_arguments)
 
     def handle_count(self, callback):
@@ -525,7 +523,6 @@ class QuerySet(object):
         Returns the number of documents in the collection that match the specified filters, if any.
         '''
         cursor = self._get_find_cursor(alias=alias)
-        self._filters = {}
         cursor.count(callback=self.handle_count(callback))
 
     @property
