@@ -27,6 +27,8 @@ class EmailField(BaseField):
     )
 
     def validate(self, value):
-        is_email = EmailField.EMAIL_REGEX.match(value)
+        if value is None:
+            return True
 
+        is_email = EmailField.EMAIL_REGEX.match(value)
         return is_email
