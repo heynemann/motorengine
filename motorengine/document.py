@@ -52,11 +52,18 @@ class BaseDocument(object):
 
     @classmethod
     def from_son(cls, dic):
+        from motorengine.fields.dynamic_field import DynamicField
         field_values = {}
         for name, value in dic.items():
             field = cls.get_field_by_db_name(name)
             if field:
-                field_values[field.name] = cls._fields[field.name].from_son(value)
+                if isinstance(field, DynamicField) and field.name in cls._fields: # There is an defined field in out OM. We dont need the dynfield anymore.
+                    if name in cls._fields: #only delete the dynfield if it was cached.
+                        del cls._fields[name]
+                    if not field.name in dic: # The real is currently not in the query result: apply the dynfield value.
+                        field_values[field.name] = cls._fields[field.name].from_son(value)
+                else:
+                    field_values[field.name] = cls._fields[field.name].from_son(value)
             else:
                 field_values[name] = value
 
