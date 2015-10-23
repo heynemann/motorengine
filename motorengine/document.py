@@ -57,13 +57,7 @@ class BaseDocument(object):
         for name, value in dic.items():
             field = cls.get_field_by_db_name(name)
             if field:
-                if isinstance(field, DynamicField) and field.name in cls._fields: # There is an defined field in out OM. We dont need the dynfield anymore.
-                    if name in cls._fields: #only delete the dynfield if it was cached.
-                        del cls._fields[name]
-                    if not field.name in dic: # The real is currently not in the query result: apply the dynfield value.
-                        field_values[field.name] = cls._fields[field.name].from_son(value)
-                else:
-                    field_values[field.name] = cls._fields[field.name].from_son(value)
+                field_values[field.name] = cls._fields[field.name].from_son(value)
             else:
                 field_values[name] = value
 
@@ -302,7 +296,7 @@ class BaseDocument(object):
     @classmethod
     def get_field_by_db_name(cls, name):
         for field_name, field in cls._fields.items():
-            if name == field.db_field:
+            if name == field.db_field or name.lstrip("_") == field.db_field:
                 return field
         return None
 
