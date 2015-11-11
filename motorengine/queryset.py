@@ -548,24 +548,25 @@ class QuerySet(object):
 
     @return_future
     def ensure_index(self, callback, alias=None):
-        indexes = []
+        fields_with_index = []
         for field_name, field in self.__klass__._fields.items():
-            if field.unique:
-                indexes.append(field.db_field)
+            if field.unique or field.sparse:
+                fields_with_index.append(field)
 
         created_indexes = []
 
-        for index in indexes:
+        for field in fields_with_index:
             self.coll(alias).ensure_index(
-                index,
-                unique=True,
+                field.db_field,
+                unique=field.unique,
+                sparse=field.sparse,
                 callback=self.handle_ensure_index(
                     callback,
                     created_indexes,
-                    len(indexes)
+                    len(fields_with_index)
                 ),
                 alias=alias
             )
 
-        if not indexes:
+        if not fields_with_index:
             callback(0)

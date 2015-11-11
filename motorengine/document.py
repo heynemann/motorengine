@@ -52,7 +52,6 @@ class BaseDocument(object):
 
     @classmethod
     def from_son(cls, dic):
-        from motorengine.fields.dynamic_field import DynamicField
         field_values = {}
         for name, value in dic.items():
             field = cls.get_field_by_db_name(name)
@@ -68,6 +67,8 @@ class BaseDocument(object):
 
         for name, field in self._fields.items():
             value = self.get_field_value(name)
+            if field.sparse and field.is_empty(value):
+                continue
             data[field.db_field] = field.to_son(value)
 
         return data
