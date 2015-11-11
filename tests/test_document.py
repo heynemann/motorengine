@@ -24,6 +24,7 @@ class User(Document):
     is_admin = BooleanField(default=True)
     website = URLField(default="http://google.com/")
     updated_at = DateTimeField(required=True, auto_now_on_insert=True, auto_now_on_update=True)
+    facebook_id = StringField(unique=True, sparse=True)
 
     def __repr__(self):
         return "%s %s <%s>" % (self.first_name, self.last_name, self.email)
@@ -74,6 +75,7 @@ class TestDocument(AsyncTestCase):
         expect(result.email).to_equal("heynemann@gmail.com")
         expect(result.first_name).to_equal("Bernardo")
         expect(result.last_name).to_equal("Heynemann")
+        expect(result.facebook_id).to_be_null()
 
     def test_can_create_new_instance_with_defaults(self):
         user = User(email="heynemann@gmail.com")
@@ -160,6 +162,7 @@ class TestDocument(AsyncTestCase):
         expect(retrieved_user.last_name).to_equal("Heynemann")
         expect(retrieved_user.emp_number).to_equal("Employee")
         expect(retrieved_user.is_admin).to_be_true()
+        expect(retrieved_user.facebook_id).to_be_null()
 
     def test_can_get_instance_with_id_string(self):
         user = Employee(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", emp_number="Employee")
@@ -911,6 +914,25 @@ class TestDocument(AsyncTestCase):
         with expect.error_to_happen(UniqueKeyViolationError):
             UniqueFieldDocument.objects.create(name="test", callback=self.stop)
             self.wait()
+
+    def test_unique_sparse_field(self):
+        class UniqueSparseFieldDocument(Document):
+            unique_id = StringField(unique=True, sparse=True)
+
+        UniqueSparseFieldDocument.objects.delete(callback=self.stop)
+        self.wait()
+
+        UniqueSparseFieldDocument.ensure_index(callback=self.stop)
+        self.wait()
+
+        UniqueSparseFieldDocument.objects.create(unique_id=None, callback=self.stop)
+        self.wait()
+
+        try:
+            UniqueSparseFieldDocument.objects.create(unique_id=None, callback=self.stop)
+            self.wait()
+        except UniqueKeyViolationError:
+            assert False, "UniqueKeyViolationError should net be raised for unique sparse field with empty value"
 
     def test_json_field_with_document(self):
         class JSONFieldDocument(Document):
