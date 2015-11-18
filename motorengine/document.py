@@ -67,7 +67,7 @@ class BaseDocument(object):
 
         for name, field in self._fields.items():
             value = self.get_field_value(name)
-            if field.sparse and field.is_empty(value):
+            if field.sparse and value is None:
                 continue
             data[field.db_field] = field.to_son(value)
 
