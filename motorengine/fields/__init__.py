@@ -16,3 +16,4 @@ from motorengine.fields.float_field import FloatField  # NOQA
 from motorengine.fields.decimal_field import DecimalField  # NOQA
 from motorengine.fields.binary_field import BinaryField  # NOQA
 from motorengine.fields.json_field import JsonField  # NOQA
+from motorengine.fields.objectid_field import ObjectIdField  # NOQA
