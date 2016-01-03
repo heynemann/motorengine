@@ -217,28 +217,51 @@ class TestDocument(AsyncTestCase):
 
     def test_can_find_with_multiple_filters(self):
         User.objects.create(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
-        user = self.wait()
+        self.wait()
 
         User.objects.create(email="someone@gmail.com", first_name="Someone", last_name="Else", callback=self.stop)
         self.wait()
 
         User.objects.create(email="someone@gmail.com", first_name="Bernardo", last_name="Heynemann", callback=self.stop)
-        self.wait()
+        user = self.wait()
 
         User.objects.create(email="other@gmail.com", first_name="Bernardo", last_name="Silva", callback=self.stop)
         last_user = self.wait()
 
-        User.objects.filter(first_name="Bernardo").filter_not(email="someone@gmail.com").find_all(callback=self.stop)
+        # filter and filter not
+        User.objects.filter(email="someone@gmail.com").filter_not(first_name="Someone").find_all(callback=self.stop)
         users = self.wait()
 
         expect(users).to_be_instance_of(list)
-        expect(users).to_length(2)
+        expect(users).to_length(1)
 
         first_user = users[0]
-        expect(first_user.first_name).to_equal(user.first_name)
-        expect(first_user.last_name).to_equal(user.last_name)
-        expect(first_user.email).to_equal(user.email)
+        expect(first_user._id).to_equal(user._id)
 
+        # filter and filter not for Q
+        from motorengine import Q
+        User.objects.filter(email="someone@gmail.com")\
+            .filter_not(Q(first_name="Someone")).find_all(callback=self.stop)
+        users = self.wait()
+
+        expect(users).to_be_instance_of(list)
+        expect(users).to_length(1)
+
+        first_user = users[0]
+        expect(first_user._id).to_equal(user._id)
+
+        # filter not and filter not
+        User.objects.filter_not(last_name="Heynemann")\
+            .filter_not(first_name="Someone").find_all(callback=self.stop)
+        users = self.wait()
+
+        expect(users).to_be_instance_of(list)
+        expect(users).to_length(1)
+
+        first_user = users[0]
+        expect(first_user._id).to_equal(last_user._id)
+
+        # filter and filter
         User.objects.filter(last_name="Silva").filter(first_name="Bernardo").find_all(callback=self.stop)
         users = self.wait()
 
