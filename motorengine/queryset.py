@@ -386,9 +386,9 @@ class QuerySet(object):
         from motorengine.query_builder.node import Q, QCombination, QNot
 
         if arguments and len(arguments) == 1 and isinstance(arguments[0], (Q, QCombination)):
-            self._filters = QNot(arguments[0])
+            self.filter(QNot(arguments[0]))
         else:
-            self._filters = QNot(Q(**kwargs))
+            self.filter(QNot(Q(**kwargs)))
 
         return self
 
