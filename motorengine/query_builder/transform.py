@@ -18,6 +18,10 @@ from motorengine.query.contains import ContainsOperator
 from motorengine.query.ends_with import EndsWithOperator
 from motorengine.query.exact import ExactOperator
 from motorengine.query.starts_with import StartsWithOperator
+from motorengine.query.i_contains import IContainsOperator
+from motorengine.query.i_ends_with import IEndsWithOperator
+from motorengine.query.i_exact import IExactOperator
+from motorengine.query.i_starts_with import IStartsWithOperator
 
 
 OPERATORS = {
@@ -34,6 +38,10 @@ OPERATORS = {
     'endswith': EndsWithOperator,
     'exact': ExactOperator,
     'startswith': StartsWithOperator,
+    'icontains': IContainsOperator,
+    'iendswith': IEndsWithOperator,
+    'iexact': IExactOperator,
+    'istartswith': IStartsWithOperator,
 }
 
 

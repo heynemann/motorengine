@@ -6,7 +6,9 @@ from motorengine.query.base import QueryOperator
 
 class ContainsOperator(QueryOperator):
     '''
-    Query operator used to return all documents which specified field contains a string equal to a passed value. It is case sensitive.
+    Query operator used to return all documents which specified field contains a string equal to a passed value.
+
+    It is case sensitive.
 
     For more information on `$regex` go to https://docs.mongodb.org/manual/reference/operator/query/regex/.
 
