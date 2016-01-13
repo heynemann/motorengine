@@ -6,7 +6,9 @@ from motorengine.query.base import QueryOperator
 
 class EndsWithOperator(QueryOperator):
     '''
-    Query operator used to return all documents which specified field ends with passed string value. It is case sensitive.
+    Query operator used to return all documents which specified field ends with passed string value.
+
+    It is case sensitive.
 
     For more information on `$regex` go to https://docs.mongodb.org/manual/reference/operator/query/regex/.
 
