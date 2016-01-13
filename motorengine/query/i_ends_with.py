@@ -10,7 +10,7 @@ class IEndsWithOperator(QueryOperator):
 
     It is not case sensitive.
 
-    For more information on `$regex` go to https://docs.mongodb.org/manual/reference/operator/query/regex/.
+    For more information on `$regex` go to https://docs.mongodb.org/manual/reference/operator/query/regex/
 
     Usage:
 
