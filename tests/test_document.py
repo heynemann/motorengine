@@ -89,6 +89,24 @@ class TestDocument(AsyncTestCase):
         expect(result.last_name).to_equal("Heynemann")
         expect(result.is_admin).to_be_true()
 
+    def test_can_create_new_instance_with_defaults_and_db_fields(self):
+        class Model(Document):
+            last_name = StringField(db_field="db_last", default="Heynemann")
+            first_name = StringField(
+                db_field="db_first", default=lambda: "Bernardo"
+            )
+
+        self.drop_coll(Model.__collection__)
+
+        model = Model()
+        model.save(callback=self.stop)
+
+        result = self.wait()
+
+        expect(result._id).not_to_be_null()
+        expect(result.first_name).to_equal("Bernardo")
+        expect(result.last_name).to_equal("Heynemann")
+
     def test_creating_invalid_instance_fails(self):
         user = User(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", website="bla")
         try:
@@ -1070,16 +1088,16 @@ class TestDocument(AsyncTestCase):
         expect(document_count).to_equal(1)
 
     def test_dynamic_fields_with_two_version_fields(self):
-        
+
         class Version1Document(Document):
             __collection__ = "TestDynamicFieldDocumentQuery1"
             old_element = StringField(default="old_string_field")
-            
+
         class Version2Document(Document):
             __collection__ = "TestDynamicFieldDocumentQuery1"
             old_element = StringField(default="old_string_field")
-            new_element = StringField(default="new_string_field")    
-        
+            new_element = StringField(default="new_string_field")
+
 
         self.drop_coll(Version1Document.__collection__)
 
@@ -1087,7 +1105,7 @@ class TestDocument(AsyncTestCase):
         doc1.old_element = "my_old_string_field1"
         doc1.save(callback=self.stop)
         doc1 = self.wait()
-        
+
         doc2 = Version2Document()
         doc2.old_element = "my_old_string_field2"
         doc2.new_element = "my_new_string_field2"
@@ -1100,18 +1118,18 @@ class TestDocument(AsyncTestCase):
         # eventually overwrite real values from new_field.
         Version1Document.objects.get(old_element="my_old_string_field2", callback=self.stop)
         doc2_with_version1 = self.wait()
-        
+
         expect(doc2_with_version1._id).not_to_be_null()
         expect(doc2_with_version1.old_element).to_equal("my_old_string_field2")
         expect(doc2_with_version1.new_element).to_equal("my_new_string_field2")
-        
+
         Version1Document.objects.get(old_element="my_old_string_field2", callback=self.stop)
         doc2_with_version1 = self.wait()
-        
+
         expect(doc2_with_version1._id).not_to_be_null()
         expect(doc2_with_version1.old_element).to_equal("my_old_string_field2")
         expect(doc2_with_version1.new_element).to_equal("my_new_string_field2")
-        
+
         # Changing one field and saving it.
         doc2_with_version1.old_element = "my_old_string_field2_modified"
         doc2_with_version1.save(callback=self.stop)
@@ -1122,10 +1140,10 @@ class TestDocument(AsyncTestCase):
         doc2_with_version2 = self.wait()
         expect(doc2_with_version2._id).not_to_be_null()
         expect(doc2_with_version2.old_element).to_equal("my_old_string_field2_modified")
-        
+
         doc2_with_version2.save(callback=self.stop)
         doc2_with_version2 = self.wait()
-        
+
         # After saving the new version of the document it should stay the way it was designed to be
         expect(doc2_with_version2.new_element).to_equal("my_new_string_field2")
 

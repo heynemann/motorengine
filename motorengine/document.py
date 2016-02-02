@@ -20,12 +20,12 @@ class BaseDocument(object):
 
         for key, field in self._fields.items():
             if callable(field.default):
-                self._values[field.db_field] = field.default()
+                self._values[field.name] = field.default()
             else:
-                self._values[field.db_field] = field.default
+                self._values[field.name] = field.default
 
         for key, value in kw.items():
-            if key not in self._db_field_map:
+            if key not in self._fields:
                 self._fields[key] = DynamicField(db_field="_%s" % key.lstrip('_'))
             self._values[key] = value
 
