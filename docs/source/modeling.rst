@@ -124,7 +124,7 @@ Available Fields
 
 .. autoclass:: motorengine.fields.int_field.IntField
 
-.. autoclass:: motorengine.fields.int_field.BooleanField
+.. autoclass:: motorengine.fields.boolean_field.BooleanField
 
 .. autoclass:: motorengine.fields.float_field.FloatField
 
