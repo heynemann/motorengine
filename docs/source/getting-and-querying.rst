@@ -124,3 +124,22 @@ In order to use raw queries, just pass the same object you would use in mongodb:
 
         io_loop.add_timeout(1, create_user)
         io_loop.start()
+
+Retrieving a subset of fields
+-----------------------------
+
+Sometimes a subset of fields on a Document is required, and for efficiency only these should be retrieved from the database. There are some methods that could be used to specify which fields to retrieve. Note that if fields that are not downloaded are accessed, their default value (or None if no default value is provided) will be given.
+
+Projections for reference fields (and a list of reference fields) can be specified too in the same way as for embedded fields. They are applied immediately if `lazy` is `False` or will be applied later after `.load_reference()` will be called otherwise.
+
+.. note:: You can use `BlogPost.title` notation instead of string value 'title' only for the first level fields. So `BlogPost.author.name` will not work, use string 'author.name' instead. Also `_id` field should be always specified as string '_id'.
+
+.. note:: It is not possible to save document with projection specified during retrieving. It will raise exception `motorengine.errors.PartlyLoadedDocumentError` as you would try that.
+
+.. automethod:: motorengine.queryset.QuerySet.only
+
+.. automethod:: motorengine.queryset.QuerySet.exclude
+
+.. automethod:: motorengine.queryset.QuerySet.all_fields
+
+.. automethod:: motorengine.queryset.QuerySet.fields

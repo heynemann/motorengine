@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import operator
+import itertools
 
 from pymongo.errors import DuplicateKeyError
 from tornado.concurrent import return_future
@@ -11,9 +13,13 @@ from bson.objectid import ObjectId
 from motorengine import ASCENDING
 from motorengine.aggregation.base import Aggregation
 from motorengine.connection import get_connection
-from motorengine.errors import UniqueKeyViolationError
+from motorengine.errors import (
+    UniqueKeyViolationError, PartlyLoadedDocumentError
+)
+from motorengine.query_builder.field_list import QueryFieldList
 
 DEFAULT_LIMIT = 1000
+
 
 class QuerySet(object):
     def __init__(self, klass):
@@ -22,6 +28,8 @@ class QuerySet(object):
         self._limit = None
         self._skip = None
         self._order_fields = []
+        self._loaded_fields = QueryFieldList()
+        self._reference_loaded_fields = {}
 
     @property
     def is_lazy(self):
@@ -99,6 +107,16 @@ class QuerySet(object):
                 setattr(document, field_name, field.on_save(document, creating))
 
     def save(self, document, callback, alias=None):
+        if document.is_partly_loaded:
+            msg = (
+                "Partly loaded document {0} can't be saved. Document should "
+                "be loaded without 'only', 'exclude' or 'fields' "
+                "QuerySet's modifiers"
+            )
+            raise PartlyLoadedDocumentError(
+                msg.format(document.__class__.__name__)
+            )
+
         if self.validate_document(document):
             self.ensure_index(callback=self.indexes_saved_before_save(document, callback, alias=alias), alias=alias)
 
@@ -265,6 +283,257 @@ class QuerySet(object):
             else:
                 self.coll(alias).remove(callback=self.handle_remove(callback))
 
+    def _check_valid_field_name_to_project(self, field_name, value):
+        """Determine a presence of the field_name in the document.
+
+        Helper method that determines a presence of the field_name in document
+        including embedded documents' fields, lists of embedded documents,
+        reference fields and lists of reference fields.
+
+        :param field_name: name of the field, ex.: `title`, `author.name`
+        :param value: projection value such as ONLY, EXCLUDE or slice dict
+        :returns: tuple of field name and projection value
+        """
+        if '.' not in field_name and (
+            field_name == '_id' or field_name in self.__klass__._fields
+        ):
+            return (field_name, value)
+
+        from motorengine.fields.embedded_document_field import (
+            EmbeddedDocumentField
+        )
+        from motorengine.fields.list_field import ListField
+        from motorengine.fields.reference_field import ReferenceField
+        from motorengine.document import BaseDocument
+
+        tail = field_name
+        head = []  # part of the name before reference
+        obj = self.__klass__
+        while tail:
+            parts = tail.split('.', 1)
+            if len(parts) == 2:
+                field_value, tail = parts
+            else:
+                field_value, tail = parts[0], None
+            head.append(field_value)
+
+            if not obj or field_value not in obj._fields:
+                raise ValueError(
+                    "Invalid field '%s': Field not found in '%s'." % (
+                        field_name, self.__klass__.__name__
+                    )
+                )
+            else:
+                field = obj._fields[field_value]
+                if isinstance(field, EmbeddedDocumentField):
+                    obj = field.embedded_type
+                elif isinstance(field, ListField):
+                    if hasattr(field._base_field, 'embedded_type'):
+                        # list of embedded documents
+                        obj = field.item_type
+                    elif hasattr(field._base_field, 'reference_type'):
+                        # list of reference fields
+                        return self._fill_reference_loaded_fields(
+                            head, tail, field_name, value
+                        )
+                    else:
+                        obj = None
+                elif (isinstance(field, ReferenceField)):
+                    return self._fill_reference_loaded_fields(
+                        head, tail, field_name, value
+                    )
+                else:
+                    obj = None
+
+        return (field_name, value)
+
+    def _fill_reference_loaded_fields(self, head, tail, field_name, value):
+        """Helper method to process reference field in projection.
+
+        :param head: list of parts of the field_name before reference
+        :param tail: reference document's part of the name
+        :param field_name: full field name
+        :param value: ONLY, EXCLUDE or slice dict
+
+        :returns: tuple of field name (or its not a reference part) and
+        projection value
+        """
+        name = '.'.join(head)
+        if tail:
+            # there is some fields for referenced document
+            if name not in self._reference_loaded_fields:
+                self._reference_loaded_fields[name] = {}
+            self._reference_loaded_fields[name][tail] = value
+            # and we should include reference field explicitly
+            return (name, QueryFieldList.ONLY)
+        else:
+            return (field_name, value)
+
+    def only(self, *fields):
+        """Load only a subset of this document's fields.
+
+        Usage::
+
+            BlogPost.objects.only(BlogPost.title, "author.name").find_all(...)
+
+        .. note ::
+
+            `only()` is chainable and will perform a union. So with the
+            following it will fetch both: `title` and `comments`::
+
+                BlogPost.objects.only("title").only("comments").get(...)
+
+        .. note :: `only()` does not exclude `_id` field
+
+        :func:`~motorengine.queryset.QuerySet.all_fields` will reset any
+        field filters.
+
+        :param fields: fields to include
+
+        """
+        from motorengine.fields.base_field import BaseField
+
+        only_fields = {}
+        for field_name in fields:
+            if isinstance(field_name, (BaseField, )):
+                field_name = field_name.name
+
+            only_fields[field_name] = QueryFieldList.ONLY
+
+        # self.only_fields = fields.keys()
+        return self.fields(True, **only_fields)
+
+    def exclude(self, *fields):
+        """Opposite to `.only()`, exclude some document's fields.
+
+        Usage::
+
+            BlogPost.objects.exclude("_id", "comments").get(...)
+
+        .. note ::
+
+            `exclude()` is chainable and will perform a union. So with the
+            following it will exclude both: `title` and `author.name`::
+
+                BlogPost.objects.exclude(BlogPost.title).exclude("author.name").get(...)
+
+        .. note ::
+
+            if `only()` is called somewhere in chain then `exclude()` calls
+            remove fields from the lists of fields specified by `only()` calls::
+
+                # this will load all fields
+                BlogPost.objects.only('title').exclude('title').find_all(...)
+
+                # this will load only 'title' field
+                BlogPost.objects.only('title').exclude('comments').get(...)
+
+                # this will load only 'title' field
+                BlogPost.objects.exclude('comments').only('title', 'comments').get(...)
+
+                # there is one exception for _id field,
+                # which will be excluded even if only() is called,
+                # actually the following is the only way to exclude _id field
+                BlogPost.objects.only('title').exclude('_id').find_all(...)
+
+        :func:`~motorengine.queryset.QuerySet.all_fields` will reset any
+        field filters.
+
+        :param fields: fields to exclude
+
+        """
+        from motorengine.fields.base_field import BaseField
+
+        exclude_fields = {}
+        for field_name in fields:
+            if isinstance(field_name, (BaseField, )):
+                field_name = field_name.name
+
+            exclude_fields[field_name] = QueryFieldList.EXCLUDE
+
+        return self.fields(**exclude_fields)
+
+    def fields(self, _only_called=False, **kwargs):
+        """Manipulate how you load this document's fields.
+
+        Used by `.only()` and `.exclude()` to manipulate which fields to
+        retrieve. Fields also allows for a greater level of control
+        for example:
+
+        Retrieving a Subrange of Array Elements:
+
+        You can use the `$slice` operator to retrieve a subrange of elements in
+        an array. For example to get the first 5 comments::
+
+            BlogPost.objects.fields(slice__comments=5).get(...)
+
+        or 5 comments after skipping 10 comments::
+
+            BlogPost.objects.fields(slice__comments=(10, 5)).get(...)
+
+        or you can also use negative values, for example skip 10 comment from
+        the end and retrieve 5 comments forward::
+
+            BlogPost.objects.fields(slice__comments=(-10, 5)).get(...)
+
+        Besides slice, it is possible to include or exclude fields
+        (but it is strongly recommended to use `.only()` and `.exclude()`
+        methods instead)::
+
+            BlogPost.objects.fields(
+                slice__comments=5,
+                _id=QueryFieldList.EXCLUDE,
+                title=QueryFieldList.ONLY
+            ).get(...)
+
+        :param kwargs: A dictionary identifying what to include
+        """
+
+        # Check for an operator and transform to mongo-style if there is one
+        operators = ["slice"]
+        cleaned_fields = []
+        for key, value in kwargs.items():
+            parts = key.split('__')
+            if parts[0] in operators:
+                op = parts.pop(0)
+                value = {'$' + op: value}
+
+            key = '.'.join(parts)
+            try:
+                field_name, value = self._check_valid_field_name_to_project(
+                    key, value
+                )
+            except ValueError as e:
+                raise e
+
+            cleaned_fields.append((field_name, value))
+
+        # divide fields on groups by their values
+        # (ONLY group, EXCLUDE group etc.) and add them to _loaded_fields
+        # as an appropriate QueryFieldList
+        fields = sorted(cleaned_fields, key=operator.itemgetter(1))
+        for value, group in itertools.groupby(fields, lambda x: x[1]):
+            fields = [field for field, value in group]
+            self._loaded_fields += QueryFieldList(
+                fields, value=value, _only_called=_only_called)
+
+        return self
+
+    def all_fields(self):
+        """Include all fields.
+
+        Reset all previously calls of `.only()` or `.exclude().`
+
+        Usage::
+
+            # this will load 'comments' too
+            BlogPost.objects.exclude("comments").all_fields().get(...)
+        """
+        self._loaded_fields = QueryFieldList(
+            always_include=self._loaded_fields.always_include)
+
+        return self
+
     def handle_auto_load_references(self, doc, callback):
         def handle(*args, **kw):
             if len(args) > 0:
@@ -282,7 +551,15 @@ class QuerySet(object):
             if instance is None:
                 callback(None)
             else:
-                doc = self.__klass__.from_son(instance)
+                doc = self.__klass__.from_son(
+                    instance,
+                    # if _loaded_fields is not empty then
+                    # document is partly loaded
+                    _is_partly_loaded=bool(self._loaded_fields),
+                    # set projections for references (if any)
+                    _reference_loaded_fields=self._reference_loaded_fields
+                )
+
                 if self.is_lazy:
                     callback(doc)
                 else:
@@ -314,7 +591,10 @@ class QuerySet(object):
             filters = Q(**kwargs)
             filters = self.get_query_from_filters(filters)
 
-        self.coll(alias).find_one(filters, callback=self.handle_get(callback))
+        self.coll(alias).find_one(
+            filters, fields=self._loaded_fields.to_query(self.__klass__),
+            callback=self.handle_get(callback)
+        )
 
     def get_query_from_filters(self, filters):
         if not filters:
@@ -337,7 +617,10 @@ class QuerySet(object):
 
         query_filters = self.get_query_from_filters(self._filters)
 
-        return self.coll(alias).find(query_filters, **find_arguments)
+        return self.coll(alias).find(
+            query_filters, fields=self._loaded_fields.to_query(self.__klass__),
+            **find_arguments
+        )
 
     def filter(self, *arguments, **kwargs):
         '''
@@ -405,7 +688,6 @@ class QuerySet(object):
         self._skip = skip
         return self
 
-
     def limit(self, limit):
         '''
         Limits the number of documents to return in subsequent queries.
@@ -465,8 +747,16 @@ class QuerySet(object):
             self.current_count = 0
             self.result_size = len(arguments[0])
 
+            # if _loaded_fields is not empty then documents are partly loaded
+            is_partly_loaded = bool(self._loaded_fields)
+
             for doc in arguments[0]:
-                obj = self.__klass__.from_son(doc)
+                obj = self.__klass__.from_son(
+                    doc,
+                    # set projections for references (if any)
+                    _reference_loaded_fields=self._reference_loaded_fields,
+                    _is_partly_loaded=is_partly_loaded
+                )
 
                 result.append(obj)
 

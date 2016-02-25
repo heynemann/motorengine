@@ -8,15 +8,32 @@ from motorengine.metaclasses import DocumentMetaClass
 from motorengine.errors import InvalidDocumentError, LoadReferencesRequiredError
 
 
-AUTHORIZED_FIELDS = ['_id', '_values']
+AUTHORIZED_FIELDS = [
+    '_id', '_values', '_reference_loaded_fields', 'is_partly_loaded'
+]
 
 
 class BaseDocument(object):
-    def __init__(self, **kw):
+    def __init__(
+        self, _is_partly_loaded=False, _reference_loaded_fields=None, **kw
+    ):
+        """
+        :param _is_partly_loaded: is a flag that indicates if the document was
+        loaded partly (with `only`, `exlude`, `fields`). Default: False.
+        :param _reference_loaded_fields: dict that contains projections for
+        reference fields if any. Default: None.
+        :param kw: pairs of fields of the document and their values
+        """
         from motorengine.fields.dynamic_field import DynamicField
 
         self._id = kw.pop('_id', None)
         self._values = {}
+        self.is_partly_loaded = _is_partly_loaded
+
+        if _reference_loaded_fields:
+            self._reference_loaded_fields = _reference_loaded_fields
+        else:
+            self._reference_loaded_fields = {}
 
         for key, field in self._fields.items():
             if callable(field.default):
@@ -51,7 +68,7 @@ class BaseDocument(object):
         return isinstance(field, EmbeddedDocumentField) or (isinstance(field, type) and issubclass(field, EmbeddedDocumentField))
 
     @classmethod
-    def from_son(cls, dic):
+    def from_son(cls, dic, _is_partly_loaded=False, _reference_loaded_fields=None):
         field_values = {}
         for name, value in dic.items():
             field = cls.get_field_by_db_name(name)
@@ -60,7 +77,11 @@ class BaseDocument(object):
             else:
                 field_values[name] = value
 
-        return cls(**field_values)
+        return cls(
+            _is_partly_loaded=_is_partly_loaded,
+            _reference_loaded_fields=_reference_loaded_fields,
+            **field_values
+        )
 
     def to_son(self):
         data = dict()
@@ -136,7 +157,7 @@ class BaseDocument(object):
         collection[field_name] = value
 
     def fill_list_values_collection(self, collection, field_name, value):
-        if not field_name in collection:
+        if field_name not in collection:
             collection[field_name] = []
         collection[field_name].append(value)
 
@@ -209,13 +230,23 @@ class BaseDocument(object):
 
         return results
 
+    def _get_load_function(self, document, field_name, document_type):
+        """Get appropriate method to load reference field of the document"""
+        if field_name in document._reference_loaded_fields:
+            # there is a projection for this field
+            fields = document._reference_loaded_fields[field_name]
+            return document_type.objects.fields(**fields).get
+        return document_type.objects.get
+
     def find_reference_field(self, document, results, field_name, field):
         if self.is_reference_field(field):
             value = document._values.get(field_name, None)
-
+            load_function = self._get_load_function(
+                document, field_name, field.reference_type
+            )
             if value is not None:
                 results.append([
-                    field.reference_type.objects.get,
+                    load_function,
                     value,
                     document._values,
                     field_name,
@@ -230,9 +261,12 @@ class BaseDocument(object):
                 document_type = values[0].__class__
                 if isinstance(field._base_field, ReferenceField):
                     document_type = field._base_field.reference_type
+                    load_function = self._get_load_function(
+                        document, field_name, document_type
+                    )
                     for value in values:
                         results.append([
-                            document_type.objects.get,
+                            load_function,
                             value,
                             document._values,
                             field_name,
@@ -249,7 +283,7 @@ class BaseDocument(object):
                 self.find_references(document=value, results=results)
 
     def get_field_value(self, name):
-        if not name in self._fields:
+        if name not in self._fields:
             raise ValueError("Field %s not found in instance of %s." % (
                 name,
                 self.__class__.__name__
@@ -309,7 +343,7 @@ class BaseDocument(object):
         if fields is None:
             fields = []
 
-        if not '.' in name:
+        if '.' not in name:
             dyn_field = DynamicField(db_field="_%s" % name)
             fields.append(cls._fields.get(name, dyn_field))
             return fields
