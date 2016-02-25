@@ -50,6 +50,7 @@ class Post(Document):
 class User(Document):
     __collection__ = 'users'
 
+    index = IntField(required=True)
     email = StringField(required=True)
     first_name = StringField(
         db_field="whatever", max_length=50, default=lambda: "Bernardo"
@@ -85,6 +86,7 @@ class TestQueryProjection(AsyncTestCase):
 
     def create_test_objects(self):
         User.objects.create(
+            index=1,
             email="heynemann@gmail.com",
             first_name="Bernardo",
             last_name="Heynemann",
@@ -96,6 +98,7 @@ class TestQueryProjection(AsyncTestCase):
         self.user = self.wait()
 
         User.objects.create(
+            index=2,
             email="heynemann@gmail.com",
             first_name="Someone",
             last_name="Else",
@@ -110,6 +113,7 @@ class TestQueryProjection(AsyncTestCase):
         self.user2 = self.wait()
 
         User.objects.create(
+            index=3,
             email="heynemann@gmail.com",
             first_name="Tom",
             last_name="Doe",
@@ -145,7 +149,8 @@ class TestQueryProjection(AsyncTestCase):
 
     def test_can_project_with_only(self):
         User.objects.filter(last_name="Else")\
-            .only(User.first_name).find_all(callback=self.stop)
+            .only(User.first_name).order_by(User.index)\
+            .find_all(callback=self.stop)
         users = self.wait()
 
         expect(users).to_length(1)
@@ -154,7 +159,8 @@ class TestQueryProjection(AsyncTestCase):
         expect(users[0].email).to_be_null()
 
         User.objects.filter(last_name="Else")\
-            .only('first_name').find_all(callback=self.stop)
+            .only('first_name').order_by(User.index)\
+            .find_all(callback=self.stop)
         users = self.wait()
 
         expect(users).to_length(1)
@@ -199,7 +205,8 @@ class TestQueryProjection(AsyncTestCase):
 
     def test_can_project_with_excludes_chain(self):
         User.objects.filter(last_name="Else").exclude('_id')\
-            .exclude(User.email).find_all(callback=self.stop)
+            .exclude(User.email).order_by(User.index)\
+            .find_all(callback=self.stop)
         users = self.wait()
 
         expect(users).to_length(1)
@@ -222,14 +229,14 @@ class TestQueryProjection(AsyncTestCase):
         expect(user.last_name).to_equal("Heynemann")  # default value
 
         User.objects.only("email", "numbers").exclude('numbers')\
-            .find_all(callback=self.stop)
+            .order_by(User.index).find_all(callback=self.stop)
         users = self.wait()
 
         expect(users[0].email).to_equal("heynemann@gmail.com")
         expect(users[0].numbers).to_equal([])
 
         User.objects.exclude('numbers').only("email", "numbers")\
-            .find_all(callback=self.stop)
+            .order_by(User.index).find_all(callback=self.stop)
         users = self.wait()
 
         expect(users[0].email).to_equal("heynemann@gmail.com")
@@ -315,7 +322,8 @@ class TestQueryProjection(AsyncTestCase):
                 .get(last_name="Else", callback=self.stop)
 
     def test_can_slice_lists_in_projection(self):
-        User.objects.fields(slice__numbers=2).find_all(callback=self.stop)
+        User.objects.fields(slice__numbers=2)\
+            .order_by(User.index).find_all(callback=self.stop)
         users = self.wait()
 
         expect(users).to_length(3)
@@ -324,7 +332,8 @@ class TestQueryProjection(AsyncTestCase):
         expect(users[0].numbers).to_equal([1, 2])
         expect(users[1].numbers).to_equal([4, 5])
 
-        User.objects.fields(slice__numbers=(1, 2)).find_all(callback=self.stop)
+        User.objects.fields(slice__numbers=(1, 2))\
+            .order_by(User.index).find_all(callback=self.stop)
         users = self.wait()
 
         expect(users).to_length(3)
@@ -335,21 +344,21 @@ class TestQueryProjection(AsyncTestCase):
 
     def test_can_combine_slice_with_only_and_exlude(self):
         User.objects.fields(slice__numbers=(1, 1)).only('email')\
-            .find_all(callback=self.stop)
+            .order_by(User.index).find_all(callback=self.stop)
         users = self.wait()
 
         expect(users[0].email).to_equal("heynemann@gmail.com")
         expect(users[0].numbers).to_equal([2])
 
         User.objects.fields(slice__numbers=(1, 1)).exclude('numbers')\
-            .find_all(callback=self.stop)
+            .order_by(User.index).find_all(callback=self.stop)
         users = self.wait()
 
         expect(users[0].email).to_equal("heynemann@gmail.com")
         expect(users[0].numbers).to_equal([1, 2, 3])
 
         User.objects.fields(slice__numbers=(1, 1)).only('_id')\
-            .find_all(callback=self.stop)
+            .order_by(User.index).find_all(callback=self.stop)
         users = self.wait()
 
         expect(users[0].email).to_be_null()
@@ -357,7 +366,8 @@ class TestQueryProjection(AsyncTestCase):
         expect(users[0].numbers).to_equal([2])
 
     def test_can_slice_lists_in_projection_with_negative_skip(self):
-        User.objects.fields(slice__numbers=-2).find_all(callback=self.stop)
+        User.objects.fields(slice__numbers=-2)\
+            .order_by(User.index).find_all(callback=self.stop)
         users = self.wait()
 
         expect(users).to_length(3)
@@ -367,7 +377,8 @@ class TestQueryProjection(AsyncTestCase):
         expect(users[1].numbers).to_equal([5, 6])
         expect(users[2].numbers).to_equal([8, 9])
 
-        User.objects.fields(slice__numbers=(-2, 1)).find_all(callback=self.stop)
+        User.objects.fields(slice__numbers=(-2, 1))\
+            .order_by(User.index).find_all(callback=self.stop)
         users = self.wait()
 
         expect(users).to_length(3)
@@ -487,21 +498,24 @@ class TestQueryProjection(AsyncTestCase):
         expect(users[0].posts[0]._id).to_be_null()
 
     def test_document_is_partly_loaded(self):
-        User.objects.only('first_name').find_all(callback=self.stop)
+        User.objects.only('first_name')\
+            .order_by(User.index).find_all(callback=self.stop)
         only_users = self.wait()
 
         expect(only_users[0].is_partly_loaded).to_be_true()
         expect(only_users[1].is_partly_loaded).to_be_true()
         expect(only_users[2].is_partly_loaded).to_be_true()
 
-        User.objects.exclude('first_name').find_all(callback=self.stop)
+        User.objects.exclude('first_name')\
+            .order_by(User.index).find_all(callback=self.stop)
         exclude_users = self.wait()
 
         expect(exclude_users[0].is_partly_loaded).to_be_true()
         expect(exclude_users[1].is_partly_loaded).to_be_true()
         expect(exclude_users[2].is_partly_loaded).to_be_true()
 
-        User.objects.fields(slice__numbers=2).find_all(callback=self.stop)
+        User.objects.fields(slice__numbers=2)\
+            .order_by(User.index).find_all(callback=self.stop)
         slice_users = self.wait()
 
         expect(slice_users[0].is_partly_loaded).to_be_true()
@@ -509,7 +523,7 @@ class TestQueryProjection(AsyncTestCase):
         expect(slice_users[2].is_partly_loaded).to_be_true()
 
     def test_document_is_not_partly_loaded(self):
-        User.objects.find_all(callback=self.stop)
+        User.objects.order_by(User.index).find_all(callback=self.stop)
         users = self.wait()
 
         expect(users[0].is_partly_loaded).not_to_be_true()
@@ -517,7 +531,8 @@ class TestQueryProjection(AsyncTestCase):
         expect(users[2].is_partly_loaded).not_to_be_true()
 
         User.objects.only('first_name').exclude('_id')\
-            .all_fields().find_all(callback=self.stop)
+            .all_fields().order_by(User.index)\
+            .find_all(callback=self.stop)
         all_fields_users = self.wait()
 
         expect(all_fields_users[0].is_partly_loaded).not_to_be_true()
@@ -541,7 +556,7 @@ class TestQueryProjection(AsyncTestCase):
 
     def test_queryset_failed_to_save_partly_loaded_document(self):
         User.objects.only('first_name').filter(first_name='Someone')\
-            .find_all(callback=self.stop)
+            .order_by(User.index).find_all(callback=self.stop)
         users = self.wait()
 
         expect(users).to_length(1)
