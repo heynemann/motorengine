@@ -105,3 +105,19 @@ def validate_fields(document, query):
             raise ValueError(
                 "Invalid filter '%s': Invalid operator (if this is a sub-property, "
                 "then it must be used in embedded document fields)." % key)
+
+
+def transform_field_list_query(document, query_field_list):
+    if not query_field_list:
+        return None
+
+    fields = {}
+    for key in query_field_list.keys():
+        if key == '_id':
+            fields[key] = query_field_list[key]
+        else:
+            fields_chain = document.get_fields(key)
+            field_db_name = '.'.join([field.db_field for field in fields_chain])
+            fields[field_db_name] = query_field_list[key]
+
+    return fields

@@ -39,7 +39,8 @@ class IsNullQueryOperator(QueryOperator):
         assert 'email' in query_result
         assert '$ne' in query_result['email']
         assert '$exists' in query_result['email']
-r   '''
+
+    '''
 
     def to_query(self, field_name, value):
         if value:

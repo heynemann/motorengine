@@ -12,6 +12,10 @@ class LoadReferencesRequiredError(RuntimeError):
     pass
 
 
+class PartlyLoadedDocumentError(ValueError):
+    pass
+
+
 # E11000 duplicate key error index: test.UniqueFieldDocument.$name_1  dup key: { : "test" }
 PYMONGO_ERROR_REGEX = re.compile(r"(?P<error_code>.+?)\s(?P<error_type>.+?):\s*(?P<index_name>.+?)\s+(?P<error>.+?)")
 
