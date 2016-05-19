@@ -110,11 +110,11 @@ class BaseDocument(object):
         return True
 
     @return_future
-    def save(self, callback, alias=None):
+    def save(self, callback, alias=None, upsert=False):
         '''
         Creates or updates the current instance of this document.
         '''
-        self.objects.save(self, callback=callback, alias=alias)
+        self.objects.save(self, callback=callback, alias=alias, upsert=upsert)
 
     @return_future
     def delete(self, callback, alias=None):
