@@ -216,8 +216,8 @@ class BaseDocument(object):
 
         if fields:
             fields = [
-                (field_name, document._fields[field_name])
-                for field_name in fields
+                (field_name, field)
+                for field_name, field in document._fields.items()
                 if field_name in fields
             ]
         else:
