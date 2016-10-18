@@ -69,12 +69,14 @@ class BaseDocument(object):
     @classmethod
     def from_son(cls, dic, _is_partly_loaded=False, _reference_loaded_fields=None):
         field_values = {}
+        _object_id = dic.pop('_id', None)
         for name, value in dic.items():
             field = cls.get_field_by_db_name(name)
             if field:
                 field_values[field.name] = field.from_son(value)
             else:
                 field_values[name] = value
+        field_values["_id"] = _object_id
 
         return cls(
             _is_partly_loaded=_is_partly_loaded,
