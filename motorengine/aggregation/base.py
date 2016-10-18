@@ -159,7 +159,7 @@ class Aggregation(object):
     @return_future
     def fetch(self, callback=None, alias=None):
         coll = self.queryset.coll(alias)
-        coll.aggregate(self.to_query(), callback=self.handle_aggregation(callback))
+        coll.aggregate(self.to_query(), callback=self.handle_aggregation(callback), cursor=False)
 
     @classmethod
     def avg(cls, field, alias=None):
