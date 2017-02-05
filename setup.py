@@ -47,9 +47,9 @@ MotorEngine is a port of the amazing MongoEngine Mapper. Instead of using pymong
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'pymongo==2.7',
+        'pymongo==2.8.0',
         'tornado',
-        'motor==0.2',
+        'motor==0.8',
         'six',
         'easydict'
     ],
