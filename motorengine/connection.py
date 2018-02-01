@@ -11,7 +11,7 @@ except ImportError:
     pass
 
 try:
-    from motor import MotorClient, MotorReplicaSetClient
+    from motor import MotorClient
 except ImportError:
     pass
 
@@ -69,9 +69,6 @@ def get_connection(alias=DEFAULT_CONNECTION_NAME, db=None):
 
         connection_class = MotorClient
         if 'replicaSet' in conn_settings:
-            connection_class = MotorReplicaSetClient
-            conn_settings['hosts_or_uri'] = conn_settings.pop('host', None)
-
             # Discard port since it can't be used on MongoReplicaSetClient
             conn_settings.pop('port', None)
 
