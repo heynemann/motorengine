@@ -855,7 +855,6 @@ class QuerySet(object):
                     created_indexes,
                     len(fields_with_index)
                 ),
-                alias=alias
             )
 
         if not fields_with_index:
