@@ -49,3 +49,7 @@ class TestListField(AsyncTestCase):
 
         field = ListField(StringField(), required=True)
         expect(field.validate(None)).to_be_false()
+
+    def test_embedded_type(self):
+        field = ListField(StringField())
+        expect(field.item_type).to_equal(StringField)
