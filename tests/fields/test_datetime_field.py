@@ -50,6 +50,11 @@ class TestDateTimeField(AsyncTestCase):
 
         expect(field.to_son(field.get_value(None))).to_be_greater_or_equal_to(dt)
 
+    def test_to_son_with_auto_insert_and_given_value(self):
+        field = DateTimeField(auto_now_on_insert=True)
+        dt = datetime(2010, 11, 12, 13, 14, 15)
+        expect(field.to_son(field.get_value(dt))).to_equal(dt)
+
     def test_to_son_with_auto_update(self):
         dt = datetime(2010, 11, 12, 13, 14, 15)
         now = datetime.now()
