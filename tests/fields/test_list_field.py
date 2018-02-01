@@ -67,3 +67,10 @@ class TestListField(AsyncTestCase):
 
         field = ListField(EmbeddedDocumentField(OtherType))
         expect(field.item_type).to_equal(OtherType)
+
+    def test_to_query(self):
+        field = ListField(StringField())
+        field.from_son(["1", "2", "3"])
+        expect(field.to_query(["1", "2", "3"])).to_equal({
+            "$all": ["1", "2", "3"]
+        })
