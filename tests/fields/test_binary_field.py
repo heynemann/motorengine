@@ -37,3 +37,8 @@ class TestBinaryField(AsyncTestCase):
         field = BinaryField()
         expect(field.from_son(b"abc")).to_equal(b"abc")
         expect(field.from_son("abc")).to_equal(b"abc")
+
+    def test_to_son(self):
+        field = BinaryField()
+        expect(field.to_son(b"abc")).to_equal(b"abc")
+        expect(field.to_son("abc")).to_equal(b"abc")
