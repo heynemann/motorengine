@@ -35,6 +35,7 @@ class TestListField(AsyncTestCase):
         field = ListField(StringField())
 
         expect(field.from_son([])).to_equal([])
+        expect(field.from_son(None)).to_equal([])
         expect(field.from_son(["1", "2", "3"])).to_equal(["1", "2", "3"])
 
     def test_validate_propagates(self):
@@ -74,3 +75,10 @@ class TestListField(AsyncTestCase):
         expect(field.to_query(["1", "2", "3"])).to_equal({
             "$all": ["1", "2", "3"]
         })
+        expect(field.to_query("string")).to_equal("string")
+
+    def test_is_empty(self):
+        field = ListField(StringField())
+        expect(field.is_empty(None)).to_be_true()
+        expect(field.is_empty([])).to_be_true()
+        expect(field.is_empty("some")).to_be_false()

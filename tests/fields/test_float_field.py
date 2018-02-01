@@ -19,12 +19,14 @@ class TestFloatField(AsyncTestCase):
 
         expect(field.to_son(10.0230)).to_equal(10.023)
         expect(field.to_son("10.56")).to_equal(10.56)
+        expect(field.to_son(None)).to_equal(None)
 
     def test_from_son(self):
         field = FloatField()
 
         expect(field.from_son(10.0230)).to_equal(10.023)
         expect(field.from_son("10.56")).to_equal(10.56)
+        expect(field.from_son(None)).to_equal(None)
 
     def test_validate_enforces_floats(self):
         field = FloatField()

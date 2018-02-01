@@ -21,6 +21,7 @@ class TestIntField(AsyncTestCase):
         expect(field.to_son(10.0)).to_equal(10)
         expect(field.to_son(10.0230)).to_equal(10)
         expect(field.to_son("10")).to_equal(10)
+        expect(field.to_son(None)).to_equal(None)
 
     def test_from_son(self):
         field = IntField()
@@ -29,6 +30,7 @@ class TestIntField(AsyncTestCase):
         expect(field.from_son(10.0)).to_equal(10)
         expect(field.from_son(10.0230)).to_equal(10)
         expect(field.from_son("10")).to_equal(10)
+        expect(field.from_son(None)).to_equal(None)
 
     def test_validate_enforces_integers(self):
         field = IntField()
