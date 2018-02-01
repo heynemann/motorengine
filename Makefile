@@ -49,6 +49,7 @@ mongo_test: kill_mongo_test
 	@mongod --dbpath /tmp/motorengine_test/mongotestdata --logpath /tmp/motorengine_test/mongotestlog --port 4445 --quiet --smallfiles --oplogSize 128 &
 	@mongod --dbpath /tmp/motorengine_test_2/mongotestdata --logpath /tmp/motorengine_test_2/mongotestlog --replSet rs0 --port 27017 --quiet --smallfiles --oplogSize 128 &
 	@mongod --dbpath /tmp/motorengine_test_3/mongotestdata --logpath /tmp/motorengine_test_3/mongotestlog --replSet rs0 --port 27018 --quiet --smallfiles --oplogSize 128 &
-	@sleep 10
+	@sleep 20
 	@mongo --host localhost --port 27017 --eval 'rs.initiate({_id: "rs0", members: [{ _id: 0, host: "localhost:27017" }]});rs.conf();while(!rs.add("localhost:27018")["ok"]){};quit()'
+	@sleep 20
 
