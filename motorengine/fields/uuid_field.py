@@ -29,8 +29,6 @@ class UUIDField(BaseField):
             try:
                 UUID(value)
                 return True
-            except TypeError:
-                pass
             except ValueError:
                 pass
 
