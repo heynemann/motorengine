@@ -10,7 +10,8 @@ python:
 
 matrix:
   allow_failures:
-    python: 3.3, pypy
+    - python: 3.3
+    - python: pypy
 
 install:
   - pushd .
