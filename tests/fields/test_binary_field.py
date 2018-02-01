@@ -32,3 +32,8 @@ class TestBinaryField(AsyncTestCase):
         expect(field.is_empty(None)).to_be_true()
         expect(field.is_empty("")).to_be_true()
         expect(field.is_empty("123")).to_be_false()
+
+    def test_from_son(self):
+        field = BinaryField()
+        expect(field.from_son(b"abc")).to_equal(b"abc")
+        expect(field.from_son("abc")).to_equal(b"abc")
