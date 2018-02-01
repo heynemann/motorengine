@@ -5,6 +5,7 @@ python:
   - "3.3"
   - "3.4"
   - "3.5"
+  - "3.6"
   - "pypy"
 
 matrix:
@@ -16,9 +17,9 @@ install:
 
   # installing mongodb
   - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
-  - echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/10gen.list
+  - echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
   - sudo apt-get update
-  - sudo apt-get install -y mongodb-10gen
+  - sudo apt-get install -y mongodb-org
 
   - make setup
 
