@@ -143,6 +143,15 @@ class TestAggregation(AsyncTestCase):
         #expect(result).not_to_be_null()
         #expect(result).to_length(4)
 
+    def test_can_match_admins(self):
+        User.objects.aggregate.match(
+            is_admin=1
+        ).fetch(callback=self.stop)
+        results = self.wait()
+
+        expect(results).not_to_be_null()
+        expect(results).to_length(50)
+
     def test_can_average_city_population(self):
         City.objects.aggregate.group_by(
             City.state,
