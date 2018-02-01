@@ -174,6 +174,28 @@ class TestAggregation(AsyncTestCase):
         for state in results:
             expect(state.avg_pop).to_be_greater_than(2000000)
 
+    def test_can_average_city_population_without_alias(self):
+        City.objects.aggregate.group_by(
+            City.state,
+            City.city,
+            Aggregation.sum(City.pop)
+        ).group_by(
+            City.state,
+            Aggregation.avg("pop")
+        ).fetch(callback=self.stop)
+
+        results = self.wait()
+
+        expect(results).not_to_be_null()
+        expect(results).to_length(4)
+
+        states = [result.state for result in results]
+
+        expect(states).to_be_like(['ny', 'ca', 'wa', 'fl'])
+
+        for state in results:
+            expect(state.pop).to_be_greater_than(2000000)
+
     def test_can_average_city_population_by_raw_query(self):
         City.objects.aggregate.raw([
             {
