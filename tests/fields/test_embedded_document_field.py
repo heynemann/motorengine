@@ -40,6 +40,7 @@ class TestEmbeddedDocumentField(AsyncTestCase):
         expect(field.to_son(u)).to_be_like({
             'name': 'test'
         })
+        expect(field.to_son(None)).to_equal(None)
 
     def test_from_son(self):
         field = EmbeddedDocumentField(db_field="test", embedded_document_type=User)
@@ -50,3 +51,11 @@ class TestEmbeddedDocumentField(AsyncTestCase):
 
         expect(user).to_be_instance_of(User)
         expect(user.name).to_equal("test2")
+        expect(field.from_son(None)).to_equal(None)
+
+    def test_validate(self):
+        field = EmbeddedDocumentField(User)
+
+        expect(field.validate(None)).to_be_true()
+        expect(field.validate("String")).to_be_false()
+        expect(field.validate(User())).to_be_true()
