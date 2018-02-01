@@ -592,7 +592,7 @@ class QuerySet(object):
             filters = self.get_query_from_filters(filters)
 
         self.coll(alias).find_one(
-            filters, fields=self._loaded_fields.to_query(self.__klass__),
+            filters, projection=self._loaded_fields.to_query(self.__klass__),
             callback=self.handle_get(callback)
         )
 
@@ -618,7 +618,7 @@ class QuerySet(object):
         query_filters = self.get_query_from_filters(self._filters)
 
         return self.coll(alias).find(
-            query_filters, fields=self._loaded_fields.to_query(self.__klass__),
+            query_filters, projection=self._loaded_fields.to_query(self.__klass__),
             **find_arguments
         )
 
