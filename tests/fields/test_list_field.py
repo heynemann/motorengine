@@ -5,7 +5,7 @@ import sys
 
 from preggy import expect
 
-from motorengine import ListField, StringField
+from motorengine import ListField, StringField, Document, ReferenceField, EmbeddedDocumentField
 from tests import AsyncTestCase
 
 
@@ -53,3 +53,17 @@ class TestListField(AsyncTestCase):
     def test_embedded_type(self):
         field = ListField(StringField())
         expect(field.item_type).to_equal(StringField)
+
+    def test_item_reference_type(self):
+        class OtherType(Document):
+            pass
+
+        field = ListField(ReferenceField(OtherType))
+        expect(field.item_type).to_equal(OtherType)
+
+    def test_item_embedded_type(self):
+        class OtherType(Document):
+            pass
+
+        field = ListField(EmbeddedDocumentField(OtherType))
+        expect(field.item_type).to_equal(OtherType)
