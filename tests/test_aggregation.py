@@ -89,6 +89,21 @@ class TestAggregation(AsyncTestCase):
         expect(result[0].email).to_equal('heynemann@gmail.com')
         expect(result[0].number_of_documents).to_be_like(4950.0)
 
+    def test_can_aggregate_number_of_documents_without_alias(self):
+        User.objects.aggregate.group_by(
+            User.email,
+            Aggregation.avg(User.number_of_documents)
+        ).fetch(
+            callback=self.stop
+        )
+
+        result = self.wait()
+
+        expect(result).not_to_be_null()
+        expect(result).to_length(1)
+        expect(result[0].email).to_equal('heynemann@gmail.com')
+        expect(result[0].number_of_documents).to_be_like(4950.0)
+
     def test_can_aggregate_with_unwind(self):
         User.objects.aggregate.unwind(User.list_items).group_by(
             User.email,
