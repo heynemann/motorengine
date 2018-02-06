@@ -24,19 +24,22 @@ class DateTimeField(BaseField):
 
     * `auto_now_on_insert` - When an instance is created sets the field to datetime.now()
     * `auto_now_on_update` - Whenever the instance is saved the field value gets updated to datetime.now()
+    * `tz` - Defines the timezone used for auto_now_on_insert and auto_now_on_update. To interpret all times as UTC
+             use tz=datetime.timezone.utc (Defaults: to None)
     '''
 
-    def __init__(self, auto_now_on_insert=False, auto_now_on_update=False, *args, **kw):
+    def __init__(self, auto_now_on_insert=False, auto_now_on_update=False, tz=None, *args, **kw):
         super(DateTimeField, self).__init__(*args, **kw)
         self.auto_now_on_insert = auto_now_on_insert
         self.auto_now_on_update = auto_now_on_update
+        self.tz = tz
 
     def get_value(self, value):
         if self.auto_now_on_insert and value is None:
-            return datetime.now()
+            return datetime.now(tz=self.tz)
 
         if self.auto_now_on_update:
-            return datetime.now()
+            return datetime.now(tz=self.tz)
 
         return value
 
