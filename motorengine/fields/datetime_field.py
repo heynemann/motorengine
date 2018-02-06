@@ -24,8 +24,9 @@ class DateTimeField(BaseField):
 
     * `auto_now_on_insert` - When an instance is created sets the field to datetime.now()
     * `auto_now_on_update` - Whenever the instance is saved the field value gets updated to datetime.now()
-    * `tz` - Defines the timezone used for auto_now_on_insert and auto_now_on_update. To interpret all times as UTC
-             use tz=datetime.timezone.utc (Defaults: to None)
+    * `tz` - Defines the timezone used for auto_now_on_insert and auto_now_on_update and should be enforced on all
+             values of this datetime field. To interpret all times as UTC use tz=datetime.timezone.utc
+             (Defaults: to None, which means waht you put in comes out again)
     '''
 
     def __init__(self, auto_now_on_insert=False, auto_now_on_update=False, tz=None, *args, **kw):
@@ -44,16 +45,31 @@ class DateTimeField(BaseField):
         return value
 
     def to_son(self, value):
-        if isinstance(value, six.string_types):
-            return datetime.strptime(value, FORMAT)
+        if value is None:
+            return None
 
-        return value
+        if isinstance(value, six.string_types):
+            value = datetime.strptime(value, FORMAT)
+
+        return self.ensure_timezone(value)
 
     def from_son(self, value):
-        if value is None or isinstance(value, datetime):
-            return value
+        if value is None:
+            return None
 
-        return datetime.strptime(value, FORMAT)
+        if isinstance(value, six.string_types):
+            value = datetime.strptime(value, FORMAT)
+
+        return self.ensure_timezone(value)
 
     def validate(self, value):
         return value is None or isinstance(value, datetime)
+
+    def ensure_timezone(self, value):
+        if value.tzinfo is None and self.tz is not None:
+            return value.replace(tzinfo=self.tz)
+
+        if value.tzinfo is not None and self.tz != value.tzinfo:
+            return value.astimezone(self.tz)
+
+        return value
