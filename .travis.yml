@@ -5,10 +5,7 @@ python:
   - "3.5"
   - "3.6"
   - "pypy"
-
-matrix:
-  allow_failures:
-    - python: "pypy"
+  - "pypy3"
 
 install:
   - pushd .
