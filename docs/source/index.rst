@@ -98,7 +98,7 @@ Contents
   getting-and-querying
 
 
-.. _MotorEngine: http://motorengine.readthedocs.org/en/latest/
-.. _MongoEngine: http://docs.mongoengine.org/en/latest/
+.. _MotorEngine: https://motorengine.readthedocs.org/en/latest/
+.. _MongoEngine: https://mongoengine-odm.readthedocs.io/
 .. _Motor: http://motor.readthedocs.org/en/stable/
 .. _Aggregation Pipeline: http://docs.mongodb.org/manual/reference/method/db.collection.aggregate/#db.collection.aggregate
