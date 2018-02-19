@@ -13,6 +13,7 @@ from motorengine import (
     EmbeddedDocumentField, ReferenceField, DESCENDING,
     URLField, DateTimeField, UUIDField, IntField, JsonField
 )
+from motorengine import Q
 from motorengine.errors import InvalidDocumentError, LoadReferencesRequiredError, UniqueKeyViolationError
 from tests import AsyncTestCase
 
@@ -51,6 +52,11 @@ class Post(Document):
     body = StringField(required=True)
 
     comments = ListField(EmbeddedDocumentField(Comment))
+
+
+class EmployeeWithId(Document):
+    emp_number = StringField()
+    id = StringField()
 
 
 class TestDocument(AsyncTestCase):
@@ -1254,3 +1260,21 @@ class TestDocument(AsyncTestCase):
 
         expect(base.list_val).to_length(3)
         expect(base.list_val[0]).to_be_instance_of(Ref)
+
+    def test_can_create_new_instance_with_id(self):
+        user = EmployeeWithId(id="12345", emp_number="mynumber")
+        user.save(callback=self.stop)
+
+        result = self.wait()
+
+        expect(result._id).not_to_be_null()
+        expect(result.id).to_equal("12345")
+
+        for i in range(10):
+            EmployeeWithId.objects.filter(Q(id="12345")).find_all(callback=self.stop)
+            result = self.wait()
+
+            emp = result[0]
+
+            #expect(emp._id).not_to_be_null()
+            expect(emp.id).to_equal("12345")

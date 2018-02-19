@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import six
@@ -70,12 +69,14 @@ class BaseDocument(object):
     @classmethod
     def from_son(cls, dic, _is_partly_loaded=False, _reference_loaded_fields=None):
         field_values = {}
+        _object_id = dic.pop('_id', None)
         for name, value in dic.items():
             field = cls.get_field_by_db_name(name)
             if field:
-                field_values[field.name] = cls._fields[field.name].from_son(value)
+                field_values[field.name] = field.from_son(value)
             else:
                 field_values[name] = value
+        field_values["_id"] = _object_id
 
         return cls(
             _is_partly_loaded=_is_partly_loaded,
@@ -88,7 +89,7 @@ class BaseDocument(object):
 
         for name, field in self._fields.items():
             value = self.get_field_value(name)
-            if field.sparse and field.is_empty(value):
+            if field.sparse and value is None:
                 continue
             data[field.db_field] = field.to_son(value)
 
@@ -110,11 +111,11 @@ class BaseDocument(object):
         return True
 
     @return_future
-    def save(self, callback, alias=None):
+    def save(self, callback, alias=None, upsert=False):
         '''
         Creates or updates the current instance of this document.
         '''
-        self.objects.save(self, callback=callback, alias=alias)
+        self.objects.save(self, callback=callback, alias=alias, upsert=upsert)
 
     @return_future
     def delete(self, callback, alias=None):
@@ -216,8 +217,8 @@ class BaseDocument(object):
 
         if fields:
             fields = [
-                (field_name, document._fields[field_name])
-                for field_name in fields
+                (field_name, field)
+                for field_name, field in document._fields.items()
                 if field_name in fields
             ]
         else:

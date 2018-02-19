@@ -106,7 +106,7 @@ class QuerySet(object):
             if field.on_save is not None:
                 setattr(document, field_name, field.on_save(document, creating))
 
-    def save(self, document, callback, alias=None):
+    def save(self, document, callback, alias=None, upsert=False):
         if document.is_partly_loaded:
             msg = (
                 "Partly loaded document {0} can't be saved. Document should "
@@ -118,15 +118,23 @@ class QuerySet(object):
             )
 
         if self.validate_document(document):
-            self.ensure_index(callback=self.indexes_saved_before_save(document, callback, alias=alias), alias=alias)
+            self.ensure_index(
+                callback=self.indexes_saved_before_save(document, callback, alias=alias, upsert=upsert), 
+                alias=alias
+            )
 
-    def indexes_saved_before_save(self, document, callback, alias=None):
+    def indexes_saved_before_save(self, document, callback, alias=None, upsert=False):
         def handle(*args, **kw):
             self.update_field_on_save_values(document, document._id is not None)
             doc = document.to_son()
 
             if document._id is not None:
-                self.coll(alias).update({'_id': document._id}, doc, callback=self.handle_update(document, callback))
+                self.coll(alias).update(
+                    {'_id': document._id}, 
+                    doc, 
+                    callback=self.handle_update(document, callback),
+                    upsert=upsert,
+                )
             else:
                 self.coll(alias).insert(doc, callback=self.handle_save(document, callback))
 
@@ -797,8 +805,6 @@ class QuerySet(object):
 
         cursor = self._get_find_cursor(alias=alias)
 
-        self._filters = {}
-
         cursor.to_list(**to_list_arguments)
 
     def handle_count(self, callback):
@@ -815,7 +821,6 @@ class QuerySet(object):
         Returns the number of documents in the collection that match the specified filters, if any.
         '''
         cursor = self._get_find_cursor(alias=alias)
-        self._filters = {}
         cursor.count(callback=self.handle_count(callback))
 
     @property

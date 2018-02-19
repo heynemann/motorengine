@@ -13,11 +13,14 @@ try:
         BaseField, StringField, BooleanField, DateTimeField,
         UUIDField, ListField, EmbeddedDocumentField, ReferenceField, URLField,
         EmailField, IntField, FloatField, DecimalField, BinaryField,
-        JsonField
+        JsonField, ObjectIdField
     )
 
     from motorengine.aggregation.base import Aggregation  # NOQA
     from motorengine.query_builder.node import Q, QNot  # NOQA
 
-except ImportError:  # NOQA
-    pass  # likely setup.py trying to import version
+except ImportError as e:  # NOQA
+    # likely setup.py trying to import version
+    import sys
+    import traceback
+    traceback.print_exception(*sys.exc_info())
