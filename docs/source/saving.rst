@@ -75,6 +75,44 @@ To update an instance, just make the needed changes to an instance and then call
         io_loop.add_timeout(1, create_user)
         io_loop.start()
 
+Updating or Inserting Instances
+-------------------------------
+
+MotorEngine allows users to upsert instances. In order to upsert, you can do the same as when updating a document, but you must specify that it is an upsert:
+
+.. testsetup:: saving_upsert
+
+    import tornado.ioloop
+    from bson.objectid import ObjectId
+    from motorengine import *
+
+    class User(Document):
+        __collection__ = "UserUpsertingInstances"
+        name = StringField()
+
+    io_loop = tornado.ioloop.IOLoop.instance()
+    connect("test", host="localhost", port=27017, io_loop=io_loop)
+
+.. testcode:: saving_upsert
+
+    user_id = ObjectId()
+
+    def handle_user_upserted(user):
+        try:
+            assert user.name == "Bernardo"
+            assert user._id == user_id
+        finally:
+            io_loop.stop()
+
+    def create_user():
+        user = User(_id=user_id, name="Bernardo")
+        user.save(callback=handle_user_upserted, upsert=True)
+
+    io_loop.add_timeout(1, create_user)
+    io_loop.start()
+
+
+
 Deleting instances
 ------------------
 

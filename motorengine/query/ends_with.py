@@ -37,7 +37,7 @@ class EndsWithOperator(QueryOperator):
 
     .. testoutput:: endswith_query_operator
 
-        {'name': {'$regex': 'do$'}}
+        {'first_name': {'$regex': 'do$'}}
 
     '''
 

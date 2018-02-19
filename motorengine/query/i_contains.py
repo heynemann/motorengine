@@ -37,8 +37,7 @@ class IContainsOperator(QueryOperator):
 
     .. testoutput:: icontains_query_operator
 
-        {'name': {'$regex': 'NaR', '$options': 'i'}}
-
+        {'first_name': {'$options': 'i', '$regex': 'NaR'}}
     '''
 
     def to_query(self, field_name, value):

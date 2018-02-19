@@ -9,6 +9,7 @@ Modeling
 .. py:module:: motorengine.fields.list_field
 .. py:module:: motorengine.fields.embedded_document_field
 .. py:module:: motorengine.fields.reference_field
+.. py:module:: motorengine.fields.objectid_field
 .. py:module:: motorengine.fields.url_field
 .. py:module:: motorengine.fields.email_field
 .. py:module:: motorengine.fields.int_field
@@ -133,6 +134,8 @@ Available Fields
 .. autoclass:: motorengine.fields.binary_field.BinaryField
 
 .. autoclass:: motorengine.fields.json_field.JsonField
+
+.. autoclass:: motorengine.fields.objectid_field.ObjectIdField
 
 Multiple Value Fields
 ---------------------

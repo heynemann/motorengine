@@ -37,7 +37,7 @@ class ContainsOperator(QueryOperator):
 
     .. testoutput:: contains_query_operator
 
-        {'name': {'$regex': 'nar'}}
+        {'first_name': {'$regex': 'nar'}}
 
     '''
 

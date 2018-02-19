@@ -37,14 +37,13 @@ class IExactOperator(QueryOperator):
 
     .. testoutput:: iexact_query_operator
 
-        {'name': {'$regex': '^bErNaRdO$', '$options': 'i'}}
-
+        {'first_name': {'$options': 'i', '$regex': '^bErNaRdO$'}}
     '''
 
     def to_query(self, field_name, value):
         return {
             field_name: {
-                "$regex": r'^%s$' %value,
+                "$regex": r'^%s$' % value,
                 "$options": 'i'
             }
         }

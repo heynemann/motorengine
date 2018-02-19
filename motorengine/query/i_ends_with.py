@@ -37,8 +37,7 @@ class IEndsWithOperator(QueryOperator):
 
     .. testoutput:: iendswith_query_operator
 
-        {'name': {'$regex': 'Do$', '$options': 'i'}}
-
+        {'first_name': {'$options': 'i', '$regex': 'Do$'}}
     '''
 
     def to_query(self, field_name, value):

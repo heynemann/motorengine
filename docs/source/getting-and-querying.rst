@@ -7,6 +7,7 @@ Querying with filter methods
 ----------------------------
 
 .. automethod:: motorengine.queryset.QuerySet.filter
+    :noindex:
 
 .. automethod:: motorengine.queryset.QuerySet.filter_not
 
@@ -73,6 +74,22 @@ MotorEngine supports the following query operators:
 .. autoclass:: motorengine.query.is_null.IsNullQueryOperator
 
 .. autoclass:: motorengine.query.not_equal.NotEqualQueryOperator
+
+.. autoclass:: motorengine.query.contains.ContainsOperator
+
+.. autoclass:: motorengine.query.i_contains.IContainsOperator
+
+.. autoclass:: motorengine.query.ends_with.EndsWithOperator
+
+.. autoclass:: motorengine.query.i_ends_with.IEndsWithOperator
+
+.. autoclass:: motorengine.query.exact.ExactOperator
+
+.. autoclass:: motorengine.query.i_exact.IExactOperator
+
+.. autoclass:: motorengine.query.starts_with.StartsWithOperator
+
+.. autoclass:: motorengine.query.i_starts_with.IStartsWithOperator
 
 Querying with Raw Queries
 -------------------------

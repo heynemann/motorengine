@@ -246,7 +246,7 @@ texinfo_documents = [
 
 intersphinx_mapping = {
     'python': ('http://python.readthedocs.org/en/latest/', None),
-    'mongoengine': ('http://docs.mongoengine.org/en/latest/', None),
-    'motorengine': ('http://motorengine.readthedocs.org/en/latest/', None),
+    'mongoengine': ('https://mongoengine-odm.readthedocs.io/', None),
+    'motorengine': ('https://motorengine.readthedocs.org/en/latest/', None),
     'motor': ('http://motor.readthedocs.org/en/stable/', None)
 }

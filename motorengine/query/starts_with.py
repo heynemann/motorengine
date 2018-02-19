@@ -37,7 +37,7 @@ class StartsWithOperator(QueryOperator):
 
     .. testoutput:: startswith_query_operator
 
-        {'name': {'$regex': '^Ber'}}
+        {'first_name': {'$regex': '^Ber'}}
 
     '''
 

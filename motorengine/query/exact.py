@@ -37,7 +37,7 @@ class ExactOperator(QueryOperator):
 
     .. testoutput:: exact_query_operator
 
-        {'name': {'$regex': '^Bernardo$'}}
+        {'first_name': {'$regex': '^Bernardo$'}}
 
     '''
 

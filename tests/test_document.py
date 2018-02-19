@@ -7,6 +7,7 @@ from datetime import datetime
 
 from preggy import expect
 from tornado.testing import gen_test
+from bson.objectid import ObjectId
 
 from motorengine import (
     Document, StringField, BooleanField, ListField,
@@ -158,6 +159,25 @@ class TestDocument(AsyncTestCase):
             expect(e).to_have_an_error_message_of("Multiple db_fields defined for: email ")
         else:
             assert False, "Should not have gotten this far."
+
+    def test_can_upsert_employee(self):
+        obj_id = ObjectId()
+        user = Employee(_id=obj_id, email="heynemann@gmail.com", first_name="Upsert", last_name="Upsertee", emp_number="Employee")
+        user.save(callback=self.stop, upsert=True)
+
+        result = self.wait()
+
+        expect(result._id).to_equal(obj_id)
+        expect(result.email).to_equal("heynemann@gmail.com")
+        expect(result.first_name).to_equal("Upsert")
+        expect(result.last_name).to_equal("Upsertee")
+        expect(result.emp_number).to_equal("Employee")
+
+        Employee.objects.filter(first_name="Upsert").find_all(callback=self.stop)
+        loaded = self.wait()
+        expect(loaded).not_to_be_null()
+        expect(loaded).to_length(1)
+        expect(loaded[0]._id).to_equal(obj_id)
 
     def test_can_update_employee(self):
         user = Employee(email="heynemann@gmail.com", first_name="Bernardo", last_name="Heynemann", emp_number="Employee")

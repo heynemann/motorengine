@@ -37,14 +37,13 @@ class IStartsWithOperator(QueryOperator):
 
     .. testoutput:: istartswith_query_operator
 
-        {'name': {'$regex': '^bEr', '$options': 'i'}}
-
+        {'first_name': {'$options': 'i', '$regex': '^bEr'}}
     '''
 
     def to_query(self, field_name, value):
         return {
             field_name: {
-                "$regex": r'^%s' %value,
+                "$regex": r'^%s' % value,
                 "$options": 'i'
             }
         }
