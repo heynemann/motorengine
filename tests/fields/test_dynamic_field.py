@@ -12,8 +12,9 @@ class TestDynamicField(AsyncTestCase):
     def test_create_dynamic_field(self):
         # we need a document to verify document's metaclass accepts the field
         class TestDocument(Document):
-            dynamic_field = DynamicField(db_field="test")
+            dynamic_field = DynamicField(db_field="_test_something_name")
 
         test_document = TestDocument()
 
-        expect(test_document.dynamic_field.db_field).to_equal("test")
+        expect(test_document.dynamic_field.db_field).to_equal("_test_something_name")
+        expect(test_document.dynamic_field.name).to_equal("test_something_name")

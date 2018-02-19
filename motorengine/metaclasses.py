@@ -33,6 +33,8 @@ class DocumentMetaClass(type):
         for attr_name, attr_value in attrs.items():
             if not isinstance(attr_value, BaseField):
                 continue
+            if attr_value.__class__.__name__ == 'DynamicField':
+                continue
             attr_value.name = attr_name
             if not attr_value.db_field:
                 attr_value.db_field = attr_name
@@ -61,13 +63,13 @@ class DocumentMetaClass(type):
 
         new_class = super_new(cls, name, bases, attrs)
 
-        if not '__collection__' in attrs:
+        if '__collection__' not in attrs:
             new_class.__collection__ = new_class.__name__
 
-        if not '__lazy__' in attrs:
+        if '__lazy__' not in attrs:
             new_class.__lazy__ = True
 
-        if not '__alias__' in attrs:
+        if '__alias__' not in attrs:
             new_class.__alias__ = None
 
         setattr(new_class, 'objects', classproperty(lambda *args, **kw: QuerySet(new_class)))

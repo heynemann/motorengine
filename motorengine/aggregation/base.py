@@ -146,9 +146,6 @@ class Aggregation(object):
 
             results = []
             for item in arguments[0]:
-                #if '_id' in item and isinstance(item['_id'], ObjectId):
-                    #results.append(self.get_instance(item))
-                #else:
                 self.fill_ids(item)
                 results.append(edict(item))
 
@@ -159,7 +156,7 @@ class Aggregation(object):
     @return_future
     def fetch(self, callback=None, alias=None):
         coll = self.queryset.coll(alias)
-        coll.aggregate(self.to_query()).to_list(None, callback=self.handle_aggregation(callback), cursor=False)
+        coll.aggregate(self.to_query()).to_list(None, callback=self.handle_aggregation(callback))
 
     @classmethod
     def avg(cls, field, alias=None):
