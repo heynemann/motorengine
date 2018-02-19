@@ -31,13 +31,17 @@ class IStartsWithOperator(QueryOperator):
 
         query_result = query.to_query(User)
 
-        print(query_result)
+        # Due to dict ordering
+        print('{"first_name": {"$options": "%s", "$regex": "%s"}}' % (
+            query_result['first_name']['$options'],
+            query_result['first_name']['$regex'],
+        ))
 
     The resulting query is:
 
     .. testoutput:: istartswith_query_operator
 
-        {'first_name': {'$options': 'i', '$regex': '^bEr'}}
+        {"first_name": {"$options": "i", "$regex": "^bEr"}}
     '''
 
     def to_query(self, field_name, value):
