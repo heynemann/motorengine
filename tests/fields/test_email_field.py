@@ -17,4 +17,5 @@ class TestEmailField(AsyncTestCase):
         field = EmailField()
 
         expect(field.validate("some non email")).to_be_false()
+        expect(field.validate(None)).to_be_true()
         expect(field.validate("someone.else@gmail.com")).to_be_true()

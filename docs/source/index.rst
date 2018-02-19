@@ -8,10 +8,7 @@ MotorEngine MongoDB Async ORM
 .. image:: https://travis-ci.org/heynemann/motorengine.png
   :target: https://travis-ci.org/heynemann/motorengine
 
-.. image:: https://pypip.in/v/motorengine/badge.png
-  :target: https://crate.io/packages/motorengine/
-
-.. image:: https://pypip.in/d/motorengine/badge.png
+.. image:: https://img.shields.io/pypi/v/motorengine.svg
   :target: https://crate.io/packages/motorengine/
 
 .. image:: https://coveralls.io/repos/heynemann/motorengine/badge.png?branch=master

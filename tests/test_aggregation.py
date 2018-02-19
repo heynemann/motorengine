@@ -89,6 +89,21 @@ class TestAggregation(AsyncTestCase):
         expect(result[0].email).to_equal('heynemann@gmail.com')
         expect(result[0].number_of_documents).to_be_like(4950.0)
 
+    def test_can_aggregate_number_of_documents_without_alias(self):
+        User.objects.aggregate.group_by(
+            User.email,
+            Aggregation.avg(User.number_of_documents)
+        ).fetch(
+            callback=self.stop
+        )
+
+        result = self.wait()
+
+        expect(result).not_to_be_null()
+        expect(result).to_length(1)
+        expect(result[0].email).to_equal('heynemann@gmail.com')
+        expect(result[0].number_of_documents).to_be_like(4950.0)
+
     def test_can_aggregate_with_unwind(self):
         User.objects.aggregate.unwind(User.list_items).group_by(
             User.email,
@@ -128,6 +143,15 @@ class TestAggregation(AsyncTestCase):
         #expect(result).not_to_be_null()
         #expect(result).to_length(4)
 
+    def test_can_match_admins(self):
+        User.objects.aggregate.match(
+            is_admin=1
+        ).fetch(callback=self.stop)
+        results = self.wait()
+
+        expect(results).not_to_be_null()
+        expect(results).to_length(50)
+
     def test_can_average_city_population(self):
         City.objects.aggregate.group_by(
             City.state,
@@ -149,6 +173,28 @@ class TestAggregation(AsyncTestCase):
 
         for state in results:
             expect(state.avg_pop).to_be_greater_than(2000000)
+
+    def test_can_average_city_population_without_alias(self):
+        City.objects.aggregate.group_by(
+            City.state,
+            City.city,
+            Aggregation.sum(City.pop)
+        ).group_by(
+            City.state,
+            Aggregation.avg("pop")
+        ).fetch(callback=self.stop)
+
+        results = self.wait()
+
+        expect(results).not_to_be_null()
+        expect(results).to_length(4)
+
+        states = [result.state for result in results]
+
+        expect(states).to_be_like(['ny', 'ca', 'wa', 'fl'])
+
+        for state in results:
+            expect(state.pop).to_be_greater_than(2000000)
 
     def test_can_average_city_population_by_raw_query(self):
         City.objects.aggregate.raw([

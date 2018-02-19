@@ -11,7 +11,7 @@ class Database(object):
         self.connection.admin.command('ping', callback=callback)
 
     def disconnect(self):
-        return self.connection.disconnect()
+        return self.connection.close()
 
     def __getattribute__(self, name):
         if name in ['ping', 'connection', 'database', 'disconnect']:

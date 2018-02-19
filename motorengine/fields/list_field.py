@@ -71,4 +71,4 @@ class ListField(BaseField):
         if hasattr(self._base_field, 'reference_type'):
             return self._base_field.reference_type
 
-        return self._base_field
+        return type(self._base_field)
