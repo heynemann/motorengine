@@ -2,6 +2,6 @@ setuptools==1.1
 sphinx
 pymongo==3.6
 tornado
-motor==0.2
+motor==1.2.1
 six
 easydict
