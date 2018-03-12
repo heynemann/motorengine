@@ -38,6 +38,9 @@ class BinaryField(BaseField):
         return value
 
     def validate(self, value):
+        if value is None:
+            return True
+
         if not isinstance(value, (six.binary_type, )):
             return False
 
