@@ -59,14 +59,14 @@ class DecimalField(BaseField):
         return six.u(str(value.quantize(self.precision, rounding=self.rounding)))
 
     def from_son(self, value):
-        if value is None:
-            return True
-
         value = decimal.Decimal(value)
 
         return value.quantize(self.precision, rounding=self.rounding)
 
     def validate(self, value):
+        if value is None:
+            return True
+
         try:
             value = decimal.Decimal(value)
         except:
