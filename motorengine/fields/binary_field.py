@@ -26,12 +26,18 @@ class BinaryField(BaseField):
         self.max_bytes = max_bytes
 
     def to_son(self, value):
+        if value is None:
+            return None
+
         if not isinstance(value, (six.binary_type, )):
             return six.b(value)
 
         return value
 
     def from_son(self, value):
+        if value is None:
+            return None
+
         if not isinstance(value, (six.binary_type, )):
             return six.b(value)
 
