@@ -34,6 +34,9 @@ class URLField(BaseField):
     )
 
     def validate(self, value):
+        if value is None:
+            return True
+
         is_url = URLField.URL_REGEX.match(value)
 
         return is_url
