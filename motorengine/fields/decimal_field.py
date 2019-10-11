@@ -11,22 +11,15 @@ from motorengine.fields.base_field import BaseField
 class DecimalField(BaseField):
     '''
     Field responsible for storing fixed-point decimal numbers (:py:class:`decimal.Decimal`).
-
     Usage:
-
     .. testcode:: modeling_fields
-
         import decimal
-
         name = DecimalField(required=True, min_value=None, max_value=None, precision=2, rounding=decimal.ROUND_HALF_UP)
-
     Available arguments (apart from those in `BaseField`):
-
     * `min_value` - Raises a validation error if the decimal being stored is lesser than this value
     * `max_value` - Raises a validation error if the decimal being stored is greather than this value
     * `precision` - Number of decimal places to store.
     * `rounding` - The rounding rule from the python decimal library:
-
         * decimal.ROUND_CEILING (towards Infinity)
         * decimal.ROUND_DOWN (towards zero)
         * decimal.ROUND_FLOOR (towards -Infinity)
@@ -35,9 +28,7 @@ class DecimalField(BaseField):
         * decimal.ROUND_HALF_UP (to nearest with ties going away from zero)
         * decimal.ROUND_UP (away from zero)
         * decimal.ROUND_05UP (away from zero if last digit after rounding towards zero would have been 0 or 5; otherwise towards zero)
-
     .. note::
-
         Decimal field stores the value as a string in MongoDB to preserve the precision.
     '''
 
@@ -55,15 +46,24 @@ class DecimalField(BaseField):
         self.rounding = rounding
 
     def to_son(self, value):
+        if value is None:
+            return None
+
         value = decimal.Decimal(value)
         return six.u(str(value.quantize(self.precision, rounding=self.rounding)))
 
     def from_son(self, value):
+        if value is None:
+            return None
+
         value = decimal.Decimal(value)
 
         return value.quantize(self.precision, rounding=self.rounding)
 
     def validate(self, value):
+        if value is None:
+            return True
+
         try:
             value = decimal.Decimal(value)
         except:
