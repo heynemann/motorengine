@@ -9,15 +9,10 @@ from motorengine.fields.base_field import BaseField
 class BinaryField(BaseField):
     '''
     Field responsible for storing binary values.
-
     Usage:
-
     .. testcode:: modeling_fields
-
         name = BinaryField(required=True)
-
     Available arguments (apart from those in `BaseField`):
-
     * `max_bytes` - The maximum number of bytes that can be stored in this field
     '''
 
@@ -26,18 +21,27 @@ class BinaryField(BaseField):
         self.max_bytes = max_bytes
 
     def to_son(self, value):
+        if value is None:
+            return None
+
         if not isinstance(value, (six.binary_type, )):
             return six.b(value)
 
         return value
 
     def from_son(self, value):
+        if value is None:
+            return None
+
         if not isinstance(value, (six.binary_type, )):
             return six.b(value)
 
         return value
 
     def validate(self, value):
+        if value is None:
+            return True
+
         if not isinstance(value, (six.binary_type, )):
             return False
 
